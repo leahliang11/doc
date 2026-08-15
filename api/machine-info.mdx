@@ -58,7 +58,7 @@ A successful response includes top-level instance metadata, a `Current` object c
 {
   "success": true,
   "value": "498b5959b4257a8671edd51f2b5cebf7",
-  "ip": "10.10.240.21",
+  "ip": "203.0.113.42",
   "os": "ubuntu",
   "extime": "33285031929",
   "Current": {
@@ -74,12 +74,33 @@ A successful response includes top-level instance metadata, a `Current` object c
     "diskread": 173319141376,
     "diskwrite": 788248155136,
     "maxdisk": 12884901888,
-    "cpus": 2
+    "cpus": 2,
+    "nics": 1,
+    "pid": 12345,
+    "qmpstatus": "running",
+    "tags": "",
+    "balloon": 4294967296,
+    "ha": {},
+    "agent": 1
   },
   "qemuConfig": {
+    "tags": "",
+    "digest": "abc123",
+    "cpu": "x86-64-v2-AES",
+    "sockets": 1,
+    "ostype": "l26",
     "cores": 1,
     "memory": "4096",
-    "name": "user-x-25nov"
+    "smbios1": "uuid=...",
+    "scsi0": "local-lvm:vm-6001-disk-0,size=48G",
+    "name": "user-x-25nov",
+    "onboot": 1,
+    "scsihw": "virtio-scsi-pci",
+    "agent": "1",
+    "meta": "creation-qemu=8.0.2,ctime=1700000000",
+    "boot": "order=scsi0",
+    "net0": "virtio=AA:BB:CC:DD:EE:FF,bridge=vmbr0",
+    "vga": "serial0"
   },
   "osinfo": null
 }
@@ -113,6 +134,10 @@ A successful response includes top-level instance metadata, a `Current` object c
   <Expandable title="Current fields">
     <ResponseField name="status" type="string">
       Current power state of the instance. Possible values: `"running"`, `"stopped"`, `"paused"`.
+    </ResponseField>
+
+    <ResponseField name="vmid" type="number">
+      The numeric VM identifier assigned to this instance on the host node.
     </ResponseField>
 
     <ResponseField name="cpu" type="number">
@@ -158,6 +183,34 @@ A successful response includes top-level instance metadata, a `Current` object c
     <ResponseField name="cpus" type="number">
       Number of vCPU cores allocated to this instance.
     </ResponseField>
+
+    <ResponseField name="nics" type="number">
+      Number of network interface cards attached to this instance.
+    </ResponseField>
+
+    <ResponseField name="pid" type="number">
+      The process ID of the running VM on the host node.
+    </ResponseField>
+
+    <ResponseField name="qmpstatus" type="string">
+      The QEMU Machine Protocol power status string (e.g. `"running"`, `"paused"`).
+    </ResponseField>
+
+    <ResponseField name="tags" type="string">
+      Any tags assigned to the instance. Empty string if none are set.
+    </ResponseField>
+
+    <ResponseField name="balloon" type="number">
+      Current balloon driver memory target, in bytes.
+    </ResponseField>
+
+    <ResponseField name="ha" type="object">
+      High-availability configuration object for this instance.
+    </ResponseField>
+
+    <ResponseField name="agent" type="number">
+      Indicates whether the QEMU guest agent is enabled (`1`) or disabled (`0`).
+    </ResponseField>
   </Expandable>
 </ResponseField>
 
@@ -165,24 +218,72 @@ A successful response includes top-level instance metadata, a `Current` object c
   An object describing the QEMU VM hardware configuration as provisioned on the host node.
 
   <Expandable title="qemuConfig fields">
+    <ResponseField name="name" type="string">
+      The VM name or label assigned at provisioning time.
+    </ResponseField>
+
     <ResponseField name="cores" type="number">
       Number of CPU cores configured in the VM definition.
+    </ResponseField>
+
+    <ResponseField name="sockets" type="number">
+      Number of CPU sockets configured in the VM definition.
+    </ResponseField>
+
+    <ResponseField name="cpu" type="string">
+      CPU type string used by the VM (e.g. `"x86-64-v2-AES"`).
     </ResponseField>
 
     <ResponseField name="memory" type="string">
       Amount of memory configured for the VM, in megabytes (e.g. `"4096"` = 4 GB).
     </ResponseField>
 
-    <ResponseField name="name" type="string">
-      The internal VM name or label assigned at provisioning time.
+    <ResponseField name="ostype" type="string">
+      Operating system type identifier used by the hypervisor (e.g. `"l26"` for Linux 2.6+).
+    </ResponseField>
+
+    <ResponseField name="scsi0" type="string">
+      Disk configuration string for the primary SCSI storage device.
+    </ResponseField>
+
+    <ResponseField name="scsihw" type="string">
+      SCSI hardware controller type (e.g. `"virtio-scsi-pci"`).
     </ResponseField>
 
     <ResponseField name="net0" type="string">
       Network interface configuration string for the primary network adapter.
     </ResponseField>
 
-    <ResponseField name="scsi0" type="string">
-      Disk configuration string for the primary SCSI storage device.
+    <ResponseField name="vga" type="string">
+      VGA display type configured for the VM.
+    </ResponseField>
+
+    <ResponseField name="boot" type="string">
+      Boot order configuration string for the VM.
+    </ResponseField>
+
+    <ResponseField name="onboot" type="number">
+      Whether the VM is set to start automatically on host boot (`1` = yes, `0` = no).
+    </ResponseField>
+
+    <ResponseField name="agent" type="string">
+      Guest agent configuration string.
+    </ResponseField>
+
+    <ResponseField name="tags" type="string">
+      Any tags assigned to the VM configuration. Empty string if none.
+    </ResponseField>
+
+    <ResponseField name="smbios1" type="string">
+      SMBIOS type 1 string, typically containing the VM UUID.
+    </ResponseField>
+
+    <ResponseField name="digest" type="string">
+      A hash of the VM configuration, used for change detection.
+    </ResponseField>
+
+    <ResponseField name="meta" type="string">
+      Metadata string containing creation details and timestamps.
     </ResponseField>
   </Expandable>
 </ResponseField>

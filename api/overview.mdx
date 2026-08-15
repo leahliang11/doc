@@ -1,7 +1,7 @@
 ---
 title: "Joy Services REST API: Automate Your Cloud Infrastructure"
 sidebarTitle: "Overview"
-description: "The Joy Services REST API lets you programmatically manage instances, retrieve account stats, and control machine state using a single POST /api/connect/ endpoint."
+description: "Manage cloud instances, retrieve account stats, and control machine state using the Joy Services REST API — a single POST /api/connect/ endpoint."
 ---
 
 The Joy Services REST API gives you full programmatic control over your cloud infrastructure through a single, unified endpoint. Rather than exposing dozens of routes, every operation is dispatched via a JSON body containing a `type` field that selects what you want to do — whether that's pulling dashboard stats, listing your compute instances, or toggling machine state. The API is designed for automation scripts, custom dashboards, monitoring integrations, and anything else that needs to talk to your infrastructure without a browser.
@@ -40,7 +40,7 @@ This design keeps integration simple: one URL, one method, one consistent reques
 
 ## Request Format
 
-Every request must include the required authentication headers and a JSON body with at minimum a `type` field. The `init_ip` and `init_browser` fields are recommended for session context.
+Every request must include the two required authentication headers and a JSON body with at minimum a `type` field.
 
 ```bash
 curl -X POST "https://api.joy.services/api/connect/" \
@@ -49,15 +49,13 @@ curl -X POST "https://api.joy.services/api/connect/" \
   -H "User-Agent: joyconnect" \
   -H "x-api-token: JOY-API-xxxxxxxxxxxx" \
   -H "x-api-key: joy-xxxxxxxxxxxxxxxx" \
-  --data-raw '{"type": "machine_list", "init_ip": "127.0.0.1", "init_browser": "Chrome"}'
+  --data-raw '{"type": "machine_list"}'
 ```
 
 ### Required Headers
 
 | Header | Value |
 |--------|-------|
-| `Accept` | `application/json` |
-| `Content-Type` | `application/json` |
 | `x-api-token` | Your API token identifier (`JOY-API-TOKEN#API`) |
 | `x-api-key` | Your secret API key (`joy-...`) |
 
@@ -65,18 +63,20 @@ curl -X POST "https://api.joy.services/api/connect/" \
 
 | Header | Value |
 |--------|-------|
+| `Content-Type` | `application/json` |
+| `Accept` | `application/json` |
 | `User-Agent` | `joyconnect` |
 
 ## Response Format
 
 Responses are JSON objects. Most endpoints return `success` as a **string** (`"true"` or `"false"`). A small number of endpoints — such as `machine_info` and `change_machine_state` — return `success` as a **boolean** `true`. Always check both the HTTP status code and the `success` field in your response handling logic.
 
-**Successful response (most endpoints):**
+**Successful response (most endpoints — `dashboardinfo`, `account_info`, `machine_list`):**
 
 ```json
 {
   "success": "true",
-  "data": { }
+  "...": "operation-specific fields"
 }
 ```
 
@@ -85,7 +85,7 @@ Responses are JSON objects. Most endpoints return `success` as a **string** (`"t
 ```json
 {
   "success": true,
-  "data": { }
+  "...": "operation-specific fields"
 }
 ```
 

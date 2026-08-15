@@ -1,7 +1,7 @@
 ---
-title: "Authenticate with the Joy Services API"
+title: "Joy Services API Authentication: Headers and Credentials"
 sidebarTitle: "Authentication"
-description: "Joy Services API authentication uses two HTTP headers — x-api-token and x-api-key — on every request. Learn where to find your credentials and how to keep them secure."
+description: "Joy Services API authentication uses x-api-token and x-api-key headers on every request. Learn where to find your credentials and keep them secure."
 ---
 
 Every request to the Joy Services API must include two authentication headers: `x-api-token` and `x-api-key`. These credentials identify your account and authorize the operation. Both values are available in your account settings and must be treated as secrets — leaking either one grants full API access to your infrastructure. If you ever suspect your credentials have been exposed, regenerate or disable them immediately from your dashboard.

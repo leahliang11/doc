@@ -1,5 +1,5 @@
 ---
-title: "Account Info: Retrieve Your Profile and API Token"
+title: "Account Info: Retrieve Your Profile and API Credentials"
 sidebarTitle: "Account Info"
 description: "POST /api/connect/ with type=account_info returns your account profile, verification status, 2FA status, and current API token metadata."
 ---
@@ -37,23 +37,16 @@ A successful response returns your full profile object along with a nested `api_
 ```json
 {
   "success": "true",
-  "amount": "$ 932.91",
   "email": "email@example.com",
   "verify": 1,
-  "ip": "10.10.125.14",
-  "time": "2023-08-17 16:26:11",
   "twofa": 0,
   "username": "joyuser1",
   "full_name": "First Last",
-  "gender": 1,
   "profile_pic": "https://example.com/pic.gif",
   "api_token": {
     "id": 1,
     "api_token": "JOY-API-TOKEN#API",
     "api_key": "joy-...(long key)...",
-    "timestamp": null,
-    "api_date": null,
-    "api_reg_ip": "10.10.152.16",
     "status": "enabled"
   }
 }
@@ -63,10 +56,6 @@ A successful response returns your full profile object along with a nested `api_
 
 <ResponseField name="success" type="string">
   Indicates whether the request succeeded. Returns `"true"` or `"false"` as a string value, not a boolean.
-</ResponseField>
-
-<ResponseField name="amount" type="string">
-  Your current wallet balance, including currency symbol (e.g. `"$ 932.91"`).
 </ResponseField>
 
 <ResponseField name="email" type="string">

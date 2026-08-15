@@ -1,5 +1,5 @@
 ---
-title: "Change Machine State: Control Instance Power"
+title: "Change Machine State: Start, Stop, and Reboot Instances"
 sidebarTitle: "Machine State"
 description: "POST /api/connect/ with type=change_machine_state starts, stops, reboots, pauses, or hibernates a Joy Services instance using its instance_token."
 ---
@@ -96,5 +96,5 @@ If an unrecognized or invalid `machine_state` value is supplied, the API returns
 </Warning>
 
 <Note>
-  Your backend may return JSON as an encoded string in some response layers. If parsing the response returns a string rather than an object, parse the JSON a second time to obtain the correct structure.
+  The `success` field in `change_machine_state` responses is a boolean (`true` or `false`), unlike other endpoints which return `success` as a string.
 </Note>

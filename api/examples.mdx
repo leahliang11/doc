@@ -1,7 +1,7 @@
 ---
-title: "Joy Services API Code Examples in 3 Languages"
+title: "Joy Services API Code Examples: cURL, JavaScript, PHP"
 sidebarTitle: "Examples"
-description: "Working code examples for the Joy Services REST API in cURL, JavaScript (fetch), and PHP — covering authentication, machine listing, and power state control."
+description: "Ready-to-use Joy Services REST API code examples in cURL, JavaScript, and PHP — covering authentication, machine listing, and power state control."
 ---
 
 This page is a collection of ready-to-use code examples for the most common Joy Services API operations. Every snippet is self-contained and covers authentication, so you can drop it directly into your project. Examples are provided in **cURL**, **JavaScript (fetch)**, and **PHP** — pick whichever fits your stack.
@@ -46,8 +46,10 @@ async function joyConnect(type, extra = {}) {
   });
 
   const data = await res.json().catch(() => ({}));
-  if (!res.ok || data.success !== "true") {
-    throw new Error(data.message || "Joy API request failed");
+  // success is a string "true"/"false" on most endpoints, but a boolean on machine_info and change_machine_state
+  const ok = data.success === true || data.success === "true";
+  if (!res.ok || !ok) {
+    throw new Error(data.message || data.error || "Joy API request failed");
   }
   return data;
 }
@@ -86,8 +88,10 @@ function joyConnect(string $type, array $extra = []): array {
     curl_close($ch);
 
     $data = json_decode($out, true);
-    if ($http !== 200 || ($data["success"] ?? "false") !== "true") {
-        throw new Exception($data["message"] ?? "Joy API request failed");
+    // success is a string "true"/"false" on most endpoints, but a boolean on machine_info and change_machine_state
+    $ok = ($data["success"] ?? null) === true || ($data["success"] ?? null) === "true";
+    if ($http !== 200 || !$ok) {
+        throw new Exception($data["message"] ?? $data["error"] ?? "Joy API request failed");
     }
     return $data;
 }
