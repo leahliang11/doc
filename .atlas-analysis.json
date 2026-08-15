@@ -1,13 +1,11 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
+  "projectType": "saas",
+  "projectName": "Joy Services",
+  "projectDescription": "Joy Services is a cloud infrastructure platform offering VPS compute instances, storage, hosting, and network peering with a self-service dashboard and REST API.",
   "theme": "luma",
-  "name": "Joy Services",
-  "colors": {
-    "primary": "#ef7025",
-    "light": "#eec9bc",
-    "dark": "#4fa1ab"
-  },
-  "favicon": "/favicon.svg",
+  "primaryColor": "#ef7025",
+  "lightColor": "#eec9bc",
+  "darkColor": "#4fa1ab",
   "navigation": {
     "tabs": [
       {
@@ -86,20 +84,25 @@
       }
     ]
   },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "https://joy.services/contact/"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://joy.services/login/"
-    }
-  },
-  "footer": {
-    "socials": {}
-  }
+  "keyFeatures": [
+    "Self-service VPS instance provisioning with instant delivery",
+    "Flexible RAM (up to 750 GB) and CPU (up to 200 cores) configuration",
+    "RAID 0 and RAID 10 storage redundancy options",
+    "One-click OS installation (Ubuntu, Windows Server)",
+    "Automated 24-hour backups with configurable retention",
+    "Real-time instance monitoring (CPU, memory, network graphs)",
+    "Power state management (start, stop, reboot, pause, hibernate)",
+    "BGP peering via ASN 152565",
+    "REST API for programmatic instance and account management",
+    "Two-factor authentication and API key security"
+  ],
+  "publicApiSurface": [
+    "POST /api/connect/ { type: \"dashboardinfo\" }",
+    "POST /api/connect/ { type: \"account_info\" }",
+    "POST /api/connect/ { type: \"machine_list\" }",
+    "POST /api/connect/ { type: \"machine_info\", instance_token }",
+    "POST /api/connect/ { type: \"change_machine_state\", machine_state, instance_token }",
+    "x-api-token header authentication",
+    "x-api-key header authentication"
+  ]
 }

@@ -1,0 +1,121 @@
+---
+title: "Create a Joy Services VPS Instance Step by Step"
+sidebarTitle: "Create Instance"
+description: "Provision a new VPS instance on Joy Services: choose RAM, CPU, storage, RAID configuration, OS, plan length, and authorize payment for instant delivery."
+---
+
+Provisioning a new instance on Joy Services takes only a few minutes. You walk through a guided creation flow in the dashboard, choose your hardware configuration, pick a billing plan, set your RAID mode, and complete payment — your instance spins up instantly the moment your payment is confirmed, with credentials sent straight to your email.
+
+<Steps>
+
+  <Step title="Sign Up and Log In">
+    If you do not already have a Joy Services account, [create one here](https://joy.services/register/). Existing customers can [log in to the dashboard](https://joy.services/login/) directly.
+
+    Once you are logged in, you will land on the main dashboard overview where all your active instances and account details are visible.
+  </Step>
+
+  <Step title="Navigate to Create Instance">
+    From the dashboard, click the **Instances** tab in the left-hand navigation menu. Then click the **Create Instance** button at the top right of the Instances page.
+
+    You can also go directly to the creation page at [joy.services/dashboard/instances/create/](https://joy.services/dashboard/instances/create/).
+  </Step>
+
+  <Step title="Configure Resources">
+    Select the hardware resources your instance needs. Each resource tier is designed for specific workload types.
+
+    #### RAM
+
+    | Option | Recommended For                              |
+    | ------ | -------------------------------------------- |
+    | 2 GB   | Lightweight sites, staging environments      |
+    | 4 GB   | Small apps, personal projects, dev servers   |
+    | 8 GB   | Medium web apps, small databases             |
+    | 16 GB+ | Production workloads, large databases, APIs  |
+
+    RAM scales all the way up to **750 GB** for memory-intensive enterprise workloads.
+
+    #### CPU Cores
+
+    | Option | Recommended For                                     |
+    | ------ | --------------------------------------------------- |
+    | 1 Core | Simple sites, cron jobs, lightweight services       |
+    | 2 Cores| Standard web apps, small APIs                       |
+    | 4 Cores| Multi-threaded apps, moderate traffic workloads     |
+    | 8+ Cores| High-concurrency services, video encoding, analytics|
+
+    You can configure up to **200 CPU cores** for compute-heavy applications.
+
+    #### Storage
+
+    All storage is **SSD** for fast read/write speeds. Available base sizes include:
+
+    - **48 GB** — Suitable for lean OS deployments and small applications.
+    - **480 GB** — A balanced option for most production workloads.
+    - **1 TB+** — Large-scale data storage, media hosting, and database-heavy apps.
+
+    You can add more disks at any time after the instance is created from the Config tab.
+
+    #### Server Node
+
+    Select the server node (data center location) closest to your target audience. Choosing a nearby node reduces round-trip latency and improves end-user performance.
+  </Step>
+
+  <Step title="Choose a Plan">
+    Joy Services offers flexible billing plans. Longer commitments reduce your overall cost per month.
+
+    | Plan    | Best For                                    |
+    | ------- | ------------------------------------------- |
+    | 1 Month | Testing, development, and short experiments |
+    | 3 Month | Seasonal workloads and temporary projects   |
+    | 5 Month | Growing businesses with medium-term needs   |
+    | 1 Year  | Established projects with long-term hosting |
+    | 5 Year  | Enterprise workloads requiring strategic, multi-year planning |
+
+    Select the plan that aligns with your project timeline before proceeding.
+  </Step>
+
+  <Step title="Configure RAID">
+    RAID (Redundant Array of Independent Disks) controls how your storage disks work together. Joy Services supports two modes:
+
+    **RAID 0 — Striping (Performance Mode)**
+
+    Data is split across multiple disks simultaneously, which maximizes read/write speeds. There is no redundancy — if one disk fails, all data on the array is lost.
+
+    Best for: gaming servers, video editing workloads, and temporary high-performance environments where data loss is acceptable.
+
+    <Warning>
+      RAID 0 provides **no data redundancy**. A single disk failure will result in complete data loss. Do not use RAID 0 for production databases, business-critical applications, or any data you cannot afford to lose.
+    </Warning>
+
+    **RAID 10 — Striping + Mirroring (Fault-Tolerant Mode)**
+
+    Data is simultaneously striped for performance and mirrored for redundancy. Your instance can survive a disk failure and keep running without data loss.
+
+    Best for: production databases, business websites, and any workload where uptime and data integrity are critical. **RAID 10 is the recommended choice for most production environments.**
+  </Step>
+
+  <Step title="Review and Pay">
+    Before completing your order, review the configuration summary displayed on the checkout page. Verify that your selected RAM, CPU, storage size, RAID mode, OS, and plan length are all correct.
+
+    When you are satisfied, click **Pay Now** to authorize payment.
+
+    <Tip>
+      Your instance is delivered **instantly** as soon as payment is confirmed — no waiting period. A confirmation email with your instance details and login credentials is sent to your registered email address immediately after provisioning.
+    </Tip>
+  </Step>
+
+  <Step title="Access Your Instance">
+    Once your instance is live, navigate to the **Instances** page in your dashboard and click your new instance to open its control panel. From there you can:
+
+    - **Start, Stop, or Reboot** your instance using the power controls.
+    - **Resize resources** from the Config tab (instance must be powered off for hardware changes).
+    - **Connect via SSH or RDP** using the credentials sent to your email.
+
+    Check your inbox for the credentials email if you have not already. You can also reset your password at any time from the **Manage** tab inside the instance control panel.
+  </Step>
+
+</Steps>
+
+<Note>
+  Upgrade charges apply when increasing RAM or CPU to a higher tier. Downgrades to a lower tier are free of charge. The instance must be **powered off** before making any hardware changes — attempting to resize a running instance is not supported.
+</Note>

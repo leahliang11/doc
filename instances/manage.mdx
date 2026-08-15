@@ -1,0 +1,152 @@
+---
+title: "Manage, Monitor, and Control Your VPS Instance"
+sidebarTitle: "Manage"
+description: "Use the Joy Services dashboard Manage tab to control power state, monitor CPU and memory, reset credentials, configure alerts, and view network statistics."
+---
+
+The **Manage tab** in your Joy Services instance control panel is your central hub for day-to-day operational control. From one place you can power your instance on or off, pause and resume execution, watch real-time and historical CPU and memory graphs, toggle networking, configure threshold-based alert notifications, reset your MAC address or password, and permanently delete an instance when it is no longer needed. This page covers every feature available in the Manage tab.
+
+## Machine Status
+
+The status indicator at the top of the Manage tab always reflects the current state of your instance.
+
+| State   | Description                                     |
+| ------- | ----------------------------------------------- |
+| Running | The instance is active, powered on, and operational |
+| Stop    | The instance is powered off                     |
+| Pause   | The instance is suspended and in sleep mode     |
+
+The status updates in real time so you always have an accurate view of whether your instance is available to serve traffic.
+
+## Power Controls
+
+Use the power controls to change your instance's running state at any time. Actions apply instantly.
+
+| Action  | Description                                                     |
+| ------- | --------------------------------------------------------------- |
+| Start   | Power on a stopped instance                                     |
+| Stop    | Instantly halt a running instance (equivalent to a hard power-off) |
+| Restart | Immediately cut and restore power — a hard reset                |
+| Pause   | Suspend the instance to a KVM sleep state without powering it off |
+| Resume  | Wake a paused instance and return it to the Running state       |
+
+<Note>
+  All power actions apply **instantly** at the hypervisor level. For a graceful reboot or shutdown that allows your OS to cleanly close running processes and flush disk buffers, use the shutdown or restart commands **inside** your instance (for example, `sudo shutdown -r now` on Linux, or Start → Shut Down on Windows Server) before using the dashboard controls.
+</Note>
+
+The Manage tab also displays **Uptime** — the amount of time the instance has been continuously running since its last start — so you can quickly gauge stability and schedule maintenance windows.
+
+## Network
+
+The network section of the Manage tab gives you visibility into your instance's data transfer activity and lets you control connectivity directly.
+
+- **Download Statistics** — View current and historical inbound bandwidth usage to understand how much data your instance is receiving.
+- **Upload Statistics** — Monitor outbound bandwidth to track how much data your instance is sending to clients or external services.
+- **Network On/Off Toggle** — Enable or disable network access for your instance instantly. This is useful for isolating a compromised instance, performing maintenance that should not be interrupted by incoming traffic, or testing firewall configurations.
+
+Use the network statistics alongside Joy Services' Equal Diversion Technology to diagnose performance bottlenecks and verify that your bandwidth allocation matches your workload's demands.
+
+## Performance Monitoring
+
+The Manage tab provides built-in performance graphs that give you continuous visibility into your instance's resource consumption.
+
+### Memory Graph
+
+The memory graph displays your instance's **RAM usage over time**. Use it to:
+
+- Identify memory leaks in running applications.
+- Determine whether your current RAM allocation is sufficient.
+- Spot sudden spikes caused by unexpected workloads or runaway processes.
+- Decide when it is time to upgrade to a higher RAM tier.
+
+### CPU Graph
+
+The CPU graph displays **CPU utilization over time** across all allocated cores. Use it to:
+
+- Detect sustained high CPU usage that indicates a need for more cores.
+- Identify specific time windows when traffic or processing peaks.
+- Pinpoint bottlenecks in application code that are consuming disproportionate compute.
+
+### Graph History
+
+The graph history feature stores historical performance data so you can look back over longer periods. Use trends from graph history for:
+
+- **Capacity planning** — Determine whether you need to scale up or if you are consistently over-provisioned.
+- **Incident investigation** — Review what was happening on the instance before, during, and after a performance event.
+- **Right-sizing decisions** — Match your instance plan to your actual usage patterns over time.
+
+## Alerts
+
+Joy Services can notify you in real time when your instance crosses performance thresholds, so you can respond before problems affect your users.
+
+**What triggers alerts:**
+
+- **High CPU usage** — Sustained CPU saturation that may indicate overload or a runaway process.
+- **Memory leaks** — RAM usage climbing steadily over time without releasing.
+- **Network issues** — Unusual inbound or outbound bandwidth patterns or connectivity drops.
+
+**How alerts work:**
+
+- Set customizable thresholds for each metric (CPU percentage, memory percentage, network usage).
+- When a threshold is crossed, Joy Services sends a notification through your configured channels.
+
+**Supported alert channels:**
+
+| Channel            | Description                                               |
+| ------------------ | --------------------------------------------------------- |
+| Email              | Alert sent to your registered email address               |
+| SMS                | Text message sent to your registered phone number         |
+| Push Notifications | In-app notification delivered to the Joy Services mobile app |
+
+Configure your preferred channels and thresholds in the **Alert Notification** section of the Manage tab.
+
+## Instance Management Actions
+
+### Mac Reset
+
+The **Mac Reset** action generates a new MAC address for your instance's virtual network interface. Use this when:
+
+- Your instance is experiencing network connectivity issues related to MAC address conflicts.
+- You need to reset the network identity of the virtual machine for diagnostic purposes.
+
+After a MAC reset, restart your instance's network service or reboot the instance to apply the new address.
+
+### Password Reset
+
+<Steps>
+
+  <Step title="Open Password Reset">
+    In the **Manage** tab, locate and click the **Password Reset** button.
+  </Step>
+
+  <Step title="Enter the Username">
+    Type the username for the account whose password you want to change. The default usernames are:
+    - **Linux (Ubuntu):** `joy`
+    - **Windows Server:** `Administrator`
+  </Step>
+
+  <Step title="Enter a New Password">
+    Enter a new password. For maximum security, use a mix of:
+    - Uppercase letters
+    - Lowercase letters
+    - Numbers
+    - Special characters (e.g. `!`, `@`, `#`, `$`)
+
+    <Warning>
+      Passwords must **not exceed 15 characters**. Passwords longer than 15 characters will not be accepted. Keep your password within this limit while still making it as strong as possible.
+    </Warning>
+  </Step>
+
+  <Step title="Save Your Changes">
+    Click **Save** to apply the new password. The change takes effect immediately. Update any SSH keys, RDP clients, or automation scripts that use the old credentials.
+  </Step>
+
+</Steps>
+
+### Delete
+
+The **Delete** action permanently removes your instance and all data associated with it.
+
+<Warning>
+  Deleting an instance is **permanent and irreversible**. All data stored on the instance — including OS files, application data, databases, and configurations — will be destroyed and cannot be recovered. **Back up all important data before deleting.** If you want to start fresh with the same plan, you can create a new instance in the same paid billing slot rather than deleting your current one.
+</Warning>

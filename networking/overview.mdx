@@ -1,0 +1,54 @@
+---
+title: "Joy Services Network Infrastructure and Performance"
+sidebarTitle: "Overview"
+description: "Understand Joy Services networking: Equal Diversion Technology distributes traffic across multiple paths for optimal performance, low latency, and high availability."
+---
+
+Joy Services is built on a robust network infrastructure designed to deliver consistent, high-performance connectivity for every workload. At the core of our network is **Equal Diversion Technology**, which intelligently distributes traffic across multiple paths to eliminate bottlenecks and ensure reliable uptime. Combined with **BGP peering** support via ASN 152565, Joy Services provides the building blocks for a fast, resilient cloud environment. This section covers how our network works, its key benefits, and how you can connect directly through peering.
+
+## Equal Diversion Technology
+
+Equal Diversion Technology is Joy Services' approach to intelligent traffic distribution. Rather than routing all traffic through a single path — which can become a bottleneck under load — our network spreads traffic evenly across multiple paths simultaneously. This keeps performance consistent even as demand increases.
+
+Equal Diversion Technology is achieved through two core mechanisms:
+
+- **Load Balancing** — Traffic is distributed evenly across available network paths using load balancers, ensuring no single path is overwhelmed and that all resources are utilized efficiently.
+- **Network Optimization** — Network settings are continuously tuned to facilitate smooth, uninterrupted data flow, minimizing congestion and reducing the chance of packet loss or degraded throughput.
+
+Together, these mechanisms ensure that your VPS workloads benefit from stable, predictable network performance at all times.
+
+## Network Benefits
+
+<CardGroup cols={2}>
+  <Card title="Performance" icon="gauge-high">
+    Traffic is routed over low-latency paths, ensuring fast response times and a snappy experience for end-users and applications.
+  </Card>
+  <Card title="Reliability" icon="shield-check">
+    With traffic spread across multiple paths, there is no single point of failure — your services stay online even if one path experiences issues.
+  </Card>
+  <Card title="Scalability" icon="arrow-up-right-dots">
+    The network is designed to handle traffic growth gracefully, adapting to increased demand without requiring manual intervention.
+  </Card>
+  <Card title="Efficiency" icon="chart-pie">
+    Optimal bandwidth utilization means you get the most out of your available capacity, reducing waste and keeping costs predictable.
+  </Card>
+</CardGroup>
+
+## BGP Peering
+
+Joy Services supports BGP (Border Gateway Protocol) peering under **ASN 152565**, enabling direct network-to-network connections with other autonomous systems. Peering allows traffic between networks to travel more directly, reducing hops, lowering latency, and improving overall throughput compared to relying solely on transit providers.
+
+Whether you are looking for public peering at an Internet Exchange Point (IXP) or a private direct connection for high-volume traffic, Joy Services can accommodate your requirements.
+
+For full details on peering types, requirements, and how to submit a request, visit the [BGP Peering](/networking/peering) page.
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="BGP Peering" icon="network-wired" href="/networking/peering">
+    Learn about peering types, technical requirements, and how to establish a direct BGP connection with Joy Services AS152565.
+  </Card>
+  <Card title="Peering FAQ" icon="circle-question" href="/networking/peering-faq">
+    Browse answers to common questions about BGP peering, ASN details, setup timelines, and more.
+  </Card>
+</CardGroup>

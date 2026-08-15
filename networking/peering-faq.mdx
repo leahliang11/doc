@@ -1,0 +1,65 @@
+---
+title: "BGP Peering FAQ: Common Questions Answered"
+sidebarTitle: "Peering FAQ"
+description: "Answers to common questions about BGP peering with Joy Services AS152565, including requirements, peering types, setup time, and how to get support."
+---
+
+This page is a quick-reference guide for the most common questions about establishing BGP peering with Joy Services. Whether you are new to peering or simply looking to verify specific details about AS152565, you will find clear, concise answers below. For a full walkthrough of the peering process, see the [BGP Peering](/networking/peering) guide.
+
+<AccordionGroup>
+  <Accordion title="What is BGP peering?">
+    BGP (Border Gateway Protocol) peering is a process where two or more networks connect and exchange traffic directly — without routing through an intermediary transit provider. By establishing a peering relationship, both networks can communicate more efficiently, resulting in improved speed, greater reliability, and enhanced overall network efficiency.
+  </Accordion>
+
+  <Accordion title="What is Joy Services' ASN?">
+    Joy Services operates under **ASN 152565**, registered as a Business type autonomous system. You can verify this and view full ASN details at [bgp.tools/as/152565](https://bgp.tools/as/152565).
+  </Accordion>
+
+  <Accordion title="What are the requirements for peering?">
+    To peer with Joy Services, you will need:
+
+    - An **official Autonomous System Number (ASN)** assigned to your network
+    - **Properly configured BGP routers** capable of establishing and maintaining BGP sessions
+    - Compliance with Joy Services' **technical and operational requirements** for the desired peering type
+
+    If you are unsure whether your network qualifies, reach out to [support@joycloud.services](mailto:support@joycloud.services) for guidance.
+  </Accordion>
+
+  <Accordion title="What types of peering does Joy Services support?">
+    Joy Services supports two types of BGP peering:
+
+    - **Public peering** — Conducted at Internet Exchange Points (IXPs), where multiple networks interconnect in a shared, cost-effective environment.
+    - **Private peering** — A direct, dedicated connection between your network and Joy Services, bypassing the IXP. This is best suited for high-volume traffic between large networks that require consistent, high-throughput connectivity.
+  </Accordion>
+
+  <Accordion title="How do I request peering?">
+    To request peering with Joy Services, send an email to [support@joycloud.services](mailto:support@joycloud.services) with the following information:
+
+    - Your ASN
+    - Technical and NOC contact details
+    - Preferred peering locations or IXPs
+    - Estimated traffic volumes
+
+    For a full step-by-step walkthrough, see the [BGP Peering](/networking/peering) guide.
+  </Accordion>
+
+  <Accordion title="How long does peering setup take?">
+    After submitting a peering request to [support@joycloud.services](mailto:support@joycloud.services), the Joy Services network team will review your submission and respond with next steps. The total setup time depends on the type of peering requested (public or private) and the readiness of both networks — including BGP configuration, route policy alignment, and any physical provisioning required for private peering.
+  </Accordion>
+
+  <Accordion title="What are the benefits of peering with Joy Services?">
+    Peering with Joy Services AS152565 provides several key advantages:
+
+    - **Improved network performance** — Direct traffic exchange reduces the number of hops and shortens routing paths.
+    - **Reduced latency** — Faster, more direct routes result in lower response times for your end-users.
+    - **Enhanced efficiency** — Bypassing transit providers reduces overhead and makes better use of available bandwidth.
+    - **Direct traffic exchange** — Traffic between your network and Joy Services travels the most optimal path, without dependence on third-party transit.
+  </Accordion>
+
+  <Accordion title="Where can I find ASN details for AS152565?">
+    You can look up public information about Joy Services' ASN using the following external tools:
+
+    - [DNSChecker ASN WHOIS Lookup — AS152565](https://dnschecker.org/asn-whois-lookup.php?query=152565)
+    - [BGP.tools Network Summary — AS152565](https://bgp.tools/as/152565)
+  </Accordion>
+</AccordionGroup>

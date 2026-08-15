@@ -1,0 +1,79 @@
+---
+title: "Secure Your Joy Services Account and API Keys"
+sidebarTitle: "Security"
+description: "Protect your Joy Services account with email verification, two-factor authentication, strong passwords, and secure API key handling."
+---
+
+Account security is a shared responsibility, and Joy Services provides several layers of protection to help you keep your infrastructure safe. This page covers everything you need to know about verifying your email, enabling two-factor authentication, choosing strong passwords, and handling API credentials properly — so your instances, data, and billing information stay out of the wrong hands.
+
+## Email Verification
+
+After creating your Joy Services account, you must verify your email address before gaining full access to all platform features. Check your inbox for the verification email sent at sign-up and follow the link inside.
+
+Once verified, your account's `verify` field is set to `1`. You can confirm your verification status at any time under **Account Settings → Profile**. Without a verified email, certain actions — including some billing operations — may be restricted.
+
+If you did not receive the verification email, check your spam folder or request a new one from the Account Settings page.
+
+## Two-Factor Authentication (2FA)
+
+Two-factor authentication adds a second verification step when you sign in, making it significantly harder for attackers to access your account even if they obtain your password.
+
+To enable 2FA, go to **Account Settings → Security** and follow the setup instructions. Once enabled, the `twofa` field on your account is set to `1`. Disabling 2FA sets it back to `0`.
+
+<Tip>
+  Always enable 2FA for production accounts. A compromised account can result in unauthorized instance creation, data loss, or unexpected billing charges.
+</Tip>
+
+## Password Best Practices
+
+A strong account password is your first line of defense. When setting or updating your Joy Services master account password, follow these guidelines:
+
+- Mix **uppercase and lowercase letters**.
+- Include at least one **number**.
+- Use one or more **special characters** (e.g., `!`, `@`, `#`, `$`).
+- Avoid dictionary words, names, or predictable patterns.
+- Use a unique password not shared with any other service.
+
+<Warning>
+  **Instance passwords must not exceed 15 characters.** This limit is enforced by the guest agent that manages credentials inside your VPS. Passwords longer than 15 characters will be rejected or truncated, potentially locking you out of your instance.
+</Warning>
+
+Your master Joy Services account password has no upper length limit — choose a long, strong passphrase for it.
+
+## API Key Security
+
+Joy Services issues two pieces of API credential to authenticate programmatic requests:
+
+- **`api_token`** — A short identifier token in the format `JOY-API-TOKEN#API`. Used to identify your account in API requests.
+- **`api_key`** — A long secret key beginning with `joy-`. Used to sign and authenticate API calls.
+
+<Warning>
+  **Treat your `api_token` and `api_key` as secrets.** Never commit them to public repositories, embed them in client-side JavaScript, or expose them in browser-accessible code. Anyone who obtains these values can make API calls on your behalf, including creating or deleting instances and incurring billing charges.
+</Warning>
+
+Follow these best practices to keep your API credentials secure:
+
+- **Use HTTPS** for all API calls — never transmit credentials over plain HTTP.
+- **Route API calls through your backend server** — never call the Joy Services API directly from a browser or mobile client.
+- **Rotate keys immediately** if you suspect they have been compromised.
+- **Restrict allowed IPs** where supported to limit which servers can use your credentials.
+- **Log request IDs** returned by the API so you can trace activity and provide context when contacting support.
+
+## Generating API Credentials
+
+Your API token and key are found under **Account Settings → API**. The token can have a status of `enabled` or `disabled`. Only an enabled token can authenticate API requests.
+
+<Note>
+  If your API token status is **disabled** and you are unable to re-enable it from the dashboard, contact Joy Services support at [joy.services/contact/](https://joy.services/contact/) for assistance.
+</Note>
+
+Store your credentials in environment variables or a secrets manager (such as HashiCorp Vault or AWS Secrets Manager) rather than hardcoding them in configuration files.
+
+<CardGroup cols={2}>
+  <Card title="API Authentication" icon="key" href="/api/authentication">
+    Learn how to authenticate requests using your API token and key.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Explore all available Joy Services API endpoints.
+  </Card>
+</CardGroup>

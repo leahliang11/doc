@@ -1,0 +1,100 @@
+---
+title: "Change Machine State: Control Instance Power"
+sidebarTitle: "Machine State"
+description: "POST /api/connect/ with type=change_machine_state starts, stops, reboots, pauses, or hibernates a Joy Services instance using its instance_token."
+---
+
+The `change_machine_state` operation sends a power control command to a specific instance, identified by its `instance_token` (the `ihash` from `machine_list`). You can use this endpoint to start, shut down, force-stop, reboot, pause, hibernate, or resume any instance on your account. All supported state transitions and their expected response values are listed below.
+
+## Request
+
+Send a `POST` request to `https://api.joy.services/api/connect/` with `type` set to `"change_machine_state"`, the target `instance_token`, and the desired `machine_state`. The `init_ip` and `init_browser` fields are recommended on every request.
+
+```json
+{
+  "type": "change_machine_state",
+  "init_ip": "127.0.0.1",
+  "init_browser": "Chrome",
+  "machine_state": "start",
+  "instance_token": "cf25998c59fdbf37f0fada2517242f47"
+}
+```
+
+```bash
+curl -X POST https://api.joy.services/api/connect/ \
+  -H "Content-Type: application/json" \
+  -H "x-api-token: YOUR_API_TOKEN" \
+  -H "x-api-key: YOUR_API_KEY" \
+  -d '{
+    "type": "change_machine_state",
+    "init_ip": "127.0.0.1",
+    "init_browser": "Chrome",
+    "machine_state": "start",
+    "instance_token": "cf25998c59fdbf37f0fada2517242f47"
+  }'
+```
+
+## Request Fields
+
+<ParamField body="type" type="string" required>
+  Must be `"change_machine_state"`.
+</ParamField>
+
+<ParamField body="instance_token" type="string" required>
+  The `ihash` token for the target instance, obtained from the `machine_list` response.
+</ParamField>
+
+<ParamField body="machine_state" type="string" required>
+  The desired power state to apply to the instance. See the [Supported States](#supported-states) table for all valid values.
+</ParamField>
+
+<ParamField body="init_ip" type="string">
+  The IP address of the client making the request. Recommended on all requests.
+</ParamField>
+
+<ParamField body="init_browser" type="string">
+  The browser or application name of the client making the request. Recommended on all requests.
+</ParamField>
+
+## Supported States
+
+| `machine_state` | Action | Success Response `value` |
+|---|---|---|
+| `start` | Power on the instance | `machine_already_started` |
+| `shutdown` | Graceful OS shutdown | `shutdown_success` |
+| `force_shutdown` | Hard power cut (no OS shutdown) | `stopped_successfully` |
+| `reboot` | Graceful OS reboot | `reboot_success` |
+| `force_reboot` | Hard reset (no OS shutdown) | `power_reset_success` |
+| `pause` | Suspend the instance | `machine_paused` |
+| `hibernate` | Hibernate the instance | `machine_hibernated` |
+| `resume` | Resume from pause or hibernate | `machine_already_resumed` |
+
+## Success Response
+
+A successful state change returns a `success` value of `true` and a `value` string describing the outcome of the operation.
+
+```json
+{
+  "success": true,
+  "value": "machine_already_started"
+}
+```
+
+## Error Response
+
+If an unrecognized or invalid `machine_state` value is supplied, the API returns an error response.
+
+```json
+{
+  "success": false,
+  "error": "invalid_state"
+}
+```
+
+<Warning>
+  `force_shutdown` and `force_reboot` cut power to the instance immediately, without triggering a graceful OS shutdown sequence. Prefer `shutdown` and `reboot` whenever possible to avoid filesystem corruption or data loss.
+</Warning>
+
+<Note>
+  Your backend may return JSON as an encoded string in some response layers. If parsing the response returns a string rather than an object, parse the JSON a second time to obtain the correct structure.
+</Note>

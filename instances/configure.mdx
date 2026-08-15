@@ -1,0 +1,96 @@
+---
+title: "Configure Instance Hardware, Storage, and Backups"
+sidebarTitle: "Configure"
+description: "Resize RAM and CPU cores, add or extend disks, and enable automatic backups for your Joy Services VPS instance from the Config tab."
+---
+
+The **Config tab** in your instance control panel is where you manage every aspect of your instance's underlying hardware and data protection settings. From one place you can resize RAM and CPU cores to match changing workloads, manage your storage disks — including adding new ones, extending existing ones, or removing unused ones — and configure automatic backups that run every 24 hours. This page walks you through each option in detail.
+
+## Hardware Configuration
+
+To access hardware settings, open your **Joy Services dashboard**, go to **Instances**, select the instance you want to modify, and click the **Config** tab.
+
+From here you can adjust:
+
+- **RAM** — Scale up to **750 GB** to handle memory-intensive applications. Scale down to a smaller tier when demand drops and reduce your monthly cost.
+- **CPU Cores** — Increase to up to **200 cores** for compute-heavy workloads, or reduce cores when fewer are needed.
+
+<Warning>
+  Your instance **must be powered off** before you apply any RAM or CPU changes. Navigate to the **Manage** tab and use the **Stop** action to power off the instance first, then return to Config to apply your changes. Attempting to resize a running instance is not supported.
+</Warning>
+
+**Pricing notes:**
+
+- **Upgrades** (increasing RAM or CPU) incur additional charges based on the difference in plan pricing.
+- **Downgrades** (reducing RAM or CPU) are free of charge.
+
+Changes take effect as soon as the instance is restarted after the configuration update is saved.
+
+## Disk Management
+
+Joy Services gives you granular control over your instance's storage layout. All disks are SSD. The disk management section of the Config tab shows your current storage state and provides tools to add, extend, or remove disks.
+
+### Disk Information
+
+The top of the disk section displays a real-time summary of your storage:
+
+| Field             | Description                                         |
+| ----------------- | --------------------------------------------------- |
+| Total Drive       | The number of physical disk volumes attached        |
+| Total Storage     | Combined capacity across all attached disks         |
+| Used Storage      | How much of your total storage is currently in use  |
+| Available Storage | Remaining free space across all disks               |
+
+Use this summary to decide when to add capacity or clean up unused data before extending disks.
+
+### Adding a Disk
+
+To attach a new disk to your instance:
+
+1. Scroll to the **Add Disk** section within the Config tab.
+2. Enter the desired disk size in **GB**.
+3. Click **Validate** to confirm and provision the new disk.
+
+The new disk appears as an additional volume (for example, **Disk1**) and is immediately available to partition, format, and mount inside your operating system.
+
+### Extending a Disk
+
+To increase the size of an existing disk:
+
+1. Select the disk you want to resize — **Disk0** (your OS disk) or **Disk1** (any secondary disk).
+2. Enter the **new total size** you want the disk to be (not the amount to add — the full target size in GB).
+3. Click **Validate** to apply the extension.
+
+After extending, you may need to expand the partition and file system from within the operating system to use the additional space.
+
+### Deleting a Disk
+
+To remove an unused secondary disk:
+
+1. Check the box next to the disk you want to delete.
+2. Click **Delete** to remove it.
+
+<Warning>
+  **Disk0 (the OS disk) cannot be deleted.** Disk0 contains your operating system and is required for your instance to function. Only secondary disks (Disk1 and above) are eligible for deletion. Deleting a disk is **permanent and irreversible** — all data stored on that disk will be lost. Back up any important data before proceeding.
+</Warning>
+
+## Automatic Backups
+
+Joy Services automatically creates backups of your instance on a recurring schedule, protecting you against accidental deletion, failed OS changes, and data corruption.
+
+**Key details:**
+
+- **Frequency** — Backups run automatically every **24 hours**.
+- **Cost** — Backup pricing is based on your instance's current total disk size. Larger disks produce larger backups and are priced accordingly.
+- **Retention** — You choose how long backups are kept. Configure the retention period to balance storage costs against how far back you need to be able to restore.
+
+**How to enable backups:**
+
+1. Open the **Config** tab for your instance.
+2. Scroll to the **Backup Configuration** section.
+3. Toggle backups on and select your desired retention period.
+4. Save your settings.
+
+<Tip>
+  Enable automatic backups **before** making major operating system changes, installing new software stacks, or applying large configuration updates. If anything goes wrong, you can restore to the last clean backup with minimal downtime.
+</Tip>

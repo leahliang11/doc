@@ -1,0 +1,111 @@
+---
+title: "Machine List: Get All Your Active Instances"
+sidebarTitle: "Machine List"
+description: "POST /api/connect/ with type=machine_list returns all active compute instances with their IP addresses, OS, resource allocation, and instance tokens."
+---
+
+The `machine_list` operation returns an array of all active compute instances on your account. Each entry includes the instance's IP address, operating system, hardware allocation (RAM, CPU, storage), and the `ihash` — a unique instance token required for per-instance operations such as `machine_info` and `change_machine_state`.
+
+## Request
+
+Send a `POST` request to `https://api.joy.services/api/connect/` with the `type` field set to `"machine_list"`. The `init_ip` and `init_browser` fields are recommended on every request.
+
+```json
+{
+  "type": "machine_list",
+  "init_ip": "127.0.0.1",
+  "init_browser": "Chrome"
+}
+```
+
+```bash
+curl -X POST https://api.joy.services/api/connect/ \
+  -H "Content-Type: application/json" \
+  -H "x-api-token: YOUR_API_TOKEN" \
+  -H "x-api-key: YOUR_API_KEY" \
+  -d '{
+    "type": "machine_list",
+    "init_ip": "127.0.0.1",
+    "init_browser": "Chrome"
+  }'
+```
+
+## Response
+
+A successful response returns a `value` array where each element represents one active instance.
+
+```json
+{
+  "success": "true",
+  "value": [
+    {
+      "id": 342,
+      "machine": "6001",
+      "machine_node": "c15-node-joy-london",
+      "ip": "10.10.112.65",
+      "platform": "ubuntu",
+      "price": null,
+      "extime": "33285031929",
+      "expire": null,
+      "ram": 4,
+      "core": 2,
+      "storage": 48,
+      "ihash": "498b5959b4257a8671edd51f2b5cebf7"
+    }
+  ]
+}
+```
+
+## Machine Object Fields
+
+<ResponseField name="id" type="number">
+  Internal database record ID for this instance entry.
+</ResponseField>
+
+<ResponseField name="machine" type="string">
+  Short identifier for the instance (e.g. `"6001"`), typically corresponding to the VM ID on the host node.
+</ResponseField>
+
+<ResponseField name="machine_node" type="string">
+  The host or node label where this instance is running, including location information (e.g. `"c15-node-joy-london"`).
+</ResponseField>
+
+<ResponseField name="ip" type="string">
+  The primary IP address assigned to this instance.
+</ResponseField>
+
+<ResponseField name="platform" type="string">
+  The operating system label for this instance (e.g. `"ubuntu"`, `"windows"`).
+</ResponseField>
+
+<ResponseField name="ram" type="number">
+  Allocated RAM for this instance, in gigabytes.
+</ResponseField>
+
+<ResponseField name="core" type="number">
+  Number of allocated vCPU cores for this instance.
+</ResponseField>
+
+<ResponseField name="storage" type="number">
+  Allocated disk storage for this instance, in gigabytes.
+</ResponseField>
+
+<ResponseField name="expire" type="string | null">
+  The expiry date for this instance, if applicable. Returns `null` for instances without a fixed expiry.
+</ResponseField>
+
+<ResponseField name="extime" type="string">
+  Internal expiry timestamp represented as a Unix epoch string.
+</ResponseField>
+
+<ResponseField name="ihash" type="string">
+  The unique instance token for this machine. Use this value as `instance_token` when calling `machine_info` or `change_machine_state`.
+</ResponseField>
+
+<ResponseField name="price" type="number | null">
+  The price associated with this instance. May be `null` if not applicable or not returned for the plan.
+</ResponseField>
+
+<Tip>
+  Save the `ihash` value from each machine — you'll need it as the `instance_token` when calling `machine_info` or `change_machine_state`.
+</Tip>

@@ -1,0 +1,118 @@
+---
+title: "Authenticate with the Joy Services API"
+sidebarTitle: "Authentication"
+description: "Joy Services API authentication uses two HTTP headers — x-api-token and x-api-key — on every request. Learn where to find your credentials and how to keep them secure."
+---
+
+Every request to the Joy Services API must include two authentication headers: `x-api-token` and `x-api-key`. These credentials identify your account and authorize the operation. Both values are available in your account settings and must be treated as secrets — leaking either one grants full API access to your infrastructure. If you ever suspect your credentials have been exposed, regenerate or disable them immediately from your dashboard.
+
+## Your API Credentials
+
+Two header values are required on every API request:
+
+| Header | Format | Description |
+|--------|--------|-------------|
+| `x-api-token` | `JOY-API-TOKEN#API` | Primary token identifier tied to your account. |
+| `x-api-key` | `joy-xxx...xxx` | Secret API key associated with the token. |
+
+Both values must be present and valid. A request missing either header, or containing an incorrect value, will be rejected with an `invalid_api_credentials` error.
+
+## Finding Your Credentials
+
+<Steps>
+  <Step title="Log in to Joy Services">
+    Go to [https://joy.services/login/](https://joy.services/login/) and sign in to your account.
+  </Step>
+  <Step title="Open Account Settings">
+    Click your account name or avatar in the top navigation to open the Account Settings page.
+  </Step>
+  <Step title="Locate the API Token section">
+    Scroll to the **API Token** section. Your `api_token` (the `x-api-token` value) and `api_key` (the `x-api-key` value) are displayed here.
+  </Step>
+  <Step title="Copy your credentials to a safe location">
+    Copy both values and store them in a password manager or, preferably, as environment variables in your deployment environment. Do **not** paste them directly into source code.
+  </Step>
+</Steps>
+
+## Sending Credentials
+
+Include both headers on every request alongside the standard `Content-Type` and `Accept` headers.
+
+**cURL example:**
+
+```bash
+curl -X POST "https://api.joy.services/api/connect/" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "User-Agent: joyconnect" \
+  -H "x-api-token: JOY-API-xxxxxxxxxxxx" \
+  -H "x-api-key: joy-xxxxxxxxxxxxxxxx" \
+  --data-raw '{"type": "dashboardinfo"}'
+```
+
+**JavaScript (Node.js / server-side fetch) example:**
+
+```javascript
+const response = await fetch("https://api.joy.services/api/connect/", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "User-Agent": "joyconnect",
+    "x-api-token": process.env.JOY_API_TOKEN,
+    "x-api-key": process.env.JOY_API_KEY
+  },
+  body: JSON.stringify({ type: "dashboardinfo" })
+});
+
+const data = await response.json();
+```
+
+<Note>
+The JavaScript example reads credentials from environment variables (`process.env.JOY_API_TOKEN` and `process.env.JOY_API_KEY`). This is the recommended pattern — never hardcode credential values directly in your source code.
+</Note>
+
+## Token Status
+
+Your API token can be in one of two states: **enabled** or **disabled**.
+
+- **Enabled** — requests are authenticated and processed normally.
+- **Disabled** — all requests immediately return an `invalid_api_credentials` error regardless of whether the token and key values are correct.
+
+If your requests are unexpectedly failing with `invalid_api_credentials` and you are confident your credentials are correct, check the API Token section of your account settings to confirm the token is enabled. If it has been disabled, you can re-enable it from that page or contact [Joy Services support](https://joy.services/contact/) for assistance.
+
+## Security Best Practices
+
+<Warning>
+**Never expose your API credentials in client-side code.** This includes browser JavaScript, public GitHub repositories, frontend bundles, or any environment that end users can inspect. Anyone who obtains your `x-api-token` and `x-api-key` can control your infrastructure.
+</Warning>
+
+Follow these practices to keep your credentials secure:
+
+- **Use environment variables.** Store `JOY_API_TOKEN` and `JOY_API_KEY` as environment variables in your server, CI/CD pipeline, or secrets manager — never as hardcoded strings in source files.
+- **Route all API calls through your backend.** Your server should make requests to `api.joy.services` and return only the data your frontend needs. Credentials never leave the server.
+- **Use HTTPS exclusively.** The Joy Services API enforces HTTPS on all connections. Plaintext HTTP requests will be rejected.
+- **Rotate keys if compromised.** If you suspect your credentials have been exposed, disable the affected token in account settings immediately and generate new credentials.
+- **Log request metadata for support tracing.** If you open a support ticket, including timestamps and the operation `type` you were calling helps the support team trace issues quickly.
+
+## Authentication Errors
+
+When authentication fails, the API returns an error response with HTTP status `200` and the following JSON body:
+
+```json
+{
+  "success": "false",
+  "error": "invalid_api_credentials",
+  "message": "Token or key is invalid or disabled."
+}
+```
+
+Common causes of this error:
+
+| Cause | Resolution |
+|-------|------------|
+| Incorrect `x-api-token` value | Double-check the token in your account settings and ensure it is copied exactly, including the `JOY-API-` prefix. |
+| Incorrect `x-api-key` value | Verify the key starts with `joy-` and matches what is shown in account settings. |
+| Token is disabled | Log in to account settings and re-enable the token. |
+| Missing `x-api-token` header | Ensure both headers are included on every request; neither can be omitted. |
+| Missing `x-api-key` header | Ensure both headers are included on every request; neither can be omitted. |

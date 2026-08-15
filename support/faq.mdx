@@ -1,0 +1,129 @@
+---
+title: "Frequently Asked Questions About Joy Services"
+sidebarTitle: "FAQ"
+description: "Quick answers to common Joy Services questions about instances, billing, OS installation, API keys, backups, RAID, and network peering."
+---
+
+This page is your quick reference for the most common questions customers ask about Joy Services — covering everything from provisioning instances and managing disks to billing plans, API authentication, and network peering.
+
+## Instances
+
+<AccordionGroup>
+  <Accordion title="How long does it take to provision an instance?">
+    Instances are delivered instantly after payment is confirmed. You will receive a confirmation email with your instance details shortly after provisioning completes.
+  </Accordion>
+
+  <Accordion title="What operating systems are available?">
+    Joy Services supports the following operating systems:
+
+    - **Ubuntu** 20.04 LTS, 22.04 LTS, 24.04 LTS
+    - **Windows Server** 2019, 2022, 2024
+
+    You can switch your OS at any time by navigating to **OS Install** in your instance dashboard.
+  </Accordion>
+
+  <Accordion title="What are the default login credentials?">
+    Your login credentials are sent by email after OS installation completes. The default usernames are:
+
+    - **Linux:** `joy`
+    - **Windows:** `Administrator`
+
+    To reset your password, go to **Manage → Password Reset** in the dashboard. Note that passwords have a **maximum length of 15 characters**.
+  </Accordion>
+
+  <Accordion title="Can I change my instance's RAM or CPU after creation?">
+    Yes. You can adjust your instance's RAM and CPU from the **Config** tab in the dashboard. However, you must **power off the instance** before making any changes. Upgrades will incur additional charges, while downgrades are always free.
+  </Accordion>
+
+  <Accordion title="What is RAID 10 and should I use it?">
+    RAID 10 combines disk striping and mirroring to deliver both improved performance and fault tolerance. It is recommended for databases, production workloads, or any scenario where data integrity is critical.
+
+    **RAID 0**, by contrast, stripes data across disks for maximum speed but offers **no redundancy** — a single disk failure will result in data loss. Choose RAID 0 only for non-critical, high-performance workloads.
+  </Accordion>
+
+  <Accordion title="Can I delete the OS disk (Disk0)?">
+    No. **Disk0** is the system disk and cannot be removed. You can, however, add new disks, extend existing additional disks, or delete any non-OS disks as needed.
+  </Accordion>
+</AccordionGroup>
+
+## Billing
+
+<AccordionGroup>
+  <Accordion title="What plan lengths are available?">
+    Joy Services offers the following billing plan durations:
+
+    - 1 Month
+    - 3 Months
+    - 5 Months
+    - 1 Year
+    - 5 Years
+
+    Longer plans typically offer better value. Visit [joy.services/pricing/](https://joy.services/pricing/) to compare current plan pricing.
+  </Accordion>
+
+  <Accordion title="How is backup storage billed?">
+    Backup pricing is calculated based on your **current disk size**. Backups run automatically every 24 hours. To enable backups, navigate to **Config → Backup Configuration** in your instance dashboard.
+  </Accordion>
+
+  <Accordion title="Are downgrades free?">
+    Yes. Downgrading your instance plan or resources is always **free of charge**. Only upgrades — such as increasing RAM, CPU, or storage — incur additional charges.
+  </Accordion>
+</AccordionGroup>
+
+## API
+
+<AccordionGroup>
+  <Accordion title="How do I get my API token and key?">
+    Your API credentials can be found in your **account settings** in the [dashboard](https://joy.services/login/). Your credentials follow these formats:
+
+    - **API Token (`x-api-token`):** `JOY-API-TOKEN#API`
+    - **API Key (`x-api-key`):** starts with `joy-`
+
+    Both headers are required for all authenticated API requests.
+  </Accordion>
+
+  <Accordion title="My API call returns invalid_api_credentials — what do I do?">
+    This error indicates that one or both of your API credentials are incorrect or inactive. To resolve it:
+
+    1. Double-check that your `x-api-token` and `x-api-key` headers are correctly formatted and free of typos.
+    2. Log in to your [dashboard](https://joy.services/login/) and verify that your API token status is set to **enabled** in your account settings.
+    3. Regenerate your credentials if the issue persists.
+
+    See the [API Reference](/api/overview) for full authentication documentation.
+  </Accordion>
+
+  <Accordion title="What is the API base URL?">
+    All API requests should be directed to:
+
+    ```
+    https://api.joy.services
+    ```
+
+    The primary connection endpoint is:
+
+    ```
+    POST /api/connect/
+    ```
+
+    Authentication requires both `x-api-token` and `x-api-key` request headers.
+  </Accordion>
+</AccordionGroup>
+
+## Networking
+
+<AccordionGroup>
+  <Accordion title="What is Equal Diversion Technology?">
+    Equal Diversion Technology is Joy Services' proprietary network traffic distribution method. It intelligently spreads load across multiple network paths simultaneously, preventing bottlenecks and ensuring consistent performance across all connected resources.
+  </Accordion>
+
+  <Accordion title="How do I set up BGP peering with Joy Services?">
+    To establish BGP peering with Joy Services:
+
+    1. Email [support@joycloud.services](mailto:support@joycloud.services) with your **ASN**, contact details, and preferred peering locations.
+    2. The Joy Services network team will review your request and respond with next steps.
+
+    **Joy Services ASN:** `152565`
+
+    For a complete walkthrough of the peering setup process, see the [Peering guide](/networking/peering).
+  </Accordion>
+</AccordionGroup>

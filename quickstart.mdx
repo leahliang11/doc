@@ -1,47 +1,77 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "Get Started with Joy Services in 5 Minutes"
+sidebarTitle: "Quickstart"
+description: "Create a Joy Services account, launch your first VPS instance, and make your first API call — all in under five minutes."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
-
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
-
-## Prerequisites
-
-Before you begin, you must have:
-
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
-
-## Get started
+Joy Services is a cloud VPS platform that gives you instant access to high-performance virtual servers with flexible RAM, CPU, storage, and OS configurations. This page walks you through everything you need to hit the ground running: creating your account, launching your first instance from the dashboard, and authenticating with the REST API — so you can start building or deploying in minutes, not hours.
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
-
-    ```bash
-    npm install your-package
-    ```
+  <Step title="Create Your Account">
+    Head to [joy.services/register/](https://joy.services/register/) and fill in your details to create a new account. Once you submit the registration form, check your inbox and verify your email address to activate your account.
   </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
 
-    ```bash
-    your-cli init
-    ```
+  <Step title="Log In to Your Dashboard">
+    Go to [joy.services/login/](https://joy.services/login/) and sign in with your credentials. Your dashboard gives you an at-a-glance overview of your entire environment, including your wallet balance, active instance count, total RAM and CPU cores in use, hosting services, databases, and any DNS or CDN domains you have configured.
   </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
+
+  <Step title="Launch Your First Instance">
+    Navigate to the **Instances** tab in your dashboard and click **Create Instance** — or go directly to [joy.services/dashboard/instances/create/](https://joy.services/dashboard/instances/create/). Configure your new virtual server using the options below:
+
+    | Option | Available Choices |
+    |---|---|
+    | **RAM** | 2 GB, 4 GB, 8 GB, 16 GB+ |
+    | **CPU Cores** | 1, 2, 4, 8+ |
+    | **Storage** | SSD — 48 GB, 480 GB, 1 TB+ |
+    | **Server Node Location** | Select the region closest to your users |
+    | **Plan Duration** | 1 Month, 3 Months, 5 Months, 1 Year, 5 Years |
+    | **RAID** | RAID 10 (recommended for production workloads) |
+
+    Once you are happy with your configuration, click **Pay Now**. Your instance is provisioned instantly after payment completes.
+  </Step>
+
+  <Step title="Access Your Instance">
+    Check your email for the access credentials Joy Services sends after your instance is provisioned. Use the defaults below to connect for the first time:
+
+    - **Linux instances** — default username: `joy`
+    - **Windows instances** — default username: `Administrator`
+
+    If you need to change your password, open your dashboard, navigate to **Manage → Password Reset** for that instance. Keep in mind that passwords are capped at **15 characters**.
+  </Step>
+
+  <Step title="Make Your First API Call">
+    Retrieve your API token and API key from your account settings, then run the following request to verify your credentials and list your machines:
 
     ```bash
-    your-cli start
+    curl -X POST "https://api.joy.services/api/connect/" \
+      -H "Accept: application/json" \
+      -H "Content-Type: application/json" \
+      -H "x-api-token: JOY-API-xxxxxxxxxxxx" \
+      -H "x-api-key: joy-xxxxxxxxxxxxxxxx" \
+      --data-raw '{"type": "machine_list", "init_ip": "127.0.0.1", "init_browser": "Chrome"}'
     ```
+
+    Replace `JOY-API-xxxxxxxxxxxx` and `joy-xxxxxxxxxxxxxxxx` with your actual credentials. A successful response returns a JSON object containing your machine list.
   </Step>
 </Steps>
 
 <Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
-
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
+  Your instance is provisioned instantly after payment. Check your email for access credentials within a few minutes.
 </Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configure Your Instance" icon="gear" href="/instances/configure">
+    Resize RAM and CPU, or add additional disks to match your workload requirements.
+  </Card>
+  <Card title="Install an OS" icon="download" href="/instances/os-install">
+    Switch operating systems on your instance with a single click.
+  </Card>
+  <Card title="Manage Your Instance" icon="sliders" href="/instances/manage">
+    Monitor performance, reboot your server, and configure alerts.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Explore the full REST API documentation to automate and integrate Joy Services.
+  </Card>
+</CardGroup>

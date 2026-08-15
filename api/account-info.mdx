@@ -1,0 +1,120 @@
+---
+title: "Account Info: Retrieve Your Profile and API Token"
+sidebarTitle: "Account Info"
+description: "POST /api/connect/ with type=account_info returns your account profile, verification status, 2FA status, and current API token metadata."
+---
+
+The `account_info` operation returns your full account profile, including your email address, username, verification and two-factor authentication status, and the metadata for your current API token. Use this endpoint to confirm account state, audit your API credentials, or display profile information in your own tooling.
+
+## Request
+
+Send a `POST` request to `https://api.joy.services/api/connect/` with the `type` field set to `"account_info"`. The `init_ip` and `init_browser` fields are recommended on every request.
+
+```json
+{
+  "type": "account_info",
+  "init_ip": "127.0.0.1",
+  "init_browser": "Chrome"
+}
+```
+
+```bash
+curl -X POST https://api.joy.services/api/connect/ \
+  -H "Content-Type: application/json" \
+  -H "x-api-token: YOUR_API_TOKEN" \
+  -H "x-api-key: YOUR_API_KEY" \
+  -d '{
+    "type": "account_info",
+    "init_ip": "127.0.0.1",
+    "init_browser": "Chrome"
+  }'
+```
+
+## Response
+
+A successful response returns your full profile object along with a nested `api_token` object containing your current API credential metadata.
+
+```json
+{
+  "success": "true",
+  "amount": "$ 932.91",
+  "email": "email@example.com",
+  "verify": 1,
+  "ip": "10.10.125.14",
+  "time": "2023-08-17 16:26:11",
+  "twofa": 0,
+  "username": "joyuser1",
+  "full_name": "First Last",
+  "gender": 1,
+  "profile_pic": "https://example.com/pic.gif",
+  "api_token": {
+    "id": 1,
+    "api_token": "JOY-API-TOKEN#API",
+    "api_key": "joy-...(long key)...",
+    "timestamp": null,
+    "api_date": null,
+    "api_reg_ip": "10.10.152.16",
+    "status": "enabled"
+  }
+}
+```
+
+## Response Fields
+
+<ResponseField name="success" type="string">
+  Indicates whether the request succeeded. Returns `"true"` or `"false"` as a string value, not a boolean.
+</ResponseField>
+
+<ResponseField name="amount" type="string">
+  Your current wallet balance, including currency symbol (e.g. `"$ 932.91"`).
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  The email address registered to your account.
+</ResponseField>
+
+<ResponseField name="verify" type="number">
+  Email verification status. `1` indicates the account is verified.
+</ResponseField>
+
+<ResponseField name="twofa" type="number">
+  Two-factor authentication status. `1` indicates 2FA is enabled; `0` indicates it is disabled.
+</ResponseField>
+
+<ResponseField name="username" type="string">
+  Your account username.
+</ResponseField>
+
+<ResponseField name="full_name" type="string">
+  The full name associated with your account profile.
+</ResponseField>
+
+<ResponseField name="profile_pic" type="string">
+  URL pointing to your account profile picture.
+</ResponseField>
+
+<ResponseField name="api_token" type="object">
+  An object containing the metadata for your current API token.
+
+  <Expandable title="api_token fields">
+    <ResponseField name="id" type="number">
+      Internal numeric identifier for the API token record.
+    </ResponseField>
+
+    <ResponseField name="api_token" type="string">
+      Your API token string, used as the `x-api-token` header on all requests.
+    </ResponseField>
+
+    <ResponseField name="api_key" type="string">
+      Your secret API key, used as the `x-api-key` header on all requests.
+    </ResponseField>
+
+    <ResponseField name="status" type="string">
+      The current status of the API token. Either `"enabled"` or `"disabled"`.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<Warning>
+  The `api_key` in the response is your secret credential. Never log or expose this value in client-side code, version control, or error output.
+</Warning>

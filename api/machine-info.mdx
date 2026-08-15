@@ -1,0 +1,196 @@
+---
+title: "Machine Info: Real-Time Instance Metrics and Config"
+sidebarTitle: "Machine Info"
+description: "POST /api/connect/ with type=machine_info returns live CPU, memory, disk, and network metrics plus the full VM configuration for a specific instance."
+---
+
+The `machine_info` operation returns real-time runtime metrics — including CPU usage, memory consumption, uptime, network I/O, and disk I/O — along with the full QEMU VM configuration for a specific instance. The target instance is identified by its `instance_token`, which is the `ihash` value returned by `machine_list`.
+
+## Request
+
+Send a `POST` request to `https://api.joy.services/api/connect/` with `type` set to `"machine_info"` and the `instance_token` for the target instance. The `init_ip` and `init_browser` fields are recommended on every request.
+
+```json
+{
+  "type": "machine_info",
+  "init_ip": "127.0.0.1",
+  "init_browser": "Chrome",
+  "instance_token": "498b5959b4257a8671edd51f2b5cebf7"
+}
+```
+
+```bash
+curl -X POST https://api.joy.services/api/connect/ \
+  -H "Content-Type: application/json" \
+  -H "x-api-token: YOUR_API_TOKEN" \
+  -H "x-api-key: YOUR_API_KEY" \
+  -d '{
+    "type": "machine_info",
+    "init_ip": "127.0.0.1",
+    "init_browser": "Chrome",
+    "instance_token": "498b5959b4257a8671edd51f2b5cebf7"
+  }'
+```
+
+## Request Fields
+
+<ParamField body="type" type="string" required>
+  Must be `"machine_info"`.
+</ParamField>
+
+<ParamField body="instance_token" type="string" required>
+  The `ihash` token for the target instance, obtained from the `machine_list` response.
+</ParamField>
+
+<ParamField body="init_ip" type="string">
+  The IP address of the client making the request. Recommended on all requests.
+</ParamField>
+
+<ParamField body="init_browser" type="string">
+  The browser or application name of the client making the request. Recommended on all requests.
+</ParamField>
+
+## Response
+
+A successful response includes top-level instance metadata, a `Current` object containing live runtime metrics, and a `qemuConfig` object describing the VM's hardware configuration.
+
+```json
+{
+  "success": true,
+  "value": "498b5959b4257a8671edd51f2b5cebf7",
+  "ip": "10.10.240.21",
+  "os": "ubuntu",
+  "extime": "33285031929",
+  "Current": {
+    "status": "running",
+    "vmid": 6001,
+    "cpu": 0.015003142419008,
+    "mem": 3405574144,
+    "maxmem": 4294967296,
+    "freemem": 696369152,
+    "uptime": 29461293,
+    "netin": 2476753613887,
+    "netout": 18566030361,
+    "diskread": 173319141376,
+    "diskwrite": 788248155136,
+    "maxdisk": 12884901888,
+    "cpus": 2
+  },
+  "qemuConfig": {
+    "cores": 1,
+    "memory": "4096",
+    "name": "user-x-25nov"
+  },
+  "osinfo": null
+}
+```
+
+## Response Fields
+
+<ResponseField name="success" type="boolean">
+  Indicates whether the request succeeded. Returns a boolean `true` or `false`.
+</ResponseField>
+
+<ResponseField name="value" type="string">
+  Echoes back the `instance_token` supplied in the request.
+</ResponseField>
+
+<ResponseField name="ip" type="string">
+  The primary IP address assigned to this instance.
+</ResponseField>
+
+<ResponseField name="os" type="string">
+  The operating system label for this instance (e.g. `"ubuntu"`).
+</ResponseField>
+
+<ResponseField name="extime" type="string">
+  Internal expiry timestamp represented as a Unix epoch string.
+</ResponseField>
+
+<ResponseField name="Current" type="object">
+  An object containing live runtime metrics polled directly from the hypervisor.
+
+  <Expandable title="Current fields">
+    <ResponseField name="status" type="string">
+      Current power state of the instance. Possible values: `"running"`, `"stopped"`, `"paused"`.
+    </ResponseField>
+
+    <ResponseField name="cpu" type="number">
+      Fractional CPU utilization at the time of the request (e.g. `0.015` = 1.5%). Multiply by 100 to get a percentage.
+    </ResponseField>
+
+    <ResponseField name="mem" type="number">
+      Currently used memory, in bytes.
+    </ResponseField>
+
+    <ResponseField name="maxmem" type="number">
+      Maximum allocated memory for this instance, in bytes.
+    </ResponseField>
+
+    <ResponseField name="freemem" type="number">
+      Currently free (unused) memory, in bytes.
+    </ResponseField>
+
+    <ResponseField name="uptime" type="number">
+      Instance uptime since last boot, in seconds.
+    </ResponseField>
+
+    <ResponseField name="netin" type="number">
+      Total inbound network traffic since last boot, in bytes.
+    </ResponseField>
+
+    <ResponseField name="netout" type="number">
+      Total outbound network traffic since last boot, in bytes.
+    </ResponseField>
+
+    <ResponseField name="diskread" type="number">
+      Total disk read I/O since last boot, in bytes.
+    </ResponseField>
+
+    <ResponseField name="diskwrite" type="number">
+      Total disk write I/O since last boot, in bytes.
+    </ResponseField>
+
+    <ResponseField name="maxdisk" type="number">
+      Total allocated disk capacity for this instance, in bytes.
+    </ResponseField>
+
+    <ResponseField name="cpus" type="number">
+      Number of vCPU cores allocated to this instance.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="qemuConfig" type="object">
+  An object describing the QEMU VM hardware configuration as provisioned on the host node.
+
+  <Expandable title="qemuConfig fields">
+    <ResponseField name="cores" type="number">
+      Number of CPU cores configured in the VM definition.
+    </ResponseField>
+
+    <ResponseField name="memory" type="string">
+      Amount of memory configured for the VM, in megabytes (e.g. `"4096"` = 4 GB).
+    </ResponseField>
+
+    <ResponseField name="name" type="string">
+      The internal VM name or label assigned at provisioning time.
+    </ResponseField>
+
+    <ResponseField name="net0" type="string">
+      Network interface configuration string for the primary network adapter.
+    </ResponseField>
+
+    <ResponseField name="scsi0" type="string">
+      Disk configuration string for the primary SCSI storage device.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<Note>
+  The `success` field in `machine_info` responses is a boolean (`true`), unlike other endpoints which return `success` as a string.
+</Note>
+
+<Tip>
+  Convert `cpu` to a percentage by multiplying by `100`. Convert `mem`, `maxmem`, or `freemem` to gigabytes by dividing by `1073741824`.
+</Tip>

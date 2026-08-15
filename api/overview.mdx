@@ -1,0 +1,121 @@
+---
+title: "Joy Services REST API: Automate Your Cloud Infrastructure"
+sidebarTitle: "Overview"
+description: "The Joy Services REST API lets you programmatically manage instances, retrieve account stats, and control machine state using a single POST /api/connect/ endpoint."
+---
+
+The Joy Services REST API gives you full programmatic control over your cloud infrastructure through a single, unified endpoint. Rather than exposing dozens of routes, every operation is dispatched via a JSON body containing a `type` field that selects what you want to do — whether that's pulling dashboard stats, listing your compute instances, or toggling machine state. The API is designed for automation scripts, custom dashboards, monitoring integrations, and anything else that needs to talk to your infrastructure without a browser.
+
+## Base URL
+
+```
+https://api.joy.services
+```
+
+All requests must be made over HTTPS. Plain HTTP connections are not supported.
+
+## Endpoint
+
+Every API operation uses a single endpoint:
+
+| Method | Path |
+|--------|------|
+| `POST` | `/api/connect/` |
+
+## How It Works
+
+All API operations use a single `POST /api/connect/` endpoint. The `type` field in the JSON request body selects the operation to perform. Authentication is handled via two HTTP headers — `x-api-token` and `x-api-key` — which must be present on every request.
+
+This design keeps integration simple: one URL, one method, one consistent request shape. You switch between operations by changing the `type` value and adding any additional fields that operation requires.
+
+## Available Operations
+
+| Type | Description |
+|------|-------------|
+| `dashboardinfo` | Fetch wallet balance, instance count, resource totals. |
+| `account_info` | Retrieve account profile and API token metadata. |
+| `machine_list` | List all active compute instances. |
+| `machine_info` | Get real-time metrics and config for a specific instance. |
+| `change_machine_state` | Start, stop, reboot, pause, or hibernate an instance. |
+
+## Request Format
+
+Every request must include the required authentication headers and a JSON body with at minimum a `type` field. The `init_ip` and `init_browser` fields are recommended for session context.
+
+```bash
+curl -X POST "https://api.joy.services/api/connect/" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -H "User-Agent: joyconnect" \
+  -H "x-api-token: JOY-API-xxxxxxxxxxxx" \
+  -H "x-api-key: joy-xxxxxxxxxxxxxxxx" \
+  --data-raw '{"type": "machine_list", "init_ip": "127.0.0.1", "init_browser": "Chrome"}'
+```
+
+### Required Headers
+
+| Header | Value |
+|--------|-------|
+| `Accept` | `application/json` |
+| `Content-Type` | `application/json` |
+| `x-api-token` | Your API token identifier (`JOY-API-TOKEN#API`) |
+| `x-api-key` | Your secret API key (`joy-...`) |
+
+### Recommended Headers
+
+| Header | Value |
+|--------|-------|
+| `User-Agent` | `joyconnect` |
+
+## Response Format
+
+Responses are JSON objects. Most endpoints return `success` as a **string** (`"true"` or `"false"`). A small number of endpoints — such as `machine_info` and `change_machine_state` — return `success` as a **boolean** `true`. Always check both the HTTP status code and the `success` field in your response handling logic.
+
+**Successful response (most endpoints):**
+
+```json
+{
+  "success": "true",
+  "data": { }
+}
+```
+
+**Successful response (`machine_info` / `change_machine_state`):**
+
+```json
+{
+  "success": true,
+  "data": { }
+}
+```
+
+**Error response:**
+
+```json
+{
+  "success": "false",
+  "error": "invalid_api_credentials",
+  "message": "Token or key is invalid or disabled."
+}
+```
+
+<Tip>
+When parsing responses, use a loose check such as `response.success == true` (loose equality) or explicitly handle both `"true"` and `true` to ensure your code works across all endpoints.
+</Tip>
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api/authentication">
+    Learn how to locate your API credentials and send them securely on every request.
+  </Card>
+  <Card title="Dashboard Info" icon="chart-bar" href="/api/dashboard-info">
+    Fetch wallet balance, instance count, and aggregate resource usage.
+  </Card>
+  <Card title="Machine List" icon="server" href="/api/machine-list">
+    Retrieve a full list of your active compute instances.
+  </Card>
+  <Card title="Examples" icon="code" href="/api/examples">
+    Ready-to-run code samples in multiple languages.
+  </Card>
+</CardGroup>

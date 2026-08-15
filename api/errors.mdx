@@ -1,0 +1,103 @@
+---
+title: "API Error Codes and Troubleshooting Guide"
+sidebarTitle: "Errors"
+description: "Reference for Joy Services API error codes, common failure causes, and how to resolve authentication, state, and request format errors."
+---
+
+When an API call fails, the response includes a `success` field set to `false` or `"false"` and an `error` code string. This page covers all known error codes, what causes them, and how to resolve them so you can get back to building quickly.
+
+## Error Response Format
+
+Every failed API response follows the same envelope structure:
+
+```json
+{
+  "success": "false",
+  "error": "invalid_api_credentials",
+  "message": "Token or key is invalid or disabled."
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `success` | `"false"` or `false` | Indicates the request did not succeed. Most endpoints return the string `"false"`, but `machine_info` and `change_machine_state` may return the boolean `false`. Always check both forms. |
+| `error` | string | A machine-readable error code that uniquely identifies the failure type. Use this field for programmatic error handling and branching logic. |
+| `message` | string | A human-readable description of the error, suitable for logging or displaying to end users. The text may vary — do not rely on it for conditional logic; use `error` instead. |
+
+## Error Codes
+
+### `invalid_api_credentials`
+
+The `x-api-token` or `x-api-key` header is missing, malformed, or the associated token has been disabled in your account.
+
+**How to resolve:**
+
+- Confirm that both `x-api-token` and `x-api-key` are present in every request — neither header is optional.
+- Verify the `x-api-token` value matches the format `JOY-API-TOKEN#API` exactly, with no extra whitespace or encoding.
+- Log in to your Joy Services account and confirm the API token is active and has not been revoked or disabled.
+- If you recently rotated credentials, ensure all running integrations have been updated to use the new values.
+
+---
+
+### `invalid_state`
+
+The `machine_state` value supplied in a `change_machine_state` request is not one of the accepted values.
+
+**How to resolve:**
+
+Use only the following supported state strings — any other value will trigger this error:
+
+| State | Description |
+|---|---|
+| `start` | Power on a stopped or paused instance. |
+| `shutdown` | Gracefully shut down a running instance. |
+| `force_shutdown` | Immediately cut power to a running instance. |
+| `reboot` | Gracefully restart a running instance. |
+| `force_reboot` | Immediately restart a running instance. |
+| `pause` | Suspend execution while preserving memory state. |
+| `hibernate` | Save memory to disk and power off. |
+| `resume` | Wake a paused or hibernated instance. |
+
+Check for typos, incorrect casing (all values are lowercase), and ensure `machine_state` is always included when calling `change_machine_state`.
+
+---
+
+### HTTP 4xx / 5xx (no JSON body)
+
+Some failures surface as non-200 HTTP status codes without a JSON body, rather than the standard error envelope.
+
+**How to resolve:**
+
+- Always inspect the HTTP status code alongside the response body. A `401` typically means missing or invalid credentials at the transport level; a `403` may indicate your IP is blocked; a `429` indicates rate limiting.
+- If the response body is empty or not valid JSON, the request may have been intercepted before reaching the API handler — this is a network or server-side rules issue rather than an application error.
+- Retry with exponential backoff for `5xx` responses, which indicate a transient server-side problem.
+
+## Common Failure Causes
+
+The following conditions are the most frequent root causes of failed requests, independent of the specific error code returned:
+
+- **Missing `x-api-token` or `x-api-key` headers** — both are required on every request; omitting either will result in an authentication error.
+- **Incorrect `Content-Type`** — the request body must be sent with `Content-Type: application/json`; other content types are not supported.
+- **Malformed JSON body** — a syntax error in the request body (trailing comma, unquoted key, etc.) prevents the server from parsing the `type` field and will cause the request to fail.
+- **Unsupported `type` value** — only the documented operation types (`dashboardinfo`, `account_info`, `machine_list`, `machine_info`, `change_machine_state`) are accepted; any other value is rejected.
+- **Token status is disabled** — an API token that has been deactivated in account settings will fail authentication even if the header format is correct.
+- **Request blocked by server-side IP rules** — firewall or allowlist rules on the Joy Services side may reject requests from certain IP ranges; contact support if you suspect this is the cause.
+
+## Debugging Tips
+
+Use the following practices to shorten the debugging cycle when a request fails:
+
+- **Check both the HTTP status code and the `success` field** — a `200 OK` response may still indicate a logical failure if `success` is `"false"`, so never rely on the status code alone.
+- **Parse the JSON response safely** — if the response body appears to be a double-encoded string (a JSON string containing another JSON string), parse it twice to reach the underlying object.
+- **Log request IDs and timestamps** — record the exact time and any correlation identifiers when contacting support; this makes it much easier to locate the specific transaction in server logs.
+- **Include the `User-Agent: joyconnect` header** — sending this header ensures your requests are accurately identified in server-side logs, which aids diagnosis.
+- **Test credentials with `dashboardinfo` first** — before building complex integrations, send a minimal `dashboardinfo` request to confirm authentication is working correctly. This isolates credential issues from operation-specific problems.
+
+## Getting Help
+
+If you have followed the steps above and cannot resolve an error, contact Joy Services support at [joy.services/contact](https://joy.services/contact/) and include the following details to help the team locate your transaction quickly:
+
+- Your account username
+- The full error code from the `error` field
+- The `type` value of the request that failed
+- The approximate timestamp of the failed request

@@ -1,0 +1,96 @@
+---
+title: "Dashboard Info: Retrieve Account Resource Totals"
+sidebarTitle: "Dashboard Info"
+description: "POST /api/connect/ with type=dashboardinfo returns your wallet balance, instance count, allocated RAM and vCPU cores, and totals for all active services."
+---
+
+The `dashboardinfo` operation fetches a high-level summary of all resources and the wallet balance associated with your account. Use this endpoint to quickly gauge how many instances, hosting services, databases, and domains are active, and to check your current billing balance — all in a single request.
+
+## Request
+
+Send a `POST` request to `https://api.joy.services/api/connect/` with the `type` field set to `"dashboardinfo"`. The `init_ip` and `init_browser` fields are recommended on every request.
+
+```json
+{
+  "type": "dashboardinfo",
+  "init_ip": "127.0.0.1",
+  "init_browser": "Chrome"
+}
+```
+
+```bash
+curl -X POST https://api.joy.services/api/connect/ \
+  -H "Content-Type: application/json" \
+  -H "x-api-token: YOUR_API_TOKEN" \
+  -H "x-api-key: YOUR_API_KEY" \
+  -d '{
+    "type": "dashboardinfo",
+    "init_ip": "127.0.0.1",
+    "init_browser": "Chrome"
+  }'
+```
+
+## Response
+
+A successful response returns your wallet balance alongside counts for every active resource type on your account.
+
+```json
+{
+  "success": "true",
+  "amount": "932.91",
+  "instances": 18,
+  "iram": 115,
+  "icore": 78,
+  "hostings": 33,
+  "databases": 14,
+  "dns_domains": 15,
+  "cdn_domains": 1,
+  "total": 81
+}
+```
+
+## Response Fields
+
+<ResponseField name="success" type="string">
+  Indicates whether the request succeeded. Returns `"true"` or `"false"` as a string value, not a boolean.
+</ResponseField>
+
+<ResponseField name="amount" type="string">
+  Your current wallet or billing balance, represented as a string number (e.g. `"932.91"`).
+</ResponseField>
+
+<ResponseField name="instances" type="number">
+  Total number of active compute instances on your account.
+</ResponseField>
+
+<ResponseField name="iram" type="number">
+  Total RAM (in GB) allocated across all active instances.
+</ResponseField>
+
+<ResponseField name="icore" type="number">
+  Total vCPU cores allocated across all active instances.
+</ResponseField>
+
+<ResponseField name="hostings" type="number">
+  Total number of active hosting services.
+</ResponseField>
+
+<ResponseField name="databases" type="number">
+  Total number of active database services.
+</ResponseField>
+
+<ResponseField name="dns_domains" type="number">
+  Total number of DNS domains managed on your account.
+</ResponseField>
+
+<ResponseField name="cdn_domains" type="number">
+  Total number of CDN domains configured on your account.
+</ResponseField>
+
+<ResponseField name="total" type="number">
+  A summary count of all active services across all resource types.
+</ResponseField>
+
+<Note>
+  The `success` field is returned as the string `"true"` or `"false"`, not a boolean. Check with `success === "true"`.
+</Note>

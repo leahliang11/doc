@@ -1,0 +1,80 @@
+---
+title: "Install or Reinstall an Operating System on Your Instance"
+sidebarTitle: "OS Install"
+description: "Switch your Joy Services instance to Ubuntu or Windows Server with one click. The OS Install feature automates the entire installation and sends new credentials by email."
+---
+
+<Warning>
+  OS installation **erases all data on the instance**. Back up any files, databases, or configurations you want to keep before proceeding. Use the **Config** tab to enable automatic backups before you start.
+</Warning>
+
+The **OS Install** feature lets you deploy or replace your instance's operating system with a single click directly from the Joy Services dashboard. The entire process is fully automated — Joy Services handles partitioning, formatting, and OS configuration for you. There is no ISO to upload, no boot media to prepare, and no manual installation wizard to step through. Once the installation completes, your new credentials arrive by email and your instance is ready to use.
+
+## Available Operating Systems
+
+Joy Services supports the latest stable releases of Ubuntu and Windows Server, covering both long-term support Linux environments and enterprise Windows workloads.
+
+| OS             | Available Versions                  |
+| -------------- | ----------------------------------- |
+| Ubuntu         | 20.04 LTS, 22.04 LTS, 24.04 LTS    |
+| Windows Server | 2019, 2022, 2024                    |
+
+All Ubuntu versions listed are **Long-Term Support (LTS)** releases, meaning they receive security updates and maintenance for five years from their release date — ideal for stable production environments. Windows Server versions are current Microsoft releases suitable for .NET applications, Active Directory, IIS, and other Windows-native workloads.
+
+## How to Install an OS
+
+<Steps>
+
+  <Step title="Open Your Instance">
+    Go to the **Instances** section of your Joy Services dashboard and click the instance you want to install an OS on.
+  </Step>
+
+  <Step title="Locate the OS Selector">
+    In the instance control panel, find the **OS** dropdown menu. This lists every operating system and version available for installation.
+  </Step>
+
+  <Step title="Select Your Desired OS">
+    Open the dropdown and choose the operating system and version you want to install — for example, **Ubuntu 24.04 LTS** or **Windows Server 2022**.
+  </Step>
+
+  <Step title="Start the Installation">
+    Click the **OS-Install** button to begin. Joy Services will automatically wipe the existing OS disk, partition the drive, and install your chosen operating system.
+  </Step>
+
+  <Step title="Monitor Installation Progress">
+    Watch the installation progress indicator in the control panel. The process is fully automated and typically completes within a few minutes, depending on the OS selected.
+  </Step>
+
+  <Step title="Retrieve Your New Credentials">
+    Once installation is complete, check your registered email address for a credentials notification containing your new login details. Your instance is now ready to use.
+  </Step>
+
+</Steps>
+
+## After Installation
+
+### Credentials
+
+After a successful OS installation, Joy Services emails your new login credentials to your registered address. You can also view and manage credentials directly from the dashboard.
+
+**Default usernames by OS type:**
+
+| OS Type        | Default Username  |
+| -------------- | ----------------- |
+| Linux (Ubuntu) | `joy`             |
+| Windows Server | `Administrator`   |
+
+If you need to change the password after installation, go to the **Manage** tab for your instance and use the **Password Reset** feature.
+
+<Warning>
+  Passwords must **not exceed 15 characters**. Choose a strong password that combines uppercase letters, lowercase letters, numbers, and special characters — but keep it within the 15-character limit or the reset will fail.
+</Warning>
+
+## Key Features
+
+The OS Install feature is designed to make operating system management as simple as possible:
+
+- **One-click installation** — Select an OS and click a single button; no manual steps required.
+- **Wide OS range** — Choose from multiple Ubuntu LTS versions or current Windows Server editions to match your workload requirements.
+- **Quick switching** — Migrate from Linux to Windows Server (or vice versa) whenever your project requirements change, without needing to create a new instance.
+- **Fully automated process** — Joy Services handles disk preparation, OS installation, and initial configuration automatically, so you can focus on deploying your application.

@@ -1,0 +1,54 @@
+---
+title: "Joy Services: Cloud Infrastructure Made Simple"
+sidebarTitle: "Introduction"
+description: "Joy Services delivers VPS compute, hosting, storage, and network peering — all managed from a single dashboard or via a REST API."
+---
+
+Joy Services is a cloud infrastructure platform that gives you on-demand virtual private servers, web hosting, storage, and BGP peering — provisioned instantly and managed through a clean dashboard or a straightforward REST API. Whether you're spinning up a single development box or running a fleet of production servers, Joy Services provides the compute power, redundancy, and network reach you need.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Create and access your first instance in under five minutes.
+  </Card>
+  <Card title="Instances" icon="server" href="/instances/overview">
+    Learn how to provision, configure, and manage VPS instances.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Automate everything with the Joy Services REST API.
+  </Card>
+  <Card title="Networking & Peering" icon="network-wired" href="/networking/overview">
+    Explore Equal Diversion Technology and direct BGP peering.
+  </Card>
+</CardGroup>
+
+## What You Can Do with Joy Services
+
+Joy Services brings together everything your infrastructure needs under one roof:
+
+- **Compute instances** — Launch VPS servers with up to 750 GB RAM and 200 CPU cores. Choose from Ubuntu and Windows Server images with one-click OS installation.
+- **Redundant storage** — Configure RAID 0 for performance or RAID 10 for fault tolerance. Add and extend disks without rebuilding your instance.
+- **Automated backups** — Enable 24-hour automatic backups with configurable retention periods, priced by disk size.
+- **Network monitoring** — View real-time CPU, memory, and bandwidth graphs from your dashboard.
+- **REST API** — Programmatically retrieve account stats, list machines, inspect runtime metrics, and change power states using `POST /api/connect/`.
+- **BGP peering** — Connect your autonomous system directly to AS152565 for improved latency and throughput.
+
+## Get Started
+
+<Steps>
+  <Step title="Create your account">
+    Sign up at [joy.services/register](https://joy.services/register/) and verify your email address.
+  </Step>
+  <Step title="Launch your first instance">
+    Navigate to the **Instances** tab in your dashboard and click **Create Instance**. Pick your RAM, CPU, storage, and OS — your server is provisioned instantly after payment.
+  </Step>
+  <Step title="Connect and configure">
+    Use the credentials emailed to you (or reset them from the dashboard) to SSH or RDP into your instance. Configure it to match your workload.
+  </Step>
+  <Step title="Integrate via API">
+    Generate an API key from your account settings and start automating with the [Joy Services REST API](/api/overview).
+  </Step>
+</Steps>
+
+<Tip>
+  Need help choosing a plan? See the [Instance Plans](/instances/create) guide for a comparison of RAM, CPU, and storage tiers.
+</Tip>

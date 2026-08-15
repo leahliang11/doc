@@ -1,0 +1,65 @@
+---
+title: "Understanding Your Joy Services Dashboard"
+sidebarTitle: "Dashboard"
+description: "Your Joy Services dashboard gives you an at-a-glance view of wallet balance, active instances, allocated resources, and all your cloud services in one place."
+---
+
+Your Joy Services dashboard is your central control center for managing every aspect of your cloud environment. From the moment you log in, you get an immediate snapshot of your wallet balance, running compute instances, allocated hardware resources, and every active service under your account — all in one place. This guide walks you through what each metric means and how to navigate to the tools you need.
+
+## Dashboard Overview
+
+After logging in at [joy.services/login/](https://joy.services/login/), you are taken directly to the main dashboard. The dashboard surfaces the most important numbers about your account at a glance so you can spot issues, track usage, and manage costs without hunting through menus.
+
+| Metric | Description |
+|---|---|
+| Amount | Your current wallet / billing balance available for services. |
+| Instances | Total number of active compute instances on your account. |
+| RAM (iram) | Total allocated RAM across all running instances. |
+| Cores (icore) | Total allocated vCPU cores across all running instances. |
+| Hostings | Number of active hosting services provisioned. |
+| Databases | Number of active database services provisioned. |
+| DNS Domains | DNS domains currently configured on your account. |
+| CDN Domains | CDN domains currently configured on your account. |
+
+The sum of Instances, Hostings, Databases, DNS Domains, and CDN Domains is reflected in the **total services count**, giving you a single number for your overall cloud footprint.
+
+## Navigating the Dashboard
+
+The sidebar and top navigation provide quick access to every major section of the Joy Services platform:
+
+- **Instances** — Create, manage, resize, and monitor your VPS compute instances.
+- **Hosting** — Configure and oversee your web hosting environments.
+- **Databases** — Provision and connect to managed database services.
+- **DNS** — Manage DNS zones and records for your domains.
+- **CDN** — Configure content delivery networks and cache rules for your domains.
+- **Account Settings** — Update your profile, security settings, and API credentials.
+
+Use the breadcrumb trail at the top of each section to move back up the hierarchy, and use the dashboard home icon to return to the overview at any time.
+
+## Account Profile
+
+Your account profile holds the identity information tied to your Joy Services account. You can review and update the following fields from **Account Settings**:
+
+- **Username** — Your unique handle on the platform.
+- **Full Name** — Your display name shown in the portal.
+- **Email** — The address used for notifications, billing receipts, and account recovery.
+- **Profile Picture** — A URL-linked avatar displayed in the dashboard header.
+
+Keep your email address up to date and verified so you never miss critical billing or security notifications.
+
+## Quick Links
+
+<CardGroup cols={2}>
+  <Card title="Manage Instances" icon="server" href="/instances/overview">
+    View, create, and configure your VPS compute instances.
+  </Card>
+  <Card title="Configure Security" icon="shield-halved" href="/account/security">
+    Set up two-factor authentication and manage your API keys.
+  </Card>
+  <Card title="Billing & Plans" icon="credit-card" href="/account/billing">
+    Review plan options, upgrade pricing, and your wallet balance.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Explore the full Joy Services API documentation.
+  </Card>
+</CardGroup>

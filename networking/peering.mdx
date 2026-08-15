@@ -1,0 +1,89 @@
+---
+title: "Establish Direct BGP Peering with Joy Services (AS152565)"
+sidebarTitle: "BGP Peering"
+description: "Connect your autonomous system directly to Joy Services AS152565 via public or private BGP peering to reduce latency and improve throughput for your users."
+---
+
+BGP (Border Gateway Protocol) peering allows your autonomous system to connect directly to Joy Services' network, **AS152565**, and exchange traffic without relying on intermediary transit providers. By establishing a peering relationship, both networks benefit from improved performance, reduced latency, and more efficient use of bandwidth — ultimately delivering a better experience for your end-users. This page covers everything you need to know about peering with Joy Services, including peering types, technical requirements, and how to submit a request.
+
+## About Joy Services Peering
+
+Joy Services operates under **ASN 152565** (Business type). Peering with Joy Services offers the following advantages:
+
+- **Improved network performance** — Direct traffic exchange reduces the number of hops between networks.
+- **Reduced latency** — Shorter, more efficient routes mean faster data delivery.
+- **Enhanced efficiency** — Less reliance on transit providers reduces overhead and improves overall throughput.
+
+You can verify and inspect AS152565 through the following external references:
+
+- [DNSChecker ASN Lookup — AS152565](https://dnschecker.org/asn-whois-lookup.php?query=152565)
+- [BGP.tools — AS152565](https://bgp.tools/as/152565)
+
+## Peering Types
+
+<Tabs>
+  <Tab title="Public Peering">
+    **Public peering** takes place at Internet Exchange Points (IXPs), which are physical infrastructure locations where multiple networks interconnect and exchange traffic. 
+
+    - Cost-effective and widely accessible
+    - Allows Joy Services to peer with many networks simultaneously at a single location
+    - Suitable for most peering use cases where direct private connectivity is not required
+
+    Public peering at IXPs is the standard entry point for new peering relationships with Joy Services.
+  </Tab>
+  <Tab title="Private Peering">
+    **Private peering** is a direct connection established between two networks, bypassing any shared IXP infrastructure entirely.
+
+    - Dedicated, point-to-point connection for maximum performance
+    - Bypasses the IXP fabric, reducing potential congestion points
+    - Ideal for high-volume traffic between large networks where consistent throughput is critical
+
+    Private peering is typically reserved for partners with significant and sustained traffic volumes exchanged with Joy Services.
+  </Tab>
+</Tabs>
+
+## Requirements
+
+Before submitting a peering request, ensure your network meets the following requirements:
+
+- An **official Autonomous System Number (ASN)** registered for your network gateway
+- Properly configured **BGP routers** capable of establishing and maintaining a BGP session
+- All applicable **technical and operational requirements** for the chosen peering type (public or private) are met, including route policy compliance and 24/7 NOC reachability where applicable
+
+## How to Request Peering
+
+<Steps>
+  <Step title="Verify Your Network Meets Requirements">
+    Confirm your routers are properly configured for BGP, that your BGP setup is operational, and that you hold an official ASN registered to your organization.
+  </Step>
+  <Step title="Prepare Your Network Information">
+    Gather all relevant details you will need to include in your request:
+    - Your ASN
+    - Contact details (technical and NOC contacts)
+    - Preferred peering locations or IXPs
+    - Estimated traffic volumes and direction
+  </Step>
+  <Step title="Send a Peering Request Email">
+    Email your network information and peering request to **support@joycloud.services**. Include all details gathered in the previous step to help Joy Services evaluate your request efficiently.
+  </Step>
+  <Step title="Joy Services Reviews Your Request">
+    The Joy Services network team will review your submission and respond with next steps, any additional requirements, or confirmation that your request has been approved.
+  </Step>
+  <Step title="Complete BGP Configuration on Both Ends">
+    Once approved, work with Joy Services to complete the BGP session configuration on both sides. This includes exchanging BGP session parameters, prefix filters, and any relevant routing policies.
+  </Step>
+  <Step title="Verify the Peering Connection">
+    After configuration is complete, verify that the BGP session is established and active, and that traffic is flowing as expected across the peering link.
+  </Step>
+</Steps>
+
+<Note>
+  Contact [support@joycloud.services](mailto:support@joycloud.services) to begin a peering request. Include your ASN, contact information, and any relevant details about your network to get started.
+</Note>
+
+## External References
+
+The following external resources provide public information about Joy Services' ASN:
+
+- [DNSChecker ASN WHOIS Lookup — AS152565](https://dnschecker.org/asn-whois-lookup.php?query=152565)
+- [BGP.tools Network Summary — AS152565](https://bgp.tools/as/152565)

@@ -1,0 +1,68 @@
+---
+title: "Joy Services Billing, Plans, and Upgrade Pricing"
+sidebarTitle: "Billing"
+description: "Understand how Joy Services bills for compute instances, storage, and backups — including plan lengths, upgrade charges, and how to manage your wallet balance."
+---
+
+Joy Services uses a straightforward, plan-based billing model. Compute instances are billed according to the plan length you choose at provisioning time, giving you flexibility to match commitment to workload duration. Backup storage is billed based on actual disk usage, so costs scale with your data. Your wallet balance funds all active services, and you can top it up at any time from the dashboard. This page explains each billing component so you can plan and manage your cloud spend effectively.
+
+## Instance Plans
+
+When you create a compute instance, you select a plan length that determines how long the instance is provisioned and how the cost is structured. All plans include instant delivery — your instance is available immediately after checkout.
+
+| Plan | Duration | Best For |
+|---|---|---|
+| 1 Month | 30 days | Testing and development |
+| 3 Month | 90 days | Seasonal workloads |
+| 5 Month | 150 days | Business growth phases |
+| 1 Year | 365 days | Long-term projects |
+| 5 Year | 1825 days | Enterprise strategic planning |
+
+<Tip>
+  Longer plans typically offer better value. Consider a 1-year plan for stable production workloads.
+</Tip>
+
+## Hardware Upgrades and Downgrades
+
+Your workload requirements may change over time, and Joy Services allows you to adjust your instance hardware accordingly.
+
+**Upgrades** — Increasing RAM or CPU on an existing instance incurs additional charges based on the new resource tier. The cost reflects the difference between your current plan and the upgraded configuration for the remaining plan duration.
+
+**Downgrades** — Reducing RAM or CPU is free of charge. There is no penalty for scaling down hardware resources.
+
+Before making any hardware change, **power off your instance** to ensure the update is applied cleanly and without data risk.
+
+<Note>
+  If you need to downgrade your instance hardware and the option is not available in the dashboard, contact Joy Services support at [joy.services/contact/](https://joy.services/contact/) for assistance.
+</Note>
+
+## Backup Billing
+
+Automatic backups are billed based on your **current disk size** at the time the backup is taken. As your data grows, backup costs will increase proportionally.
+
+To keep backup costs predictable:
+
+- Configure your **retention period** in the instance **Config** tab to limit how many backup snapshots are stored simultaneously.
+- Regularly remove data you no longer need to reduce disk utilization.
+- Monitor your disk usage from the instance dashboard to anticipate cost changes before they occur.
+
+## Wallet Balance
+
+Your wallet balance is displayed prominently on the main dashboard as the **Amount** metric. All services — instances, hosting, databases, DNS, and CDN — draw from this balance.
+
+- **Top up** your wallet at any time through the payment options available in the dashboard.
+- Instances require an **active, sufficient balance** to remain provisioned. If your balance runs out, services may be suspended.
+- Review your balance regularly, especially before the renewal date of long-running instances.
+
+Set up balance alerts (if available in your account settings) to receive a notification before your wallet runs low.
+
+## Viewing Your Usage
+
+You can retrieve a real-time snapshot of your account's billing and resource usage programmatically via the Joy Services API. A request with `type=dashboardinfo` returns:
+
+- Current **wallet balance**
+- **Instance count** and per-instance resource allocation
+- Aggregate **RAM** (`iram`) and **vCPU core** (`icore`) totals across all instances
+- Counts for Hostings, Databases, DNS Domains, and CDN Domains
+
+See the [Dashboard Info API endpoint](/api/dashboard-info) for the full request and response reference.

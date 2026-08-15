@@ -1,0 +1,77 @@
+---
+title: "Joy Services Instances: Your Virtual Private Servers"
+sidebarTitle: "Overview"
+description: "Learn what instances are on Joy Services, how Equal Diversion Technology works, and the benefits of scalability, RAID redundancy, and 24/7 support."
+---
+
+An **instance** is a virtual private server (VPS) — a dedicated slice of physical hardware that gives you isolated CPU, RAM, storage, and networking resources. Joy Services provides high-performance VPS instances built for web hosting, application deployment, database management, and more. This page explains what instances are, how Joy Services' network technology keeps them running at peak efficiency, and what specifications and benefits you can expect.
+
+## What Is an Instance?
+
+An instance is a fully isolated virtual server that runs on Joy Services' infrastructure. It behaves like a physical server but lives in the cloud — you get root-level access, your own IP address, and dedicated compute resources that no other customer shares.
+
+Instances on Joy Services are purpose-built for a wide range of workloads:
+
+- **Web Hosting** — Serve websites and web applications with consistent uptime and fast response times.
+- **App Deployment** — Deploy and scale backend services, APIs, and microservices.
+- **Gaming** — Run low-latency game servers with high-throughput networking.
+- **Databases** — Host relational or NoSQL databases with reliable storage and configurable RAID redundancy.
+
+Every instance you create is delivered instantly after payment and is fully manageable from the Joy Services dashboard or REST API.
+
+## Equal Diversion Technology
+
+Joy Services uses **Equal Diversion Technology** to keep your instance's network connection stable and fast at all times. This proprietary approach distributes network traffic evenly across multiple physical network paths, so no single path ever becomes a bottleneck.
+
+Here is how it works in practice:
+
+- **Load Balancing** — Incoming and outgoing traffic is split across available network links, preventing any one path from becoming congested.
+- **Network Optimization** — Traffic routing is continuously analyzed and adjusted to use the most efficient path available at any given moment.
+- **Fault Tolerance** — If one network path degrades or fails, traffic automatically shifts to healthy paths with no manual intervention required.
+
+The result is consistent throughput, lower latency, and resilience against partial network failures — all transparent to your running instance.
+
+## Key Benefits
+
+<CardGroup cols={2}>
+  <Card title="Scalability" icon="arrow-up-right-dots">
+    Scale your instance's RAM, CPU, and storage up or down as your workload changes. Upgrades take effect quickly, and you only pay for what you need.
+  </Card>
+  <Card title="Reliability" icon="shield-check">
+    Choose RAID 10 storage to protect your data with combined striping and mirroring. Your instance keeps running even if a single drive fails.
+  </Card>
+  <Card title="Performance" icon="bolt">
+    Every instance runs on SSD storage and is backed by Equal Diversion Technology for high-speed, low-latency networking across all plans.
+  </Card>
+  <Card title="Flexibility" icon="sliders">
+    Pick from multiple Ubuntu LTS releases or Windows Server editions and switch operating systems at any time with a single click from the dashboard.
+  </Card>
+</CardGroup>
+
+## Instance Specifications
+
+The table below summarizes the resource ranges available across all Joy Services instance plans.
+
+| Resource    | Range               | Notes                                    |
+| ----------- | ------------------- | ---------------------------------------- |
+| RAM         | 2 GB – 750 GB       | Configurable after creation              |
+| CPU Cores   | 1 – 200             | Instance must be off to change           |
+| Storage     | 48 GB – 1 TB+       | SSD; add additional disks at any time    |
+| OS          | Ubuntu / Windows Server | One-click reinstall from the dashboard |
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Create an Instance" icon="plus" href="/instances/create">
+    Follow the step-by-step guide to provision your first VPS instance, choose a plan, and go live instantly.
+  </Card>
+  <Card title="Configure Hardware & Backups" icon="screwdriver-wrench" href="/instances/configure">
+    Resize RAM and CPU, manage disks, and set up automatic 24-hour backups from the Config tab.
+  </Card>
+  <Card title="Install an OS" icon="display" href="/instances/os-install">
+    Switch to any supported Ubuntu or Windows Server release with one click — no manual setup required.
+  </Card>
+  <Card title="Manage Your Instance" icon="gauge" href="/instances/manage">
+    Control power state, monitor CPU and memory graphs, configure alerts, and reset credentials.
+  </Card>
+</CardGroup>

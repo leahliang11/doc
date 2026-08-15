@@ -1,0 +1,191 @@
+---
+title: "Joy Services API Code Examples in 3 Languages"
+sidebarTitle: "Examples"
+description: "Working code examples for the Joy Services REST API in cURL, JavaScript (fetch), and PHP — covering authentication, machine listing, and power state control."
+---
+
+This page is a collection of ready-to-use code examples for the most common Joy Services API operations. Every snippet is self-contained and covers authentication, so you can drop it directly into your project. Examples are provided in **cURL**, **JavaScript (fetch)**, and **PHP** — pick whichever fits your stack.
+
+## List All Instances
+
+Retrieve a full list of virtual machine instances associated with your account using `type: machine_list`.
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.joy.services/api/connect/" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -H "User-Agent: joyconnect" \
+  -H "x-api-token: JOY-API-xxxxxxxxxxxx" \
+  -H "x-api-key: joy-xxxxxxxxxxxxxxxx" \
+  --data-raw '{
+    "type": "machine_list",
+    "init_ip": "127.0.0.1",
+    "init_browser": "Chrome"
+  }'
+```
+
+```javascript JavaScript
+async function joyConnect(type, extra = {}) {
+  const res = await fetch("https://api.joy.services/api/connect/", {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "joyconnect",
+      "x-api-token": process.env.JOY_API_TOKEN,
+      "x-api-key": process.env.JOY_API_KEY
+    },
+    body: JSON.stringify({
+      type,
+      init_ip: "127.0.0.1",
+      init_browser: "Chrome",
+      ...extra
+    })
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.success !== "true") {
+    throw new Error(data.message || "Joy API request failed");
+  }
+  return data;
+}
+
+// Usage
+const machines = await joyConnect("machine_list");
+console.log(machines.value);
+```
+
+```php PHP
+<?php
+function joyConnect(string $type, array $extra = []): array {
+    $url = "https://api.joy.services/api/connect/";
+    $payload = json_encode(array_merge([
+        "type" => $type,
+        "init_ip" => "127.0.0.1",
+        "init_browser" => "Chrome"
+    ], $extra));
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $payload,
+        CURLOPT_HTTPHEADER => [
+            "Accept: application/json",
+            "Content-Type: application/json",
+            "User-Agent: joyconnect",
+            "x-api-token: " . getenv("JOY_API_TOKEN"),
+            "x-api-key: " . getenv("JOY_API_KEY")
+        ],
+    ]);
+
+    $out = curl_exec($ch);
+    $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    $data = json_decode($out, true);
+    if ($http !== 200 || ($data["success"] ?? "false") !== "true") {
+        throw new Exception($data["message"] ?? "Joy API request failed");
+    }
+    return $data;
+}
+
+// Usage
+$result = joyConnect("machine_list");
+print_r($result["value"]);
+```
+
+</CodeGroup>
+
+## Get Dashboard Stats
+
+Fetch high-level account statistics — such as balance and total instance count — using `type: dashboardinfo`. This is also the recommended request to use when verifying that your credentials are working correctly.
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.joy.services/api/connect/" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -H "User-Agent: joyconnect" \
+  -H "x-api-token: JOY-API-xxxxxxxxxxxx" \
+  -H "x-api-key: joy-xxxxxxxxxxxxxxxx" \
+  --data-raw '{"type": "dashboardinfo", "init_ip": "127.0.0.1", "init_browser": "Chrome"}'
+```
+
+```javascript JavaScript
+const stats = await joyConnect("dashboardinfo");
+console.log(`Balance: ${stats.amount}, Instances: ${stats.instances}`);
+```
+
+</CodeGroup>
+
+## Start an Instance
+
+Change the power state of a specific instance using `type: change_machine_state`. The example below starts a stopped instance; swap `machine_state` for any of the other [supported state values](/api/errors#invalid_state).
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.joy.services/api/connect/" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -H "User-Agent: joyconnect" \
+  -H "x-api-token: JOY-API-xxxxxxxxxxxx" \
+  -H "x-api-key: joy-xxxxxxxxxxxxxxxx" \
+  --data-raw '{
+    "type": "change_machine_state",
+    "machine_state": "start",
+    "instance_token": "YOUR_INSTANCE_IHASH",
+    "init_ip": "127.0.0.1",
+    "init_browser": "Chrome"
+  }'
+```
+
+```javascript JavaScript
+const result = await joyConnect("change_machine_state", {
+  machine_state: "start",
+  instance_token: "YOUR_INSTANCE_IHASH"
+});
+console.log(result.value); // e.g. "machine_already_started"
+```
+
+</CodeGroup>
+
+## Get Instance Metrics
+
+Retrieve live resource usage metrics for a single instance using `type: machine_info`. Note that this operation returns a boolean `success` field rather than the string `"true"`/`"false"` used by other endpoints.
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.joy.services/api/connect/" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -H "User-Agent: joyconnect" \
+  -H "x-api-token: JOY-API-xxxxxxxxxxxx" \
+  -H "x-api-key: joy-xxxxxxxxxxxxxxxx" \
+  --data-raw '{
+    "type": "machine_info",
+    "instance_token": "YOUR_INSTANCE_IHASH",
+    "init_ip": "127.0.0.1",
+    "init_browser": "Chrome"
+  }'
+```
+
+```javascript JavaScript
+const info = await joyConnect("machine_info", {
+  instance_token: "YOUR_INSTANCE_IHASH"
+});
+const cpuPct = (info.Current.cpu * 100).toFixed(2);
+const ramGB = (info.Current.mem / 1073741824).toFixed(2);
+console.log(`CPU: ${cpuPct}%, RAM used: ${ramGB} GB`);
+```
+
+</CodeGroup>
+
+<Note>
+  Replace `JOY-API-xxxxxxxxxxxx` and `joy-xxxxxxxxxxxxxxxx` with your actual credentials from account settings. Store credentials in environment variables — never hardcode them directly in source files.
+</Note>
