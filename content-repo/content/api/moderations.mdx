@@ -1,0 +1,69 @@
+---
+title: 内容审核
+description: 对输入文本进行内容审核，识别是否包含有害、暴力、色情等违规内容。返回各分类的命中标志与置信度分数。
+slug: api/moderations
+category: api
+audience: external
+updated: 2026-08-23
+status: published
+owner: leah
+ai_readable: true
+source: openapi
+---
+
+## 接口概述
+
+```
+POST /v1/moderations
+```
+对输入文本进行内容审核，识别是否包含有害、暴力、色情等违规内容。返回各分类的命中标志与置信度分数。
+
+<Callout variant="info" title="分类说明">
+
+返回的 categories 与 category_scores 覆盖 hate/threatening/self-harm/sexual/violence 等标准分类，category_scores 为 0-1 的置信度。
+
+</Callout>
+
+## 请求参数
+
+<Params params={[
+  { name: 'input', type: 'string', required: true, description: '要审核的文本内容' },
+  { name: 'model', type: 'string', required: false, default: 'moderation-latest', description: '审核模型，默认 moderation-latest' }
+]} />
+
+## 请求示例
+
+<CodeTabs tabs={[
+  { label: 'cURL', code: `curl -X POST https://api.joymaas.com/v1/moderations \
+  -H "Authorization: Bearer $JOYMAAS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": "我今天很开心"
+  }'` },
+  { label: 'Python', code: `import requests
+
+resp = requests.post(
+    "https://api.joymaas.com/v1/moderations",
+    headers={
+            "Authorization": f"Bearer {JOYMAAS_API_KEY}",
+            "Content-Type": "application/json",
+        },
+    json={
+        "input": "我今天很开心",
+    },
+)
+print(resp.json())` }
+]} />
+
+## 响应参数
+
+<Params params={[
+  { name: 'id', type: 'string', required: false, description: '审核任务唯一 ID' },
+  { name: 'model', type: 'string', required: false, description: '使用的审核模型' },
+  { name: 'results', type: 'array', required: false, description: '审核结果数组，每项含 flagged/categories/category_scores' },
+  { name: 'results[0].flagged', type: 'boolean', required: false, description: '是否命中任一违规分类' },
+  { name: 'results[0].categories', type: 'object', required: false, description: '各分类命中标志（hate/threatening/self-harm/sexual/violence 等）' },
+  { name: 'results[0].category_scores', type: 'object', required: false, description: '各分类置信度分数（0-1）' }
+]} />
+
+响应示例见 [快速开始](/docs/quickstart)。

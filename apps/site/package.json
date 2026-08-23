@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/dev.mjs",
     "gen:openapi": "tsx scripts/gen-openapi.ts",
     "build": "tsx scripts/gen-openapi.ts && next build",
     "start": "next start",

@@ -1,0 +1,84 @@
+---
+title: 创建文本补全
+description: 根据给定提示生成文本补全。支持采样参数控制生成行为。兼容 OpenAI Completions API。
+slug: api/completions
+category: api
+audience: external
+updated: 2026-08-23
+status: published
+owner: leah
+ai_readable: true
+source: openapi
+---
+
+## 接口概述
+
+```
+POST /v1/completions
+```
+根据给定提示生成文本补全。支持采样参数控制生成行为。兼容 OpenAI Completions API。
+
+<Callout variant="warning" title="已推荐改用 Chat Completions">
+
+本接口为传统补全接口，新接入推荐使用 /v1/chat/completions（多轮对话能力更强）。本接口保留用于兼容旧客户端。
+
+</Callout>
+
+## 请求参数
+
+<Params params={[
+  { name: 'model', type: 'string', required: true, description: '模型 ID，如 doubao-pro-256k' },
+  { name: 'prompt', type: 'string', required: true, description: '补全的提示文本，可以是字符串或字符串数组' },
+  { name: 'max_tokens', type: 'integer', required: false, default: '16', description: '生成最大 token 数，超出生成会截断' },
+  { name: 'temperature', type: 'number', required: false, default: '1', description: '采样温度 0-2，越大越发散，与 top_p 二选一' },
+  { name: 'top_p', type: 'number', required: false, default: '1', description: '核采样，只从累积概率达 top_p 的 token 中采样' },
+  { name: 'n', type: 'integer', required: false, default: '1', description: '生成多少条候选补全' },
+  { name: 'stream', type: 'boolean', required: false, default: 'false', description: '是否流式返回（SSE）' },
+  { name: 'logprobs', type: 'integer', required: false, description: '返回每个 token 的对数概率，最多 5' },
+  { name: 'echo', type: 'boolean', required: false, default: 'false', description: '是否在输出中回显 prompt' },
+  { name: 'stop', type: 'string', required: false, description: '停止生成的标志，遇到该字符串时停止' },
+  { name: 'user', type: 'string', required: false, description: '终端用户标识，用于用量统计与滥用追踪' }
+]} />
+
+## 请求示例
+
+<CodeTabs tabs={[
+  { label: 'cURL', code: `curl -X POST https://api.joymaas.com/v1/completions \
+  -H "Authorization: Bearer $JOYMAAS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "doubao-pro-256k",
+    "prompt": "写一首关于秋天的诗",
+    "max_tokens": 100,
+    "temperature": 0.7
+  }'` },
+  { label: 'Python', code: `import requests
+
+resp = requests.post(
+    "https://api.joymaas.com/v1/completions",
+    headers={
+        "Authorization": f"Bearer {JOYMAAS_API_KEY}",
+        "Content-Type": "application/json",
+    },
+    json={
+        "model": "doubao-pro-256k",
+        "prompt": "写一首关于秋天的诗",
+        "max_tokens": 100,
+        "temperature": 0.7,
+    },
+)
+print(resp.json())` }
+]} />
+
+## 响应参数
+
+<Params params={[
+  { name: 'id', type: 'string', required: false, description: '补全唯一 ID' },
+  { name: 'object', type: 'string', required: false, description: '固定值 text_completion' },
+  { name: 'created', type: 'integer', required: false, description: '创建时间戳' },
+  { name: 'model', type: 'string', required: false, description: '实际生成模型 ID' },
+  { name: 'choices', type: 'array', required: false, description: '补全结果数组，每项含 text/finish_reason' },
+  { name: 'usage', type: 'object', required: false, description: 'token 用量统计' }
+]} />
+
+响应示例见 [快速开始](/docs/quickstart)。
