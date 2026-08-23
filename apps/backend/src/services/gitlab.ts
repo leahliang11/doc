@@ -35,3 +35,17 @@ export async function closeMR(iid: number): Promise<void> {
 export async function mergeMR(iid: number): Promise<void> {
   await client.MergeRequests.merge(CODING_PROJECT_ID, iid)
 }
+
+// 查 MR 状态（审核后确认是否真合入）
+export async function getMRStatus(iid: number): Promise<{
+  state: string
+  mergeStatus: string
+  mergedAt: string | null
+}> {
+  const mr = (await client.MergeRequests.show(CODING_PROJECT_ID, iid)) as any
+  return {
+    state: mr.state,
+    mergeStatus: mr.merge_status,
+    mergedAt: mr.merged_at,
+  }
+}

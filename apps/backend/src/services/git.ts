@@ -94,3 +94,25 @@ export async function writeAndCommit(
 
   return { commitHash, branch }
 }
+
+// 取某分支相对 main 的 diff（审核用）
+// 先 fetch 确保远端分支引用最新，再 diff origin/<branch>..main
+export async function getDiff(branch: string): Promise<string> {
+  await git.fetch('origin', branch)
+  // 用 origin/<branch>..main 的 diff（不改工作区）
+  // --stat 太简略，用完整 diff 但限制只看 content-repo/content/ 路径，避免混入非内容改动
+  const diff = await git.raw([
+    'diff',
+    `origin/${branch}...main`,
+    '--',
+    'content-repo/content/',
+  ])
+  // 反向（main..branch）才是"该分支新增的改动"，调整方向
+  const forward = await git.raw([
+    'diff',
+    `main...origin/${branch}`,
+    '--',
+    'content-repo/content/',
+  ])
+  return forward || diff
+}

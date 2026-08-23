@@ -82,3 +82,49 @@ export async function submitReview(
     title,
   })
 }
+
+// ── 审核队列（Week 5）──
+
+export interface ReviewTask {
+  id: number
+  source: 'web' | 'gitlab_mr'
+  slug: string
+  branch: string
+  mr_iid: number | null
+  submitter: string
+  status: 'pending' | 'approved' | 'rejected' | 'merged'
+  created_at: string
+  reviewed_at: string | null
+  reviewer: string | null
+  comment: string | null
+}
+
+async function getJson<T>(path: string): Promise<T> {
+  const resp = await fetch(`${API}${path}`)
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ error: resp.statusText }))
+    throw new Error(err.error || `HTTP ${resp.status}`)
+  }
+  return resp.json()
+}
+
+export async function listReviewTasks(status?: string): Promise<ReviewTask[]> {
+  const q = status ? `?status=${status}` : ''
+  return getJson<ReviewTask[]>(`/review-tasks${q}`)
+}
+
+export async function getDiff(taskId: number): Promise<{ diff: string; branch: string }> {
+  return getJson(`/review-tasks/${taskId}/diff`)
+}
+
+export async function approveReview(taskId: number): Promise<{ status: string; mr_iid: number }> {
+  return post(`/review-tasks/${taskId}/approve`, {})
+}
+
+export async function rejectReview(
+  taskId: number,
+  comment: string,
+): Promise<{ status: string; mr_iid: number }> {
+  return post(`/review-tasks/${taskId}/reject`, { comment })
+}
+

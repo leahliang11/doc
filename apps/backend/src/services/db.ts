@@ -59,8 +59,30 @@ export function createReviewTask(task: {
 }
 
 export function listReviewTasks(status?: string): any[] {
-  if (status) {
+  if (status && status !== 'all') {
     return db.prepare('SELECT * FROM review_tasks WHERE status = ? ORDER BY created_at DESC').all(status)
   }
   return db.prepare('SELECT * FROM review_tasks ORDER BY created_at DESC').all()
+}
+
+export function getReviewTask(id: number): any {
+  return db.prepare('SELECT * FROM review_tasks WHERE id = ?').get(id)
+}
+
+// 按 MR iid 查找（webhook 去重 + merge/close 回流用）
+export function findReviewTaskByMrIid(mrIid: number): any {
+  return db.prepare('SELECT * FROM review_tasks WHERE mr_iid = ? ORDER BY id DESC LIMIT 1').get(mrIid)
+}
+
+export function updateReviewTaskStatus(
+  id: number,
+  status: string,
+  reviewer?: string,
+  comment?: string,
+): void {
+  db.prepare(
+    `UPDATE review_tasks
+     SET status = ?, reviewed_at = datetime('now'), reviewer = ?, comment = ?
+     WHERE id = ?`,
+  ).run(status, reviewer ?? null, comment ?? null, id)
 }

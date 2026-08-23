@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import Sidebar from './components/Sidebar.vue'
 import DocsView from './views/DocsView.vue'
+import ReviewView from './views/ReviewView.vue'
 import PlaceholderView from './views/PlaceholderView.vue'
 
 const currentRoute = ref('/docs')
@@ -74,6 +75,7 @@ const currentLabel = computed(() => labels[currentRoute.value] || '文档')
       </header>
       <div class="main-body">
         <DocsView v-if="currentRoute === '/docs'" />
+        <ReviewView v-else-if="currentRoute === '/review'" />
         <PlaceholderView v-else :label="currentLabel" />
       </div>
     </main>

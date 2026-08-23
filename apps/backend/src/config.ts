@@ -13,3 +13,4 @@ export const CODING_PROJECT_ID = Number(required('CODING_PROJECT_ID'))
 export const CONTENT_REPO_PATH = required('CONTENT_REPO_PATH')
 export const PORT = Number(process.env.PORT ?? 3001)
 export const DB_PATH = process.env.DB_PATH ?? './data/app.sqlite'
+export const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET ?? '' // Coding webhook 配置时设的 X-Gitlab-Token；空则不校验（仅本地调试）
