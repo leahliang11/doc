@@ -1,0 +1,25 @@
+{
+  "name": "backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "verify-gitbeaker": "tsx scripts/verify-gitbeaker.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.3.0",
+    "@gitbeaker/rest": "^43.8.0",
+    "better-sqlite3": "^13.0.3",
+    "dotenv": "^17.4.2",
+    "fastify": "^5.12.1",
+    "simple-git": "^3.36.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.2.0",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2"
+  }
+}
