@@ -1,0 +1,220 @@
+/* ── MDX 预览样式（镜像前台 globals.css 的 Vercel neutral 体系）──
+   scope 到 .mdx-preview 容器，不污染 admin 靛蓝外壳。
+   数值来源：apps/site/src/app/globals.css + 6 个 mdx 组件。 */
+
+.mdx-preview {
+  /* Vercel neutral 变量（light） */
+  --pv-background: #ffffff;
+  --pv-foreground: #171717;
+  --pv-card: #ffffff;
+  --pv-muted: #fafafa;
+  --pv-muted-foreground: #525252;
+  --pv-border: #eaeaea;
+  --pv-primary: #0070f3;
+  --pv-primary-foreground: #ffffff;
+  --pv-destructive: #e00;
+  --pv-warn: #f5a623;
+  --pv-success: #0a8;
+  --pv-internal: #f5a623;
+  --pv-radius: 6px;
+  --pv-code-bg: #1e293b;
+  --pv-code-fg: #e2e8f0;
+  --pv-mono: ui-monospace, "SF Mono", "Geist Mono", Menlo, monospace;
+  --pv-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+}
+
+.dark .mdx-preview {
+  --pv-background: #0a0a0a;
+  --pv-foreground: #ededed;
+  --pv-card: #0a0a0a;
+  --pv-muted: #171717;
+  --pv-muted-foreground: #a3a3a3;
+  --pv-border: #333333;
+  --pv-primary: #3291ff;
+  --pv-primary-foreground: #0a0a0a;
+  --pv-destructive: #ff5555;
+  --pv-code-fg: #e2e8f0;
+}
+
+/* ── .prose-doc 节奏（前台 globals.css:182-272）── */
+.mdx-preview .prose-doc {
+  font-family: var(--pv-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--pv-muted-foreground);
+}
+.mdx-preview .prose-doc > *:first-child { margin-top: 0; }
+.mdx-preview .prose-doc h2 {
+  margin-top: 40px; margin-bottom: 16px;
+  font-size: 24px; line-height: 1.3;
+  color: var(--pv-foreground); font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.mdx-preview .prose-doc h3 {
+  margin-top: 28px; margin-bottom: 12px;
+  font-size: 18px; line-height: 1.4;
+  color: var(--pv-foreground); font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.mdx-preview .prose-doc h4 {
+  margin-top: 22px; margin-bottom: 10px;
+  font-size: 15px; color: var(--pv-foreground); font-weight: 600;
+}
+.mdx-preview .prose-doc p { margin-top: 0; margin-bottom: 14px; }
+.mdx-preview .prose-doc ul,
+.mdx-preview .prose-doc ol {
+  margin-top: 0; margin-bottom: 14px; padding-left: 1.3rem;
+}
+.mdx-preview .prose-doc ul { list-style: disc; }
+.mdx-preview .prose-doc ol { list-style: decimal; }
+.mdx-preview .prose-doc li { margin-bottom: 4px; }
+.mdx-preview .prose-doc li:last-child { margin-bottom: 0; }
+.mdx-preview .prose-doc pre { margin-top: 20px; margin-bottom: 20px; }
+.mdx-preview .prose-doc a { color: var(--pv-primary); text-decoration: none; }
+.mdx-preview .prose-doc a:hover { text-decoration: underline; }
+.mdx-preview .prose-doc code {
+  font-family: var(--pv-mono); font-size: 0.86em;
+  padding: 0.1em 0.35em; border-radius: 4px;
+  background: var(--pv-muted); border: 1px solid var(--pv-border);
+}
+.mdx-preview .prose-doc pre code {
+  padding: 0; background: transparent; font-size: 13px;
+}
+.mdx-preview .prose-doc blockquote {
+  margin: 16px 0; padding-left: 14px;
+  border-left: 3px solid var(--pv-border);
+}
+.mdx-preview .prose-doc hr {
+  margin: 32px 0; border: 0; border-top: 1px solid var(--pv-border);
+}
+.mdx-preview .prose-doc table {
+  width: 100%; border-collapse: collapse; margin: 16px 0;
+  font-size: 14px;
+}
+.mdx-preview .prose-doc th,
+.mdx-preview .prose-doc td {
+  border: 1px solid var(--pv-border); padding: 8px 12px; text-align: left;
+}
+.mdx-preview .prose-doc th { background: var(--pv-muted); font-weight: 600; color: var(--pv-foreground); }
+
+/* ── 6 个组件预览样式（镜像前台 React 组件）── */
+
+/* Callout：白底 + 极细边 + 左 2px 淡色线，图标语义色小面积 */
+.pv-callout {
+  margin: 16px 0; border-radius: var(--pv-radius);
+  border: 1px solid var(--pv-border); border-left-width: 2px;
+  background: var(--pv-card); padding: 12px 16px;
+}
+.pv-callout.pv-info { border-left-color: rgba(0,112,243,0.4); }
+.pv-callout.pv-warning { border-left-color: rgba(245,166,35,0.5); }
+.pv-callout.pv-danger { border-left-color: rgba(224,0,0,0.5); }
+.pv-callout.pv-success { border-left-color: rgba(0,168,0,0.5); }
+.pv-callout-head { display: flex; align-items: center; gap: 8px; }
+.pv-callout-head .pv-icon { width: 14px; height: 14px; flex-shrink: 0; }
+.pv-callout.pv-info .pv-icon { color: var(--pv-primary); }
+.pv-callout.pv-warning .pv-icon { color: var(--pv-warn); }
+.pv-callout.pv-danger .pv-icon { color: var(--pv-destructive); }
+.pv-callout.pv-success .pv-icon { color: var(--pv-success); }
+.pv-callout-title { font-size: 14px; font-weight: 500; color: var(--pv-foreground); line-height: 1.4; }
+.pv-callout-body { margin-top: 4px; padding-left: 22px; font-size: 14px; color: var(--pv-muted-foreground); line-height: 1.6; }
+.pv-callout-body p { margin: 0; }
+.pv-callout-body p + p { margin-top: 6px; }
+.pv-callout-inline { display: flex; align-items: flex-start; gap: 8px; }
+.pv-callout-inline .pv-icon { width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; }
+.pv-callout-inline .pv-callout-body { padding-left: 0; margin-top: 0; flex: 1; min-width: 0; }
+
+/* Steps：有序列表 + 序号圆点 */
+.pv-steps { margin: 24px 0; list-style: none; padding: 0; }
+.pv-steps-item { display: flex; gap: 16px; margin-bottom: 24px; }
+.pv-steps-item:last-child { margin-bottom: 0; }
+.pv-steps-num {
+  width: 28px; height: 28px; flex-shrink: 0;
+  border-radius: 50%; background: var(--pv-primary); color: var(--pv-primary-foreground);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 400;
+}
+.pv-steps-content { flex: 1; padding-top: 2px; }
+.pv-steps-content p:first-child { margin-top: 0; }
+
+/* CodeTabs：tab 切换 + 深色代码块 */
+.pv-codetabs { margin: 24px 0; }
+.pv-codetabs-bar { display: flex; gap: 2px; background: var(--pv-muted); padding: 4px; border-radius: var(--pv-radius) var(--pv-radius) 0 0; border: 1px solid var(--pv-border); border-bottom: none; }
+.pv-codetab-btn {
+  padding: 6px 12px; font-size: 14px; font-weight: 400;
+  background: transparent; border: none; cursor: pointer; border-radius: 4px;
+  color: var(--pv-muted-foreground);
+}
+.pv-codetab-btn.active { background: var(--pv-card); color: var(--pv-foreground); }
+.pv-codetab-panel { position: relative; }
+.pv-codetab-copy {
+  position: absolute; right: 12px; top: 12px;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--pv-muted-foreground); opacity: 0.6;
+}
+.pv-codetab-copy:hover { opacity: 1; }
+.pv-codetab-pre {
+  overflow-x: auto; border-radius: 0 0 var(--pv-radius) var(--pv-radius);
+  background: var(--pv-code-bg); padding: 16px; margin: 0;
+}
+.pv-codetab-pre code { color: var(--pv-code-fg); font-family: var(--pv-mono); font-size: 13px; }
+
+/* Params：表格 */
+.pv-params { margin: 24px 0; }
+.pv-params table { width: 100%; border-collapse: collapse; border: 1px solid var(--pv-border); border-radius: var(--pv-radius); overflow: hidden; }
+.pv-params th, .pv-params td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--pv-border); font-size: 14px; }
+.pv-params tr:last-child td { border-bottom: none; }
+.pv-params th { background: var(--pv-muted); font-weight: 600; color: var(--pv-foreground); }
+.pv-params .pv-param-name { font-family: var(--pv-mono); color: var(--pv-primary); }
+.pv-params .pv-param-type { font-family: var(--pv-mono); color: var(--pv-muted-foreground); }
+.pv-params .pv-param-req-yes { color: var(--pv-destructive); font-size: 12px; }
+.pv-params .pv-param-req-no { color: var(--pv-muted-foreground); font-size: 12px; }
+.pv-params .pv-param-default { font-family: var(--pv-mono); color: var(--pv-muted-foreground); }
+.pv-params .pv-param-desc { color: var(--pv-muted-foreground); }
+
+/* InternalOnly：收起态灰底 + 锁图标橙色点缀 */
+.pv-internal { margin: 16px 0; border-radius: var(--pv-radius); border: 1px solid var(--pv-border); background: var(--pv-muted); overflow: hidden; }
+.pv-internal summary { display: flex; cursor: pointer; list-style: none; align-items: center; gap: 8px; padding: 8px 16px; }
+.pv-internal summary::-webkit-details-marker { display: none; }
+.pv-internal .pv-lock { width: 12px; height: 12px; color: var(--pv-internal); flex-shrink: 0; }
+.pv-internal .pv-label { font-size: 12px; font-weight: 500; color: var(--pv-muted-foreground); }
+.pv-internal .pv-chevron { margin-left: auto; width: 14px; height: 14px; color: var(--pv-muted-foreground); transition: transform 0.15s; }
+.pv-internal[open] .pv-chevron { transform: rotate(90deg); }
+.pv-internal-body { border-top: 1px solid var(--pv-border); background: var(--pv-card); padding: 12px 16px; font-size: 14px; color: var(--pv-muted-foreground); line-height: 1.6; }
+.pv-internal-body p { margin: 0; }
+.pv-internal-body p + p { margin-top: 6px; }
+/* 不可收起态 */
+.pv-internal-flat { margin: 16px 0; border-radius: var(--pv-radius); border: 1px solid var(--pv-border); background: var(--pv-card); padding: 12px 16px; }
+.pv-internal-flat-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.pv-internal-flat-body { padding-left: 20px; font-size: 14px; color: var(--pv-muted-foreground); line-height: 1.6; }
+.pv-internal-flat-body p { margin: 0; }
+.pv-internal-flat-body p + p { margin-top: 6px; }
+
+/* NextSteps：卡片网格 + hover 边框加深 + 微抬 */
+.pv-nextsteps { margin: 16px 0; display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 640px) { .pv-nextsteps { grid-template-columns: repeat(2, 1fr); } }
+.pv-nextstep-card {
+  position: relative; border-radius: var(--pv-radius);
+  border: 1px solid var(--pv-border); background: var(--pv-card); padding: 16px;
+  text-decoration: none; transition: all 0.15s;
+  display: block;
+}
+.pv-nextstep-card:hover { border-color: #999; transform: translateY(-1px); }
+.pv-nextstep-title { margin: 0 0 4px; font-size: 15px; font-weight: 500; color: var(--pv-foreground); line-height: 1.35; }
+.pv-nextstep-desc { margin: 0; font-size: 13px; color: var(--pv-muted-foreground); line-height: 1.35; }
+.pv-nextstep-arrow {
+  position: absolute; right: 16px; bottom: 16px;
+  width: 12px; height: 12px; color: var(--pv-primary); opacity: 0.5; transition: all 0.15s;
+}
+.pv-nextstep-card:hover .pv-nextstep-arrow { transform: translateX(2px); opacity: 1; }
+
+/* 解析失败降级提示 */
+.pv-parse-error {
+  margin: 16px 0; padding: 12px 16px; border-radius: var(--pv-radius);
+  border: 1px solid var(--pv-warn); background: rgba(245,166,35,0.08);
+  font-size: 13px; color: #92400e;
+}
+.pv-parse-error-code {
+  margin-top: 8px; padding: 8px 12px; background: var(--pv-muted);
+  border-radius: 4px; font-family: var(--pv-mono); font-size: 12px;
+  color: var(--pv-muted-foreground); white-space: pre-wrap; word-break: break-all;
+}

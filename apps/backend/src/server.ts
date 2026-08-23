@@ -2,6 +2,7 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import { docsRoutes } from './routes/docs.js'
+import { aiRoutes } from './routes/ai.js'
 import { PORT } from './config.js'
 
 const app = Fastify({ logger: true })
@@ -11,6 +12,7 @@ await app.register(cors, {
 })
 
 await app.register(docsRoutes)
+await app.register(aiRoutes)
 
 app.get('/health', async () => ({ status: 'ok' }))
 

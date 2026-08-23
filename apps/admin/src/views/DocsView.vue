@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import DocList from '../components/DocList.vue'
 import Editor from '../components/Editor.vue'
 import ConflictDialog from '../components/ConflictDialog.vue'
+import ComponentInsertDialog from '../components/ComponentInsertDialog.vue'
 import { openDoc, saveDoc, submitReview, type DocListItem } from '../api'
 
 const mode = ref<'list' | 'edit'>('list')
@@ -16,7 +17,53 @@ const toast = ref('')
 const conflict = ref<{ remoteMarkdown: string; message: string } | null>(null)
 const mrResult = ref<{ iid: number; url: string } | null>(null)
 
+// 组件插入弹窗
+const insertDialog = ref<{ show: boolean; component: 'CodeTabs' | 'Params' | null }>({
+  show: false,
+  component: null,
+})
+
+// 编辑器实例引用（用于插入复杂组件生成的 MDX）
+const editorRef = ref<InstanceType<typeof Editor> | null>(null)
+
+// 脏状态 + 自动保存草稿
+const dirty = ref(false)
+const lastSavedContent = ref('')
+const saveState = ref<'unsaved' | 'saving' | 'saved' | 'conflict' | 'mr'>('unsaved')
+let autoSaveTimer: ReturnType<typeof setTimeout> | null = null
+
+function onContentChange(content: string) {
+  // 自动保存草稿到 localStorage（防抖 3s）
+  if (content === lastSavedContent.value) {
+    dirty.value = false
+    if (saveState.value !== 'mr' && saveState.value !== 'conflict') saveState.value = 'saved'
+    return
+  }
+  dirty.value = true
+  if (saveState.value !== 'mr' && saveState.value !== 'conflict') saveState.value = 'unsaved'
+  if (autoSaveTimer) clearTimeout(autoSaveTimer)
+  autoSaveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(`draft:${currentSlug.value}`, content)
+    } catch {
+      /* ignore */
+    }
+  }, 3000)
+}
+
+// 离开拦截
+function beforeUnloadHandler(e: BeforeUnloadEvent) {
+  if (dirty.value) {
+    e.preventDefault()
+    e.returnValue = ''
+  }
+}
+onMounted(() => window.addEventListener('beforeunload', beforeUnloadHandler))
+onUnmounted(() => window.removeEventListener('beforeunload', beforeUnloadHandler))
+
 async function onOpen(doc: DocListItem) {
+  // 脏状态确认
+  if (dirty.value && !confirm('有未保存的改动，确认切换文档？')) return
   toast.value = '打开中…'
   try {
     const r = await openDoc(doc.slug)
@@ -24,6 +71,9 @@ async function onOpen(doc: DocListItem) {
     markdown.value = r.markdown
     baseCommit.value = r.base_commit
     currentBranch.value = ''
+    lastSavedContent.value = r.markdown
+    dirty.value = false
+    saveState.value = 'saved'
     mode.value = 'edit'
     toast.value = ''
   } catch (e: any) {
@@ -33,18 +83,25 @@ async function onOpen(doc: DocListItem) {
 
 async function onSave(content: string) {
   saving.value = true
+  saveState.value = 'saving'
   toast.value = '保存中…'
   try {
     const r = await saveDoc(currentSlug.value, content, baseCommit.value)
     currentBranch.value = r.branch
-    // base_commit 更新为最新 commit（下次保存基于这个）
     baseCommit.value = r.commit_hash
+    lastSavedContent.value = content
+    dirty.value = false
+    saveState.value = 'saved'
     toast.value = `已保存：commit ${r.commit_hash.slice(0, 8)}，分支 ${r.branch}`
+    // 清理草稿
+    try { localStorage.removeItem(`draft:${currentSlug.value}`) } catch { /* ignore */ }
   } catch (e: any) {
     if (e.status === 409 && e.remote_markdown) {
       conflict.value = { remoteMarkdown: e.remote_markdown, message: e.message }
+      saveState.value = 'conflict'
       toast.value = '检测到冲突'
     } else {
+      saveState.value = 'unsaved'
       toast.value = '保存失败：' + e.message
     }
   } finally {
@@ -56,14 +113,16 @@ async function onSubmit(content: string) {
   submitting.value = true
   toast.value = '提交审核中…'
   try {
-    // 先保存确保有 draft 分支
     if (!currentBranch.value) {
       const r = await saveDoc(currentSlug.value, content, baseCommit.value)
       currentBranch.value = r.branch
       baseCommit.value = r.commit_hash
+      lastSavedContent.value = content
+      dirty.value = false
     }
     const r = await submitReview(currentSlug.value, currentBranch.value)
     mrResult.value = { iid: r.mr_iid, url: r.mr_url }
+    saveState.value = 'mr'
     toast.value = '已提交审核'
   } catch (e: any) {
     toast.value = '提交失败：' + e.message
@@ -72,7 +131,19 @@ async function onSubmit(content: string) {
   }
 }
 
+// 组件插入：Editor 发出 insertComponent 事件（CodeTabs/Params 弹表单）
+function onInsertComponent(name: string) {
+  if (name === 'CodeTabs' || name === 'Params') {
+    insertDialog.value = { show: true, component: name }
+  }
+}
+// 表单确认插入
+function onInsertMdx(mdx: string) {
+  editorRef.value?.insertMdx(mdx)
+}
+
 function backToList() {
+  if (dirty.value && !confirm('有未保存的改动，确认返回列表？')) return
   mode.value = 'list'
   currentSlug.value = ''
   markdown.value = ''
@@ -80,26 +151,28 @@ function backToList() {
   currentBranch.value = ''
   toast.value = ''
   mrResult.value = null
+  dirty.value = false
+  saveState.value = 'unsaved'
 }
 
-// 冲突弹窗：用我的覆盖（重新保存，base_commit 已是远端最新）
+// 冲突弹窗：用我的覆盖（重新 open 拿最新 base，再保存）
 async function overwriteMine() {
   if (!conflict.value) return
-  baseCommit.value = '' // 留空会触发后端用最新？不——后端要 base_commit。改为重新 open 拿最新 base
   conflict.value = null
-  // 重新打开拿最新 base_commit，再让用户保存
   const r = await openDoc(currentSlug.value)
   baseCommit.value = r.base_commit
+  saveState.value = 'unsaved'
   toast.value = '已加载远端最新版本，请重新点保存'
 }
-// 冲突弹窗：放弃我的改动
 async function discardMine() {
   if (!conflict.value) return
   markdown.value = conflict.value.remoteMarkdown
   conflict.value = null
-  // 重新拿最新 base_commit
   const r = await openDoc(currentSlug.value)
   baseCommit.value = r.base_commit
+  lastSavedContent.value = r.markdown
+  dirty.value = false
+  saveState.value = 'saved'
   toast.value = '已放弃改动，加载远端最新版本'
 }
 </script>
@@ -111,14 +184,26 @@ async function discardMine() {
     <DocList v-if="mode === 'list'" @open="onOpen" />
     <Editor
       v-else
+      ref="editorRef"
       :slug="currentSlug"
       :markdown="markdown"
       :base-commit="baseCommit"
       :saving="saving"
       :submitting="submitting"
+      :save-state="saveState"
+      :mr-info="mrResult"
       @back="backToList"
       @save="onSave"
       @submit="onSubmit"
+      @insert-component="onInsertComponent"
+      @content-change="onContentChange"
+    />
+
+    <ComponentInsertDialog
+      :show="insertDialog.show"
+      :component="insertDialog.component"
+      @close="insertDialog = { show: false, component: null }"
+      @insert="onInsertMdx"
     />
 
     <ConflictDialog
