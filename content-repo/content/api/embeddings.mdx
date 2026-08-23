@@ -1,0 +1,90 @@
+---
+title: 创建文本向量
+description: 将输入文本转为向量，用于相似度检索、聚类、分类等场景。兼容 OpenAI Embeddings API 格式。
+slug: api/embeddings
+category: api
+audience: external
+updated: 2026-08-23
+status: published
+owner: leah
+ai_readable: true
+source: openapi
+---
+
+## 接口概述
+
+```
+POST /v1/embeddings
+```
+将输入文本转为向量，用于相似度检索、聚类、分类等场景。兼容 OpenAI Embeddings API 格式。
+
+<Callout variant="info" title="兼容 OpenAI 格式">
+
+本接口兼容 OpenAI Embeddings API，已有 OpenAI 客户端只需替换 base_url 和 api_key。
+
+</Callout>
+
+## 请求参数
+
+<Params params={[
+  { name: 'model', type: 'string', required: true, description: '模型 ID，如 embedding-3。完整列表见 /v1/models' },
+  { name: 'input', type: 'string', required: true, description: '要向量化的文本，单个字符串或字符串数组' },
+  { name: 'encoding_format', type: 'string', required: false, default: 'float', description: '返回向量的格式，float 或 base64' },
+  { name: 'dimensions', type: 'integer', required: false, description: '输出向量的维度，部分模型支持降维（如 embedding-3 支持 512/1024/2048）' },
+  { name: 'user', type: 'string', required: false, description: '终端用户标识，用于用量统计与滥用追踪' }
+]} />
+
+## 请求示例
+
+<CodeTabs tabs={[
+  { label: 'cURL', code: `curl -X POST https://api.joymaas.com/v1/embeddings \
+  -H "Authorization: Bearer $JOYMAAS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "embedding-3",
+    "input": "机器学习是研究如何让计算机自动学习的学科"
+  }'` },
+  { label: 'Python', code: `import requests
+
+resp = requests.post(
+    "https://api.joymaas.com/v1/embeddings",
+    headers={
+        "Authorization": f"Bearer {JOYMAAS_API_KEY}",
+        "Content-Type": "application/json",
+    },
+    json={
+        "model": "embedding-3",
+        "input": "机器学习是研究如何让计算机自动学习的学科",
+    },
+)
+print(resp.json())` },
+  { label: 'Node', code: `const resp = await fetch("https://api.joymaas.com/v1/embeddings", {
+  method: "POST",
+  headers: {
+    "Authorization": \`Bearer ${process.env.JOYMAAS_API_KEY}\`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    model: "embedding-3",
+    input: "机器学习是研究如何让计算机自动学习的学科",
+  }),
+});
+console.log(await resp.json());` }
+]} />
+
+## 响应参数
+
+<Params params={[
+  { name: 'object', type: 'string', required: false, description: '固定值 list' },
+  { name: 'data', type: 'array', required: false, description: '向量结果数组，每项含 index 与 embedding' },
+  { name: 'model', type: 'string', required: false, description: '实际生成向量的模型 ID' },
+  { name: 'usage', type: 'object', required: false, description: 'token 用量统计，含 prompt_tokens 与 total_tokens' }
+]} />
+
+响应示例见 [快速开始](/docs/quickstart)。
+
+<InternalOnly>
+
+内部限流策略：单 Key 默认 2000 RPM，超出返回 429。SLA：P99 < 1s，可用性 99.9%。容量水位看内部监控大盘 joymaas-api-capacity。
+
+</InternalOnly>

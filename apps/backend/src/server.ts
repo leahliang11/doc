@@ -5,6 +5,7 @@ import { docsRoutes } from './routes/docs.js'
 import { aiRoutes } from './routes/ai.js'
 import { webhookRoutes } from './routes/webhook.js'
 import { reviewRoutes } from './routes/review.js'
+import { buildRoutes } from './routes/build.js'
 import { PORT } from './config.js'
 
 const app = Fastify({ logger: true })
@@ -17,6 +18,7 @@ await app.register(docsRoutes)
 await app.register(aiRoutes)
 await app.register(webhookRoutes)
 await app.register(reviewRoutes)
+await app.register(buildRoutes)
 
 app.get('/health', async () => ({ status: 'ok' }))
 

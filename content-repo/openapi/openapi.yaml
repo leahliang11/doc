@@ -1,0 +1,107 @@
+openapi: 3.0.0
+info:
+  title: JoyMaaS API
+  version: "1.0"
+  description: JoyMaaS 大模型 API 文档
+servers:
+  - url: https://api.joymaas.com
+    description: 生产环境
+paths:
+  /v1/embeddings:
+    post:
+      operationId: createEmbedding
+      summary: 创建文本向量
+      description: 将输入文本转为向量，用于相似度检索、聚类、分类等场景。兼容 OpenAI Embeddings API 格式。
+      x-callout:
+        variant: info
+        title: 兼容 OpenAI 格式
+        body: 本接口兼容 OpenAI Embeddings API，已有 OpenAI 客户端只需替换 base_url 和 api_key。
+      x-internal:
+        body: 内部限流策略：单 Key 默认 2000 RPM，超出返回 429。SLA：P99 < 1s，可用性 99.9%。容量水位看内部监控大盘 joymaas-api-capacity。
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [model, input]
+              properties:
+                model:
+                  type: string
+                  description: 模型 ID，如 embedding-3。完整列表见 /v1/models
+                  example: embedding-3
+                input:
+                  type: string
+                  description: 要向量化的文本，单个字符串或字符串数组
+                  example: 机器学习是研究如何让计算机自动学习的学科
+                encoding_format:
+                  type: string
+                  default: float
+                  description: 返回向量的格式，float 或 base64
+                dimensions:
+                  type: integer
+                  description: 输出向量的维度，部分模型支持降维（如 embedding-3 支持 512/1024/2048）
+                user:
+                  type: string
+                  description: 终端用户标识，用于用量统计与滥用追踪
+      responses:
+        '200':
+          description: 成功返回向量
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  object:
+                    type: string
+                    description: 固定值 list
+                  data:
+                    type: array
+                    description: 向量结果数组，每项含 index 与 embedding
+                  model:
+                    type: string
+                    description: 实际生成向量的模型 ID
+                  usage:
+                    type: object
+                    description: token 用量统计，含 prompt_tokens 与 total_tokens
+      x-codeSamples:
+        - label: cURL
+          code: |
+            curl -X POST https://api.joymaas.com/v1/embeddings \
+              -H "Authorization: Bearer $JOYMAAS_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "model": "embedding-3",
+                "input": "机器学习是研究如何让计算机自动学习的学科"
+              }'
+        - label: Python
+          code: |
+            import requests
+
+            resp = requests.post(
+                "https://api.joymaas.com/v1/embeddings",
+                headers={
+                    "Authorization": f"Bearer {JOYMAAS_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "embedding-3",
+                    "input": "机器学习是研究如何让计算机自动学习的学科",
+                },
+            )
+            print(resp.json())
+        - label: Node
+          code: |
+            const resp = await fetch("https://api.joymaas.com/v1/embeddings", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${process.env.JOYMAAS_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "embedding-3",
+                input: "机器学习是研究如何让计算机自动学习的学科",
+              }),
+            });
+            console.log(await resp.json());

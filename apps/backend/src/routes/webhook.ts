@@ -6,6 +6,7 @@ import {
   createReviewTask,
   findReviewTaskByMrIid,
   updateReviewTaskStatus,
+  recordBuildNeed,
 } from '../services/db.js'
 
 export async function webhookRoutes(app: FastifyInstance): Promise<void> {
@@ -27,8 +28,14 @@ export async function webhookRoutes(app: FastifyInstance): Promise<void> {
       if (objectKind === 'merge_requests') {
         await handleMergeRequests(body, request)
       } else if (objectKind === 'push') {
-        // push 事件 Week 6 处理（触发构建），本周只 ack
-        request.log.info({ ref: body?.ref }, 'push webhook 收到（Week 6 处理）')
+        // push 到 main → 记 build_tasks（不自动 spawn 构建，手动/CI 触发）
+        const ref = body?.ref || ''
+        if (ref.includes('main')) {
+          const id = recordBuildNeed('push', ref)
+          request.log.info({ ref, id }, 'push 到 main，记 build_tasks')
+        } else {
+          request.log.info({ ref }, 'push 非 main 分支，忽略')
+        }
       } else {
         request.log.info({ objectKind }, '未处理的 webhook 事件类型')
       }

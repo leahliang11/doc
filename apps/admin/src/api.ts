@@ -128,3 +128,24 @@ export async function rejectReview(
   return post(`/review-tasks/${taskId}/reject`, { comment })
 }
 
+// ── 构建（Week 6）──
+
+export interface BuildTask {
+  id: number
+  source: string
+  ref: string | null
+  status: 'pending' | 'building' | 'done' | 'failed'
+  created_at: string
+  built_at: string | null
+  log: string | null
+}
+
+export async function listBuildTasks(status?: string): Promise<BuildTask[]> {
+  const q = status ? `?status=${status}` : ''
+  return getJson<BuildTask[]>(`/build/tasks${q}`)
+}
+
+export async function runBuild(): Promise<{ status: string; task_id: number }> {
+  return post('/build/run', {})
+}
+

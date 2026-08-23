@@ -34,6 +34,16 @@ db.exec(`
     base_commit TEXT NOT NULL,
     opened_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS build_tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source TEXT NOT NULL,           -- 'push' | 'manual'
+    ref TEXT,                       -- push 的 ref（refs/heads/main）
+    status TEXT NOT NULL DEFAULT 'pending',  -- 'pending' | 'building' | 'done' | 'failed'
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    built_at TEXT,
+    log TEXT
+  );
 `)
 
 // ── edit_sessions ──
@@ -85,4 +95,39 @@ export function updateReviewTaskStatus(
      SET status = ?, reviewed_at = datetime('now'), reviewer = ?, comment = ?
      WHERE id = ?`,
   ).run(status, reviewer ?? null, comment ?? null, id)
+}
+
+// ── build_tasks ──
+
+export function recordBuildNeed(source: string, ref?: string): number {
+  const result = db
+    .prepare('INSERT INTO build_tasks (source, ref, status) VALUES (?, ?, ?)')
+    .run(source, ref ?? null, 'pending')
+  return Number(result.lastInsertRowid)
+}
+
+export function listBuildTasks(status?: string): any[] {
+  if (status && status !== 'all') {
+    return db
+      .prepare('SELECT * FROM build_tasks WHERE status = ? ORDER BY created_at DESC')
+      .all(status)
+  }
+  return db.prepare('SELECT * FROM build_tasks ORDER BY created_at DESC').all()
+}
+
+export function updateBuildTaskStatus(id: number, status: string, log?: string): void {
+  db.prepare(
+    `UPDATE build_tasks SET status = ?, built_at = datetime('now'), log = ? WHERE id = ?`,
+  ).run(status, log ?? null, id)
+}
+
+export function clearBuildTask(id: number): void {
+  db.prepare('DELETE FROM build_tasks WHERE id = ?').run(id)
+}
+
+export function countPendingBuildTasks(): number {
+  const r = db
+    .prepare("SELECT count(*) as c FROM build_tasks WHERE status = 'pending'")
+    .get() as { c: number }
+  return r.c
 }
