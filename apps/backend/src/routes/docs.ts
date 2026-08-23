@@ -1,11 +1,17 @@
-// 文档 API 路由：open / save / submit-review
+// 文档 API 路由：list / open / save / submit-review
 import type { FastifyInstance } from 'fastify'
 import * as git from '../services/git.js'
 import * as gitlab from '../services/gitlab.js'
 import { recordEditSession, createReviewTask } from '../services/db.js'
 import { parseFrontmatter } from '../lib/frontmatter.js'
+import { listDocs } from '../lib/list-docs.js'
 
 export async function docsRoutes(app: FastifyInstance): Promise<void> {
+  // 列出所有文档
+  app.get('/api/docs', async () => {
+    return listDocs()
+  })
+
   // 打开文档：git pull + 读 mdx + 记 base_commit
   app.post('/api/docs/open', async (request, reply) => {
     const { slug, user } = request.body as { slug: string; user: string }

@@ -1,0 +1,16 @@
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+
+// 后端 :3001，前端 dev 用代理避免 CORS
+export default defineConfig({
+  plugins: [vue()],
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:3001',
+        changeOrigin: true,
+      },
+    },
+  },
+})

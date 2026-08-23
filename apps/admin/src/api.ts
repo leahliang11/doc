@@ -1,0 +1,84 @@
+// 后端 API 封装（通过 vite 代理 /api → :3001）
+
+const API = '/api'
+
+export interface DocListItem {
+  slug: string
+  title: string
+  category: string
+  status: string
+  updated: string
+}
+
+export interface OpenResult {
+  markdown: string
+  frontmatter: Record<string, unknown>
+  base_commit: string
+}
+
+export interface SaveResult {
+  commit_hash: string
+  branch: string
+}
+
+export interface SubmitResult {
+  mr_iid: number
+  mr_url: string
+}
+
+// 当前用户（Week 4 无登录，硬编码）
+const USER = { name: 'leah', email: 'liangyuanwen.1@jd.com' }
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const resp = await fetch(`${API}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ error: resp.statusText }))
+    const e = new Error(err.error || `HTTP ${resp.status}`) as Error & {
+      status: number
+      remote_markdown?: string
+    }
+    e.status = resp.status
+    e.remote_markdown = err.remote_markdown
+    throw e
+  }
+  return resp.json()
+}
+
+export async function listDocs(): Promise<DocListItem[]> {
+  const resp = await fetch(`${API}/docs`)
+  return resp.json()
+}
+
+export async function openDoc(slug: string): Promise<OpenResult> {
+  return post<OpenResult>('/docs/open', { slug, user: USER.name })
+}
+
+export async function saveDoc(
+  slug: string,
+  markdown: string,
+  baseCommit: string,
+): Promise<SaveResult> {
+  return post<SaveResult>('/docs/save', {
+    slug,
+    markdown,
+    base_commit: baseCommit,
+    user: USER,
+  })
+}
+
+export async function submitReview(
+  slug: string,
+  branch: string,
+  title?: string,
+): Promise<SubmitResult> {
+  return post<SubmitResult>('/docs/submit-review', {
+    slug,
+    branch,
+    submitter: USER.name,
+    title,
+  })
+}
