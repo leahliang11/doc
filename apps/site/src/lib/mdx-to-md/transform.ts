@@ -1,9 +1,9 @@
 // 遍历 mdast AST，把 5 个白名单组件节点替换为纯 Markdown（以 html 节点注入）
 import { visit } from 'unist-util-visit'
 import { toMarkdown } from 'mdast-util-to-markdown'
-import type { Root, Node, Parent } from 'mdast'
-import type { Audience } from './types.ts'
-import { evaluateExpression } from './props-evaluator.ts'
+import type { Root, Node, Parent, RootContent } from 'mdast'
+import type { Audience } from './types'
+import { evaluateExpression } from './props-evaluator'
 import {
   calloutToMarkdown,
   stepsToMarkdown,
@@ -11,7 +11,7 @@ import {
   paramsToMarkdown,
   internalOnlyToMarkdown,
   nextStepsToMarkdown,
-} from './converters.ts'
+} from './converters'
 
 // 白名单组件名
 const WHITELIST = new Set([
@@ -28,7 +28,7 @@ const mdSerializeOptions = {
   bullet: '-',           // 无序列表用 - 而非默认 *
   fences: true,
   emphasis: '*',
-}
+} as const
 
 // 把一个节点的子树序列化成 Markdown 字符串（用于 children 内容）
 function serializeChildren(children: Node[]): string {
@@ -111,7 +111,7 @@ export function transform(tree: Root, audience: Audience): Root {
     // 非白名单 JSX 节点（如 <div>）：解包，用 children 文本替换（去掉标签外壳）
     if (!WHITELIST.has(jsx.name)) {
       const parentAsParent = parent as Parent
-      parentAsParent.children[index] = htmlNode(childrenMd)
+      ;(parentAsParent.children as RootContent[])[index] = htmlNode(childrenMd) as RootContent
       return
     }
 
@@ -149,7 +149,7 @@ export function transform(tree: Root, audience: Audience): Root {
 
     // 用 html 节点替换原 JSX 节点
     const parentAsParent = parent as Parent
-    parentAsParent.children[index] = htmlNode(md)
+    ;(parentAsParent.children as RootContent[])[index] = htmlNode(md) as RootContent
   })
   return tree
 }

@@ -1,5 +1,6 @@
 // SQLite 封装：review_tasks / edit_sessions 表（规划 §5.2）
-import Database from 'better-sqlite3'
+// 用 Node 22 内置的 node:sqlite（零原生依赖，绕开 better-sqlite3 在 CentOS 8 的 glibc/node-gyp 编译问题）
+import { DatabaseSync } from 'node:sqlite'
 import fs from 'fs'
 import path from 'path'
 import { DB_PATH } from '../config.js'
@@ -8,8 +9,8 @@ import { DB_PATH } from '../config.js'
 const dbDir = path.dirname(DB_PATH)
 if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true })
 
-export const db = new Database(DB_PATH)
-db.pragma('journal_mode = WAL')
+export const db = new DatabaseSync(DB_PATH)
+db.exec('PRAGMA journal_mode = WAL')
 
 // 建表
 db.exec(`

@@ -7,7 +7,7 @@ import { Calendar, User } from 'lucide-react'
 // 预生成所有文档的静态参数
 export function generateStaticParams() {
   return allDocs.map((doc) => ({
-    slug: doc.slug.split('/'),
+    slug: (doc.slug ?? '').split('/'),
   }))
 }
 
@@ -59,7 +59,7 @@ export default async function DocPage({
             </span>
           )}
           <span className="ml-auto">
-            <CopyAsMarkdown slug={doc.slug} />
+            <CopyAsMarkdown slug={doc.slug ?? slug} />
           </span>
         </div>
       </header>

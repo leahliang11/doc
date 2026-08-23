@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import DocList from '../components/DocList.vue'
 import Editor from '../components/Editor.vue'
 import ConflictDialog from '../components/ConflictDialog.vue'

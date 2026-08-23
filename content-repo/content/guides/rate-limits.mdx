@@ -1,0 +1,80 @@
+---
+title: 限流策略
+description: RPM/TPM 限制、429 错误处理与重试实践
+slug: guides/rate-limits
+category: guides
+audience: external
+tags: [ratelimit, 429, retry]
+updated: 2026-08-23
+status: published
+owner: leah
+ai_readable: true
+source: manual
+---
+
+## 接口概述
+
+JoyMaaS 对每个 API Key 施加 RPM（每分钟请求数）和 TPM（每分钟 token 数）双重限流，防止单 Key 占用过多资源。
+
+## 默认限额
+
+| 模型类型 | 默认 RPM | 默认 TPM | 说明 |
+|---|---|---|---|
+| Chat（对话） | 1000 | 2,000,000 | 单 Key 默认值 |
+| Embedding（向量） | 2000 | 4,000,000 | 向量接口限额较高 |
+| Moderation（审核） | 2000 | 4,000,000 | 轻量接口 |
+
+<Callout variant="info" title="限额可提升">
+默认限额针对普通账号。企业客户可在控制台「配额管理」申请提升，或联系商务。
+</Callout>
+
+## 429 错误
+
+超过限额时接口返回 HTTP 429，响应体含具体限流维度：
+
+```json
+{
+  "error": {
+    "code": "rate_limit_exceeded",
+    "message": "Rate limit exceeded for RPM",
+    "type": "rate_limit_error"
+  }
+}
+```
+
+## 响应头
+
+每次调用响应头会返回当前限额状态，便于客户端自适应调节：
+
+<Params params={[
+  { name: 'X-RateLimit-Limit', type: 'integer', required: false, description: '当前维度总限额' },
+  { name: 'X-RateLimit-Remaining', type: 'integer', required: false, description: '剩余可用额度' },
+  { name: 'X-RateLimit-Reset', type: 'integer', required: false, description: '限额重置时间戳（秒）' },
+  { name: 'Retry-After', type: 'integer', required: false, description: '429 时建议等待秒数' }
+]} />
+
+## 重试实践
+
+收到 429 时应按 `Retry-After` 头等待后重试，或用指数退避：
+
+<CodeTabs tabs={[
+  { label: 'Python', code: 'import time\nimport requests\n\ndef call_with_retry(payload, max_retries=3):\n    for i in range(max_retries):\n        resp = requests.post(\n            "https://api.joymaas.com/v1/chat/completions",\n            headers={"Authorization": f"Bearer {JOYMAAS_API_KEY}"},\n            json=payload,\n        )\n        if resp.status_code != 429:\n            return resp.json()\n        wait = int(resp.headers.get("Retry-After", 2 ** i))\n        time.sleep(wait)\n    raise Exception("超过最大重试次数")' },
+  { label: 'Node', code: 'async function callWithRetry(payload, maxRetries = 3) {\n  for (let i = 0; i < maxRetries; i++) {\n    const resp = await fetch("https://api.joymaas.com/v1/chat/completions", {\n      method: "POST",\n      headers: { Authorization: `Bearer ${process.env.JOYMAAS_API_KEY}` },\n      body: JSON.stringify(payload),\n    });\n    if (resp.status !== 429) return await resp.json();\n    const wait = Number(resp.headers.get("retry-after") ?? 2 ** i);\n    await new Promise(r => setTimeout(r, wait * 1000));\n  }\n  throw new Error("超过最大重试次数");\n}' }
+]} />
+
+## 客户端优化建议
+
+- **批量请求合并**：Embedding 支持单次传数组，把多条文本合并一次调用，降低 RPM
+- **流式优先**：长文本生成用 `stream: true`，单请求占 RPM 少
+- **缓存结果**：相同输入的 Embedding 结果建议缓存，避免重复调用
+- **错峰调用**：高峰期（工作日 10-12/14-16）限额更紧张，非实时任务可错峰
+
+<InternalOnly>
+内部限流策略：单 Key 默认 1000 RPM / 2000000 TPM，超出返回 429。SLA：P99 < 2s，可用性 99.9%。容量水位看内部监控大盘 `joymaas-api-capacity`。限流维度可按客户等级动态调整，配置在 `rate_limit_config` 表。
+</InternalOnly>
+
+## 下一步
+
+- [鉴权与 API Key](/docs/guides/authentication)
+- [错误码排障](/docs/troubleshooting/errors)
+- [Chat Completions API](/docs/api/chat-completions)

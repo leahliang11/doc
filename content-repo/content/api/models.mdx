@@ -1,0 +1,61 @@
+---
+title: 模型列表
+description: 查询可用模型列表与模型详情
+slug: api/models
+category: api
+audience: external
+tags: [models, list]
+updated: 2026-08-23
+status: published
+owner: leah
+ai_readable: true
+source: manual
+---
+
+## 接口概述
+
+```
+GET /v1/models
+```
+
+返回当前账号可调用的所有模型列表，含模型 ID、所属厂商、支持能力。
+
+<Callout variant="info" title="无需请求体">
+本接口为 GET 请求，只需在 Header 带上 API Key 即可，无请求参数。
+</Callout>
+
+## 响应参数
+
+<Params params={[
+  { name: 'object', type: 'string', required: true, description: '固定值 list' },
+  { name: 'data', type: 'array', required: true, description: '模型数组，每项含 id/owned_by/capabilities' },
+  { name: 'data[].id', type: 'string', required: true, description: '模型 ID，调用时填入 model 字段' },
+  { name: 'data[].owned_by', type: 'string', required: false, description: '模型所属厂商，如 deepseek/zai/glm' },
+  { name: 'data[].capabilities', type: 'array', required: false, description: '支持的能力，如 chat/embedding/function-calling' }
+]} />
+
+## 请求示例
+
+<CodeTabs tabs={[
+  { label: 'cURL', code: 'curl https://api.joymaas.com/v1/models \\\n  -H "Authorization: Bearer $JOYMAAS_API_KEY"' },
+  { label: 'Python', code: 'import requests\n\nresp = requests.get(\n    "https://api.joymaas.com/v1/models",\n    headers={"Authorization": f"Bearer {JOYMAAS_API_KEY}"},\n)\nfor m in resp.json()["data"]:\n    print(m["id"], m.get("owned_by"))' },
+  { label: 'Node', code: 'const resp = await fetch("https://api.joymaas.com/v1/models", {\n  headers: { Authorization: `Bearer ${process.env.JOYMAAS_API_KEY}` },\n});\nconst { data } = await resp.json();\nconsole.log(data.map(m => m.id));' }
+]} />
+
+## 当前可用模型
+
+| 模型 ID | 厂商 | 能力 | 说明 |
+|---|---|---|---|
+| `doubao-pro-256k` | 字节 | chat | 长上下文对话，256k tokens |
+| `DeepSeek-V4-Pro` | DeepSeek | chat | 通用对话，推理强 |
+| `DeepSeek-V4-Flash` | DeepSeek | chat | 快速响应，适合助手 |
+| `jd/glm-5.2` | 智谱 | chat | 通用对话，带思维链 |
+| `embedding-3` | 京东 | embedding | 文本向量，支持降维 |
+
+<Callout variant="warning" title="模型列表会更新">
+可用模型随业务迭代调整，建议调用 `/v1/models` 获取实时列表，不要在客户端硬编码。
+</Callout>
+
+## 错误处理
+
+接口错误码与排查方法见 [错误码排障](/docs/troubleshooting/errors)。

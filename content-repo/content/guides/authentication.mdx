@@ -1,0 +1,79 @@
+---
+title: 鉴权与 API Key
+description: API Key 创建、鉴权方式与安全实践
+slug: guides/authentication
+category: guides
+audience: external
+tags: [auth, apikey, security]
+updated: 2026-08-23
+status: published
+owner: leah
+ai_readable: true
+source: manual
+---
+
+## 接口概述
+
+JoyMaaS 所有接口采用 Bearer Token 鉴权。调用时在请求头携带 `Authorization: Bearer <API_KEY>`。
+
+## 创建 API Key
+
+<Steps>
+
+1. 登录 JoyMaaS 控制台，进入「API 管理」页面。
+2. 点击「创建 Key」，填写名称（建议用项目名 + 环境，如 `myapp-prod`）。
+3. 选择权限范围：只读 / 读写 / 管理员。日常调用用「读写」即可。
+4. 创建后立即复制并保存，Key 只在创建时显示一次。
+
+</Steps>
+
+<Callout variant="warning" title="Key 只显示一次">
+创建成功后 Key 完整明文只显示这一次，关闭页面后无法再查。遗失只能重新创建。
+</Callout>
+
+## 鉴权方式
+
+所有接口统一在 Header 携带：
+
+```
+Authorization: Bearer pk-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+
+## 请求示例
+
+<CodeTabs tabs={[
+  { label: 'cURL', code: 'curl https://api.joymaas.com/v1/chat/completions \\\n  -H "Authorization: Bearer $JOYMAAS_API_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"model":"DeepSeek-V4-Flash","messages":[{"role":"user","content":"你好"}]}\'' },
+  { label: 'Python', code: 'import os\nimport requests\n\nresp = requests.post(\n    "https://api.joymaas.com/v1/chat/completions",\n    headers={\n        "Authorization": f"Bearer {os.environ[\'JOYMAAS_API_KEY\']}",\n        "Content-Type": "application/json",\n    },\n    json={"model": "DeepSeek-V4-Flash", "messages": [{"role": "user", "content": "你好"}]},\n)\nprint(resp.json())' },
+  { label: 'Node', code: 'const resp = await fetch("https://api.joymaas.com/v1/chat/completions", {\n  method: "POST",\n  headers: {\n    Authorization: `Bearer ${process.env.JOYMAAS_API_KEY}`,\n    "Content-Type": "application/json",\n  },\n  body: JSON.stringify({\n    model: "DeepSeek-V4-Flash",\n    messages: [{ role: "user", content: "你好" }],\n  }),\n});\nconsole.log(await resp.json());' }
+]} />
+
+## 安全实践
+
+<Callout variant="danger" title="切勿硬编码">
+不要把 API Key 写进客户端代码或提交到代码仓库。应通过环境变量或服务端中转。
+</Callout>
+
+- 用环境变量管理：`JOYMAAS_API_KEY` 存环境变量，代码读 `process.env`
+- 服务端中转：前端调自己的后端，后端带 Key 调 JoyMaaS
+- 定期轮换：建议每季度创建新 Key、废弃旧 Key
+- 按项目分 Key：不同项目用不同 Key，便于追查用量与隔离
+
+<InternalOnly>
+内部用量统计看监控大盘 `joymaas-api-key-usage`，按 Key 维度看调用量、错误率、所属项目。异常 Key 在控制台可一键禁用。
+</InternalOnly>
+
+## 常见鉴权错误
+
+| HTTP 状态码 | 错误码 | 原因 | 处理 |
+|---|---|---|---|
+| 401 | invalid_api_key | Key 无效或已禁用 | 重新创建 Key |
+| 401 | missing_authorization | 未传 Authorization 头 | 检查请求头 |
+| 403 | permission_denied | Key 无该接口权限 | 检查 Key 权限范围 |
+
+详见 [错误码排障](/docs/troubleshooting/errors)。
+
+<NextSteps items={[
+  { title: '快速开始', description: '5 分钟跑通第一次调用', href: '/docs/quickstart' },
+  { title: '限流策略', description: '了解 RPM/TPM 限制与 429 处理', href: '/docs/guides/rate-limits' },
+  { title: '模型列表', description: '查看可用模型与能力', href: '/docs/api/models' }
+]} />

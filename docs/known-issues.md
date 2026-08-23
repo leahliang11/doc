@@ -134,3 +134,31 @@ Week 9 把 AI 4 能力从 mock 换成真 Joybuilder 模型（DeepSeek-V4-Flash�
 ### dogfooding 价值
 真用 Joybuilder 写文档，提前暴露了 key 污染、流式 signal、延迟、模型质量等真实问题。这些问题反哺 JoyMaaS 文档系统自身迭代 + Joybuilder 产品体验优化。
 
+## 7. 云机部署发现（Week 10）
+
+Week 10 部署到 116.196.90.213（CentOS 8）暴露的环境问题：
+
+### 7.1 云机访问不到京东内网（结构性限制，未解决）
+- **现象**：云机访问 `coding.jd.com`（172.28.60.239）和 `ai-api.jdcloud.com`（10.160.255.20）均超时，22/443/80 全不通。但能访问 joyspace.jd.com、github、baidu。
+- **根因**：云机（116.196.90.213 公网）不在京东内网的可访问网段，coding.jd.com 和 ai-api.jdcloud.com 是内网服务不对该云机开放。
+- **影响**：
+  1. backend 的 AI 能力（调 Joybuilder）在云机 fetch failed——演示时 AI 走本地 backend 兜底
+  2. backend 的 git push（回 coding）在云机会失败——save 能本地 commit，但 push 到 coding 不通
+  3. webhook 方向（coding → 云机）需配好 coding webhook 后实测 delivery
+- **处理**：AI 和 git push 演示走本地 backend。webhook 配置给 Leah 在 coding 网页操作（指引见 docs/demo-script.md）。长期解法：换能访问内网的部署机，或云机配内网代理。
+
+### 7.2 better-sqlite3 在 CentOS 8 编译失败（已解决）
+- **现象**：better-sqlite3 13.0.3 在云机 require 报 `GLIBC_2.29 not found`（CentOS 8 glibc 2.28），prebuilt 二进制不能用；源码编译报 node-gyp/python3.6 海象运算符语法错。
+- **根因**：CentOS 8 glibc 2.28 < better-sqlite3 prebuilt 要求的 2.29；python3.6 不支持 node-gyp 用的 `:=` 语法。
+- **解决**：换用 Node 22 内置的 `node:sqlite`（`DatabaseSync`），零原生依赖，API 和 better-sqlite3 几乎一致（`db.exec/prepare/run/get/all/lastInsertRowid`）。`services/db.ts` 改 import，`package.json` start 加 `NODE_OPTIONS=--experimental-sqlite`。去掉 better-sqlite3 依赖。
+- **记录**：第 5 类 shell/环境污染坑的延伸——CentOS 8 老系统的原生模块编译是雷区，能用内置/纯 JS 方案优先。
+
+### 7.3 macOS tar 传文件带 ._ AppleDouble（已解决）
+- **现象**：本地 macOS 打包 tar 传到 Linux，每个文件带 `._` 前缀的 AppleDouble 资源叉文件，contentlayer 把 `._xxx.mdx` 当文档扫，docs 列表出现垃圾条目。
+- **解决**：传后 `find -name "._*" -delete`。长期解法：tar 加 `--no-xattrs` 或用 `COPYFILE_DISABLE=1`。
+
+### 7.4 webhook 方向待实测（未解决）
+- coding.jd.com → 云机 116.196.90.213 这个方向还没实测（需要 Leah 在 coding 网页配 webhook 后看 delivery 日志）。
+- backend webhook 端点本身已验证工作正常（本地 curl 模拟 merge_requests open 事件，正确写表）。
+- 若 coding 能出公网访问云机，webhook 闭环即通；否则 webhook 方向也受限，演示用本地 curl 模拟。
+

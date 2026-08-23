@@ -8,7 +8,7 @@ import type {
   ParamsProps,
   NextStepsProps,
   Audience,
-} from './types.ts'
+} from './types'
 
 // Callout variant → GFM alert type
 const calloutVariantMap: Record<NonNullable<CalloutProps['variant']>, string> = {

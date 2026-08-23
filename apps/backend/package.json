@@ -4,14 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "start": "tsx src/server.ts",
+    "dev": "NODE_OPTIONS=--experimental-sqlite tsx watch src/server.ts",
+    "start": "NODE_OPTIONS=--experimental-sqlite tsx src/server.ts",
     "verify-gitbeaker": "tsx scripts/verify-gitbeaker.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.0",
     "@gitbeaker/rest": "^43.8.0",
-    "better-sqlite3": "^13.0.3",
     "dotenv": "^17.4.2",
     "fastify": "^5.12.1",
     "simple-git": "^3.36.0"

@@ -97,14 +97,6 @@ function mrUrl(iid: number | null): string {
   return `https://coding.jd.com/liangyuanwen.1/doc/merges/${iid}`
 }
 
-// diff 着色
-function diffClass(line: string): string {
-  if (line.startsWith('+')) return 'diff-add'
-  if (line.startsWith('-')) return 'diff-del'
-  if (line.startsWith('@@')) return 'diff-hunk'
-  return 'diff-ctx'
-}
-
 onMounted(load)
 </script>
 

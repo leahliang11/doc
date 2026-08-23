@@ -1,0 +1,66 @@
+---
+title: SDK 使用指南
+description: 各语言 SDK 安装与基本调用
+slug: guides/sdk-usage
+category: guides
+audience: external
+tags: [sdk, install, client]
+updated: 2026-08-23
+status: published
+owner: leah
+ai_readable: true
+source: manual
+---
+
+## 接口概述
+
+JoyMaaS 兼容 OpenAI API 格式，可直接用 OpenAI 各语言 SDK，只需替换 `base_url` 和 `api_key`。也提供官方 SDK `@joymaas/sdk`。
+
+## 安装 SDK
+
+<CodeTabs tabs={[
+  { label: 'Python OpenAI SDK', code: 'pip install openai' },
+  { label: 'Node OpenAI SDK', code: 'npm install openai' },
+  { label: '官方 SDK (Node)', code: 'npm install @joymaas/sdk' }
+]} />
+
+## 基本调用
+
+### 用 OpenAI SDK（推荐）
+
+<CodeTabs tabs={[
+  { label: 'Python', code: 'from openai import OpenAI\n\nclient = OpenAI(\n    api_key=os.environ["JOYMAAS_API_KEY"],\n    base_url="https://api.joymaas.com/v1",\n)\n\nresp = client.chat.completions.create(\n    model="DeepSeek-V4-Flash",\n    messages=[{"role": "user", "content": "你好"}],\n)\nprint(resp.choices[0].message.content)' },
+  { label: 'Node', code: 'import OpenAI from "openai";\n\nconst client = new OpenAI({\n  apiKey: process.env.JOYMAAS_API_KEY,\n  baseURL: "https://api.joymaas.com/v1",\n});\n\nconst resp = await client.chat.completions.create({\n  model: "DeepSeek-V4-Flash",\n  messages: [{ role: "user", content: "你好" }],\n});\nconsole.log(resp.choices[0].message.content);' }
+]} />
+
+<Callout variant="info" title="为什么用 OpenAI SDK">
+JoyMaaS 接口兼容 OpenAI 格式，直接复用 OpenAI 成熟的 SDK 生态（类型完整、流式、错误处理、重试都内置），无需额外适配。
+</Callout>
+
+## 流式调用
+
+<CodeTabs tabs={[
+  { label: 'Python', code: 'stream = client.chat.completions.create(\n    model="DeepSeek-V4-Flash",\n    messages=[{"role": "user", "content": "讲个故事"}],\n    stream=True,\n)\nfor chunk in stream:\n    print(chunk.choices[0].delta.content or "", end="")' },
+  { label: 'Node', code: 'const stream = await client.chat.completions.create({\n  model: "DeepSeek-V4-Flash",\n  messages: [{ role: "user", content: "讲个故事" }],\n  stream: true,\n});\nfor await (const chunk of stream) {\n  process.stdout.write(chunk.choices[0]?.delta?.content ?? "");\n}' }
+]} />
+
+## 函数调用
+
+<CodeTabs tabs={[
+  { label: 'Python', code: 'tools = [{\n    "type": "function",\n    "function": {\n        "name": "get_weather",\n        "description": "查询天气",\n        "parameters": {\n            "type": "object",\n            "properties": {"city": {"type": "string"}},\n            "required": ["city"],\n        },\n    },\n}]\n\nresp = client.chat.completions.create(\n    model="DeepSeek-V4-Pro",\n    messages=[{"role": "user", "content": "北京天气怎么样"}],\n    tools=tools,\n)' }
+]} />
+
+## 错误处理
+
+SDK 调用可能抛异常，建议 try-catch + 按 429/500 分别处理：
+
+<CodeTabs tabs={[
+  { label: 'Python', code: 'from openai import OpenAI, APIError, RateLimitError\n\ntry:\n    resp = client.chat.completions.create(...)\nexcept RateLimitError:\n    time.sleep(2)\n    # 重试\nexcept APIError as e:\n    print(f"API 错误: {e}")' },
+  { label: 'Node', code: 'try {\n  const resp = await client.chat.completions.create({...});\n} catch (e) {\n  if (e.status === 429) {\n    await new Promise(r => setTimeout(r, 2000));\n    // 重试\n  } else {\n    console.error("API 错误:", e);\n  }\n}' }
+]} />
+
+<NextSteps items={[
+  { title: '快速开始', description: '5 分钟跑通第一次调用', href: '/docs/quickstart' },
+  { title: 'Chat Completions', description: '对话接口完整文档', href: '/docs/api/chat-completions' },
+  { title: '限流策略', description: '429 处理与重试', href: '/docs/guides/rate-limits' }
+]} />
