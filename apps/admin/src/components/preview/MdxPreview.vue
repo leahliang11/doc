@@ -36,7 +36,6 @@ const segments = computed<Segment[]>(() => {
   try {
     return parseMdx(props.source)
   } catch (e: any) {
-    // 整体解析失败，降级为纯 markdown
     return [{ type: 'markdown', raw: props.source }]
   }
 })

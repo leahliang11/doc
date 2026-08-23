@@ -45,9 +45,22 @@ approve 端点已做如实处理：mergeMR 调用后查 MR 实际状态，真合
 
 Next.js 16 + contentlayer2 是踩出来的路，contentlayer2 原作者停更、社区 fork。P0 期间不动，后续 Next 升级要评估换方案。详见 weekly-1.md。
 
-## 3. Steps 内 `<div>` 渲染（Week 4 升级发现，已记入 weekly-4）
+## 3. Steps 内 `<div>` 渲染（Week 4 升级发现，Week 10 已修复 ✅）
 
-quickstart 的 Steps 用 `<div>` 包裹步骤，markdown-it 把 `<div>` 当 HTML 块，里面 `**粗体**` 没渲染。是内容写法问题。可后续让 Steps 预览组件对 `<div>` 子节点再走一次 markdown-it。
+quickstart 的 Steps 用 `<div>` 包裹步骤，markdown-it 把 `<div>` 当 HTML 块，里面 `**粗体**` 没渲染。
+
+**Week 10 修复**：PreviewSteps 对 `<div>` 子节点的 innerHTML 去缩进后再走一次 markdown-it（`**粗体**` 渲染成 `<strong>`）。同时支持 markdown 列表写法（`1. 2.` → `<ol><li>`，按 `<li>` 拆步骤）。
+
+## 3.1 预览组件 props 解析（Week 10 修复 ✅）
+
+Week 10 统一检查预览发现多个解析问题，已修复：
+
+1. **多行嵌套数组 props 解析失败**：parseProps 用 `[^}]*` 正则不匹配跨行嵌套大括号，Params/CodeTabs 不渲染。改用括号配平扫描。
+2. **模板字符串 `${x}` 误执行**：code 字段用反引号时，`new Function` 求值会把 `${process.env.X}` 当插值执行（浏览器无 process）。改用 `escapeTemplateStrings` 把反引号字符串转成 JSON 字面量（`${x}` 不插值）。
+3. **单引号/JSON.parse 脆弱**：原 `replace(/(\w+):/)` 会破坏 URL/内容里的冒号。改用 Function 求值（经模板字符串转义后）。
+4. **tag 扫描不跳反引号**：parseComponentAt 找 `/>` 时只跳 `"` `'`，遇到反引号字符串里的 `>` 误判。加反引号跳过。
+
+10 篇文档预览全通过，6 组件（Callout/Steps/CodeTabs/Params/InternalOnly/NextSteps）渲染正常，0 解析错误。
 
 ## 4. OpenAPI 生成器边界（Week 7 发现，Week 8 部分修复）
 
