@@ -60,10 +60,17 @@ print(resp.json())` }
 <Params params={[
   { name: 'id', type: 'string', required: false, description: '审核任务唯一 ID' },
   { name: 'model', type: 'string', required: false, description: '使用的审核模型' },
-  { name: 'results', type: 'array', required: false, description: '审核结果数组，每项含 flagged/categories/category_scores' },
-  { name: 'results[0].flagged', type: 'boolean', required: false, description: '是否命中任一违规分类' },
-  { name: 'results[0].categories', type: 'object', required: false, description: '各分类命中标志（hate/threatening/self-harm/sexual/violence 等）' },
-  { name: 'results[0].category_scores', type: 'object', required: false, description: '各分类置信度分数（0-1）' }
+  { name: 'results[].flagged', type: 'boolean', required: false, description: '是否命中任一违规分类' },
+  { name: 'results[].categories.hate', type: 'boolean', required: false, description: '仇恨言论' },
+  { name: 'results[].categories.threatening', type: 'boolean', required: false, description: '威胁' },
+  { name: 'results[].categories.self-harm', type: 'boolean', required: false, description: '自残' },
+  { name: 'results[].categories.sexual', type: 'boolean', required: false, description: '性相关' },
+  { name: 'results[].categories.violence', type: 'boolean', required: false, description: '暴力' },
+  { name: 'results[].category_scores.hate', type: 'number', required: false, description: '仇恨言论置信度' },
+  { name: 'results[].category_scores.threatening', type: 'number', required: false, description: '威胁置信度' },
+  { name: 'results[].category_scores.self-harm', type: 'number', required: false, description: '自残置信度' },
+  { name: 'results[].category_scores.sexual', type: 'number', required: false, description: '性相关置信度' },
+  { name: 'results[].category_scores.violence', type: 'number', required: false, description: '暴力置信度' }
 ]} />
 
 响应示例见 [快速开始](/docs/quickstart)。

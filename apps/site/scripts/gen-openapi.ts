@@ -15,6 +15,9 @@ interface SchemaProperty {
   description?: string
   default?: string
   example?: string
+  properties?: Record<string, SchemaProperty>
+  items?: { schema?: SchemaProperty }
+  enum?: string[]
 }
 interface Schema {
   type?: string
@@ -48,24 +51,59 @@ function escapeBackticks(s: string): string {
   return s.replace(/`/g, '\\`')
 }
 
-// 属性 → Params 数组项的 mdx 片段
+// 属性 → Params 数组项的 mdx 片段（name 可含点路径，如 choices[].message）
 function propToParam(name: string, prop: SchemaProperty, required: boolean): string {
   const type = prop.type || 'string'
   const req = required ? 'true' : 'false'
   const def = prop.default !== undefined ? `, default: '${prop.default}'` : ''
-  const desc = (prop.description || '').replace(/'/g, "\\'")
+  // enum 追加可选值（边界 4.4 修复）
+  let desc = prop.description || ''
+  if (prop.enum && prop.enum.length > 0) {
+    const enumStr = `可选值: ${prop.enum.join(' / ')}`
+    desc = desc ? `${desc}。${enumStr}` : enumStr
+  }
+  desc = desc.replace(/'/g, "\\'")
   return `  { name: '${name}', type: '${type}', required: ${req}${def}, description: '${desc}' }`
 }
 
-// schema.properties → Params 组件 mdx
-function schemaToParams(schema: Schema | undefined): string {
-  if (!schema || !schema.properties) return ''
+const MAX_DEPTH = 3 // 递归防爆
+
+// 递归展开 schema.properties → Params 行数组（点路径扁平化）
+// - object 有 properties：递归，object 自身不列行
+// - object 无 properties（如 usage 只有一句描述）：保留为 object 一行
+// - array items 是 object：递归，用 parent[].child 前缀
+// - array items 是 primitive：保留为 array 一行
+// - 叶子节点：输出一行
+function schemaToParamRows(schema: Schema | undefined, prefix: string, depth: number): string[] {
+  if (!schema || !schema.properties || depth > MAX_DEPTH) return []
   const requiredSet = new Set(schema.required || [])
-  const items = Object.entries(schema.properties).map(([name, prop]) =>
-    propToParam(name, prop, requiredSet.has(name)),
-  )
-  if (items.length === 0) return ''
-  return `<Params params={[\n${items.join(',\n')}\n]} />`
+  const rows: string[] = []
+  for (const [name, prop] of Object.entries(schema.properties)) {
+    const full = prefix ? `${prefix}.${name}` : name
+    const required = requiredSet.has(name)
+    if (prop.type === 'object' && prop.properties) {
+      // 嵌套 object 递归
+      rows.push(...schemaToParamRows(prop, full, depth + 1))
+    } else if (
+      prop.type === 'array' &&
+      prop.items?.schema?.properties &&
+      depth + 1 <= MAX_DEPTH
+    ) {
+      // array items 是 object：递归，前缀加 []
+      rows.push(...schemaToParamRows(prop.items.schema, `${full}[]`, depth + 1))
+    } else {
+      // 叶子节点 / object 无 properties / array of primitive：输出一行
+      rows.push(propToParam(full, prop, required))
+    }
+  }
+  return rows
+}
+
+// schema → Params 组件 mdx
+function schemaToParams(schema: Schema | undefined): string {
+  const rows = schemaToParamRows(schema, '', 0)
+  if (rows.length === 0) return ''
+  return `<Params params={[\n${rows.join(',\n')}\n]} />`
 }
 
 // x-codeSamples → CodeTabs
@@ -164,10 +202,11 @@ function operationToMdx(method: string, url: string, op: Operation): string {
   return parts.join('\n')
 }
 
-// /v1/embeddings → api/embeddings
+// /v1/embeddings → api/embeddings；/v1/chat/completions → api/chat-completions（多级路径用连字符，和手写文件名对齐）
 function deriveSlug(url: string): string {
   let s = url.replace(/^\/v\d+\//, '') // 去 /v1/
   s = s.replace(/^\/+|\/+$/g, '') // 去首尾斜杠
+  s = s.replace(/\//g, '-') // 多级路径连字符
   return `api/${s}`
 }
 
@@ -208,15 +247,18 @@ function main(): void {
       const fileName = slug.replace(/^api\//, '') + '.mdx'
       const outPath = path.join(CONTENT_API_DIR, fileName)
 
-      // manual 保护
+      // manual 保护：手写文件不覆盖，旁路输出 .gen.mdx 供对比
       const existing = getExistingSource(outPath)
+      const mdx = operationToMdx(method, url, op)
       if (existing === 'manual') {
-        console.warn(`跳过 ${fileName}（source=manual 手写，不覆盖）`)
-        skipped++
+        const genName = fileName.replace(/\.mdx$/, '.gen.mdx')
+        const genPath = path.join(CONTENT_API_DIR, genName)
+        fs.writeFileSync(genPath, mdx, 'utf-8')
+        console.warn(`对比模式：${fileName} 是手写，生成版写到 ${genName}`)
+        generated++
         continue
       }
 
-      const mdx = operationToMdx(method, url, op)
       fs.writeFileSync(outPath, mdx, 'utf-8')
       console.log(`生成 ${fileName}（slug=${slug}）`)
       generated++

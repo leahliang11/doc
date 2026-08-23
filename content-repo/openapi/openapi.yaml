@@ -7,6 +7,154 @@ servers:
   - url: https://api.joymaas.com
     description: 生产环境
 paths:
+  /v1/chat/completions:
+    post:
+      operationId: createChatCompletion
+      summary: 创建对话补全
+      description: 创建一个对话补全。给定一组消息列表，模型返回一个补全响应。支持流式返回和函数调用。兼容 OpenAI Chat Completions API。
+      x-callout:
+        variant: info
+        title: 兼容 OpenAI 格式
+        body: 本接口兼容 OpenAI Chat Completions API，已有的 OpenAI 客户端只需替换 base_url 和 api_key。
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [model, messages]
+              properties:
+                model:
+                  type: string
+                  description: 模型 ID，如 doubao-pro-256k。完整列表见 /v1/models
+                  example: doubao-pro-256k
+                messages:
+                  type: array
+                  description: 对话消息数组，每项含 role 和 content
+                  items:
+                    schema:
+                      type: object
+                      properties:
+                        role:
+                          type: string
+                          description: 消息角色，system / user / assistant
+                          enum: [system, user, assistant]
+                        content:
+                          type: string
+                          description: 消息内容
+                stream:
+                  type: boolean
+                  default: false
+                  description: 是否使用流式返回（SSE）
+                temperature:
+                  type: number
+                  default: 1.0
+                  description: 采样温度，范围 0-2，越大越发散
+                max_tokens:
+                  type: integer
+                  description: 最大输出 token 数
+                top_p:
+                  type: number
+                  default: 1.0
+                  description: 核采样，与 temperature 二选一
+                tools:
+                  type: array
+                  description: 函数调用工具列表
+                response_format:
+                  type: object
+                  description: 返回格式控制，如 {"type":"json_object"}
+      responses:
+        '200':
+          description: 成功返回补全
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: 本次补全的唯一 ID
+                  model:
+                    type: string
+                    description: 实际生成响应的模型 ID
+                  choices:
+                    type: array
+                    description: 补全结果数组，通常长度为 1
+                    items:
+                      schema:
+                        type: object
+                        properties:
+                          message:
+                            type: object
+                            description: 含 role 和 content 的消息对象
+                          finish_reason:
+                            type: string
+                            description: 停止原因，stop / length / tool_calls
+                            enum: [stop, length, tool_calls]
+                  usage:
+                    type: object
+                    description: token 用量统计
+      x-codeSamples:
+        - label: cURL
+          code: |
+            curl -X POST https://api.joymaas.com/v1/chat/completions \
+              -H "Authorization: Bearer $JOYMAAS_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "model": "doubao-pro-256k",
+                "messages": [
+                  {"role": "system", "content": "你是一个简洁的助手"},
+                  {"role": "user", "content": "用一句话解释什么是向量"}
+                ],
+                "stream": false
+              }'
+        - label: Python
+          code: |
+            import requests
+
+            resp = requests.post(
+                "https://api.joymaas.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {JOYMAAS_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "doubao-pro-256k",
+                    "messages": [
+                        {"role": "system", "content": "你是一个简洁的助手"},
+                        {"role": "user", "content": "用一句话解释什么是向量"},
+                    ],
+                },
+            )
+            print(resp.json())
+        - label: Node
+          code: |
+            const resp = await fetch("https://api.joymaas.com/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${process.env.JOYMAAS_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "doubao-pro-256k",
+                messages: [
+                  { role: "system", content: "你是一个简洁的助手" },
+                  { role: "user", content: "用一句话解释什么是向量" },
+                ],
+              }),
+            });
+            console.log(await resp.json());
+        - label: Go
+          code: |
+            // 用 net/http 构造 POST 请求
+            // body := `{"model":"doubao-pro-256k","messages":[...]}`
+            // req, _ := http.NewRequest("POST", "https://api.joymaas.com/v1/chat/completions", strings.NewReader(body))
+            // req.Header.Set("Authorization", "Bearer "+apiKey)
+            // 参见完整 SDK 示例
+      x-internal:
+        body: 内部限流策略：单 Key 默认 1000 RPM / 2000000 TPM，超出返回 429。SLA：P99 < 2s，可用性 99.9%。内部容量水位看内部监控大盘 joymaas-api-capacity。
+
   /v1/embeddings:
     post:
       operationId: createEmbedding
@@ -265,15 +413,51 @@ paths:
                   results:
                     type: array
                     description: 审核结果数组，每项含 flagged/categories/category_scores
-                  results[0].flagged:
-                    type: boolean
-                    description: 是否命中任一违规分类
-                  results[0].categories:
-                    type: object
-                    description: 各分类命中标志（hate/threatening/self-harm/sexual/violence 等）
-                  results[0].category_scores:
-                    type: object
-                    description: 各分类置信度分数（0-1）
+                    items:
+                      schema:
+                        type: object
+                        properties:
+                          flagged:
+                            type: boolean
+                            description: 是否命中任一违规分类
+                          categories:
+                            type: object
+                            description: 各分类命中标志（true/false）
+                            properties:
+                              hate:
+                                type: boolean
+                                description: 仇恨言论
+                              threatening:
+                                type: boolean
+                                description: 威胁
+                              self-harm:
+                                type: boolean
+                                description: 自残
+                              sexual:
+                                type: boolean
+                                description: 性相关
+                              violence:
+                                type: boolean
+                                description: 暴力
+                          category_scores:
+                            type: object
+                            description: 各分类置信度分数（0-1）
+                            properties:
+                              hate:
+                                type: number
+                                description: 仇恨言论置信度
+                              threatening:
+                                type: number
+                                description: 威胁置信度
+                              self-harm:
+                                type: number
+                                description: 自残置信度
+                              sexual:
+                                type: number
+                                description: 性相关置信度
+                              violence:
+                                type: number
+                                description: 暴力置信度
       x-codeSamples:
         - label: cURL
           code: |

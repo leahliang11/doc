@@ -49,51 +49,47 @@ Next.js 16 + contentlayer2 是踩出来的路，contentlayer2 原作者停更、
 
 quickstart 的 Steps 用 `<div>` 包裹步骤，markdown-it 把 `<div>` 当 HTML 块，里面 `**粗体**` 没渲染。是内容写法问题。可后续让 Steps 预览组件对 `<div>` 子节点再走一次 markdown-it。
 
-## 4. OpenAPI 生成器边界（Week 7 发现）
+## 4. OpenAPI 生成器边界（Week 7 发现，Week 8 部分修复）
 
-Week 7 加 completions/moderations 验证生成器，发现以下"扛不住"的场景。当前用 workaround 绕过，未修。Week 8-9 决策迁移策略时一并评估是否补。
+Week 7 加 completions/moderations 验证生成器，发现以下"扛不住"的场景。Week 8 补完 4.1/4.2/4.4。
 
-### 4.1 嵌套对象不展开
+### 4.1 嵌套对象不展开（Week 8 已修复 ✅）
 生成器只取 schema 顶层 properties，object 类型的 property 只显示 `type: object`，内部 properties 不递归生成子表。
-- 例：moderations 响应 `results[0].categories`（object）只显示 object，不列出 hate/violence/sexual 等具体分类。
-- 影响：复杂响应结构信息丢失，用户看不到对象内部字段。
-- 当前 workaround：对关键嵌套字段手动用点路径 `results[0].flagged` / `results[0].categories` 单独列项（非标准 OpenAPI 写法）。
-- 修法：生成器递归遍历 object.properties，生成嵌套 Params 或在 description 里列子字段。
+- ~~例：moderations 响应 `results[0].categories`（object）只显示 object，不列出 hate/violence/sexual 等具体分类。~~
+- **Week 8 修复**：生成器 `schemaToParamRows` 递归遍历 object.properties，用点路径扁平化（`results[].categories.hate`）。moderations 响应表现在完整展开 13 行。
+- 修复前 workaround（点路径 `results[0].xxx`）已废弃，yaml 改回标准 OpenAPI array items.schema.properties 写法。
 
-### 4.2 array items 不展开
+### 4.2 array items 不展开（Week 8 已修复 ✅）
 array 类型的 property 只显示 `type: array`，items 里的 schema 不处理。
-- 例：`results`（array）只显示 array，不自动展开 items 里每项的 flagged/categories。
-- 标准 OpenAPI 应在 `items.schema.properties` 里定义，生成器不读 items。
-- 当前 workaround：手动用 `results[0].xxx` 点路径。
-- 修法：生成器读 array.items.schema.properties，用 `xxx[]` 前缀展开。
+- **Week 8 修复**：生成器检测 array.items.schema.properties，递归用 `parent[].child` 前缀展开。chat-completions 的 `messages[].role` / `choices[].message` 自动产出。
 
-### 4.3 yaml 重复键直接崩
-openapi.yaml 里重复的 mapping key（如两个 `results:`）让 js-yaml 抛 YAMLException，生成器无 try-catch 容错，整个构建中断。
+### 4.3 yaml 重复键直接崩（未修，中优先级）
+openapi.yaml 里重复的 mapping key 让 js-yaml 抛 YAMLException，生成器无 try-catch 容错，整个构建中断。
 - 影响：spec 写错一个重复键，gen:openapi 全部接口都不生成（构建失败）。
 - 修法：生成器 try-catch 包 yaml.load，解析失败给友好错误（指出哪行），不影响已生成的其他接口。
 
-### 4.4 enum 不渲染
-OpenAPI 的 `enum` 字段（如 type:string + enum:[float,base64]）生成器没提取，description 里不列出可选值。
-- 影响：用户不知道枚举参数的可选值。
-- 当前 workaround：在 description 里手写"float 或 base64"。
-- 修法：生成器检测 enum，在 description 末尾追加"可选值: a/b/c"。
+### 4.4 enum 不渲染（Week 8 已修复 ✅）
+OpenAPI 的 `enum` 字段生成器没提取，description 里不列出可选值。
+- **Week 8 修复**：生成器 `propToParam` 检测 enum，在 description 末尾追加「可选值: a / b / c」。chat-completions 的 `role` 自动显示「可选值: system / user / assistant」。
 
-### 4.5 oneOf/anyOf/allOf 不支持
+### 4.5 oneOf/anyOf/allOf 不支持（未修，低优先级）
 复合 schema（oneOf/anyOf/allOf）没适配，遇到会当成无 properties 跳过。
 - 影响：用复合 schema 定义的请求体/响应体生成空 Params。
 - 修法：生成器解析复合 schema，合并 properties。
 
-### 4.6 重复 properties 键（yaml 层面非法）
-OpenAPI spec 里同一 properties 下重复字段名是非法 yaml（见 4.3），但生成器该容错而非崩溃。
+### 4.6 多级路径 slug 文件名冲突（Week 8 已修复 ✅）
+`/v1/chat/completions` 两级路径，deriveSlug 产出 `chat/completions.mdx`（含斜杠），写文件失败。
+- **Week 8 修复**：deriveSlug 多级路径用连字符拼接（`chat-completions`），和手写文件名对齐，触发 manual 保护。
 
-### 边界汇总
-| 场景 | 当前 | 修法 | 优先级 |
-|---|---|---|---|
-| 嵌套 object | 只显示 object | 递归子表 | 高（Week 8 评估）|
-| array items | 只显示 array | 读 items.schema | 高 |
-| yaml 重复键 | 崩溃 | try-catch 容错 | 中（健壮性）|
-| enum | 不渲染 | 追加可选值 | 中 |
-| oneOf/anyOf/allOf | 跳过 | 合并 properties | 低（本项目少用）|
+### 边界汇总（Week 8 后）
+| 场景 | 状态 | 优先级 |
+|---|---|---|
+| 嵌套 object | ✅ 已修复（Week 8） | — |
+| array items | ✅ 已修复（Week 8） | — |
+| enum | ✅ 已修复（Week 8） | — |
+| 多级路径 slug | ✅ 已修复（Week 8） | — |
+| yaml 重复键 | 未修 | 中（健壮性）|
+| oneOf/anyOf/allOf | 未修 | 低（本项目少用）|
 
-Week 8-9 决策 chat-completions 迁移时，若生成的接口质量因这些边界不达标，先补 4.1/4.2（嵌套+items）再迁移。
+Week 8 迁移决策详见 `docs/migration-decision.md`。
 
