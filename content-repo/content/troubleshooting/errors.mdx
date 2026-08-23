@@ -1,0 +1,75 @@
+---
+title: 错误码排障
+description: JoyMaaS API 常见错误码说明和排查方法
+slug: troubleshooting/errors
+category: troubleshooting
+audience: external
+tags: [errors, troubleshooting]
+updated: 2026-08-23
+status: published
+owner: leah
+ai_readable: true
+source: manual
+---
+
+JoyMaaS API 使用标准 HTTP 状态码 + 业务错误码。下表列出常见错误码和排查方法。
+
+## 错误码表
+
+<Params params={[
+  { name: '400 invalid_request_error', type: 'HTTP 400', required: false, description: '请求参数错误，如缺字段、格式不对。检查请求体是否符合规范' },
+  { name: '401 authentication_error', type: 'HTTP 401', required: false, description: 'API Key 无效或过期。检查 Authorization 头，必要时重新生成 Key' },
+  { name: '403 permission_denied', type: 'HTTP 403', required: false, description: '无权访问该模型。确认 Key 是否已开通对应模型权限' },
+  { name: '429 rate_limit_exceeded', type: 'HTTP 429', required: false, description: '请求频率超限。降低频率或用指数退避重试' },
+  { name: '500 server_error', type: 'HTTP 500', required: false, description: '服务端内部错误。重试，持续失败联系值班' },
+  { name: '503 service_unavailable', type: 'HTTP 503', required: false, description: '服务暂不可用，通常在维护或过载。稍后重试' }
+]} />
+
+## 通用排障步骤
+
+<Steps>
+  <div>
+    **检查 API Key**
+
+    确认 Key 未过期、未禁用，且在请求头里以 `Bearer` 前缀传入。
+  </div>
+  <div>
+    **检查请求参数**
+
+    对照 [Chat Completions API](/docs/api/chat-completions) 的参数表，确认必填字段齐全、类型正确。
+  </div>
+  <div>
+    **看响应里的 error.message**
+
+    响应 JSON 的 `error.message` 字段通常有具体原因，照着改。
+  </div>
+</Steps>
+
+## 429 限流处理
+
+<Callout variant="danger" title="429 必须重试，不要直接报错给用户">
+  收到 429 时，用指数退避重试（1s → 2s → 4s → 8s），最多重试 3-5 次。如果持续 429，说明触发了持续限流，需要降频或联系运营提额。
+</Callout>
+
+重试示例（Python 指数退避）：
+
+<CodeTabs tabs={[
+  { label: 'Python', code: 'import time\nimport requests\n\ndef call_with_retry(url, headers, payload, max_retries=5):\n    for i in range(max_retries):\n        resp = requests.post(url, headers=headers, json=payload)\n        if resp.status_code == 429:\n            wait = 2 ** i  # 1, 2, 4, 8, 16 秒\n            print(f"限流，{wait}秒后重试 ({i+1}/{max_retries})")\n            time.sleep(wait)\n            continue\n        return resp\n    raise Exception("重试次数耗尽")' }
+]} />
+
+## 错误响应格式
+
+所有错误响应都是统一结构：
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "message": "model field is required"
+  }
+}
+```
+
+<InternalOnly>
+  内部错误码：5xx 错误的 trace_id 可在内网日志系统 `joymaas-api-log` 查到完整堆栈。值班联系方式：京ME 群「JoyMaaS-值班」，工作日 10 分钟内响应。P0 故障升级流程见内部 wiki `joymaas-incident`。
+</InternalOnly>

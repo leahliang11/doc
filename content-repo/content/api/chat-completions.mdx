@@ -1,0 +1,84 @@
+---
+title: Chat Completions API
+description: 创建模型对话补全，支持流式返回和函数调用
+slug: api/chat-completions
+category: api
+audience: external
+tags: [chat, streaming, function-calling]
+updated: 2026-08-23
+status: published
+owner: leah
+ai_readable: true
+source: manual
+---
+
+## 接口概述
+
+```
+POST /v1/chat/completions
+```
+
+创建一个对话补全。给定一组消息列表，模型返回一个补全响应。
+
+<Callout variant="info" title="兼容 OpenAI 格式">
+  本接口兼容 OpenAI Chat Completions API，已有的 OpenAI 客户端只需替换 `base_url` 和 `api_key` 即可。
+</Callout>
+
+## 请求参数
+
+<Params params={[
+  { name: 'model', type: 'string', required: true, description: '模型 ID，如 doubao-pro-256k。完整列表见 /v1/models' },
+  { name: 'messages', type: 'array', required: true, description: '对话消息数组，每项含 role 和 content' },
+  { name: 'stream', type: 'boolean', required: false, default: 'false', description: '是否使用流式返回（SSE）' },
+  { name: 'temperature', type: 'number', required: false, default: '1.0', description: '采样温度，范围 0-2，越大越发散' },
+  { name: 'max_tokens', type: 'integer', required: false, description: '最大输出 token 数' },
+  { name: 'top_p', type: 'number', required: false, default: '1.0', description: '核采样，与 temperature 二选一' },
+  { name: 'tools', type: 'array', required: false, description: '函数调用工具列表' },
+  { name: 'response_format', type: 'object', required: false, description: '返回格式控制，如 {"type":"json_object"}' }
+]} />
+
+## 请求示例
+
+<CodeTabs tabs={[
+  { label: 'cURL', code: 'curl -X POST https://api.joymaas.com/v1/chat/completions \\\n  -H "Authorization: Bearer $JOYMAAS_API_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d \'{\n    "model": "doubao-pro-256k",\n    "messages": [\n      {"role": "system", "content": "你是一个简洁的助手"},\n      {"role": "user", "content": "用一句话解释什么是向量"}\n    ],\n    "stream": false\n  }\'' },
+  { label: 'Python', code: 'import requests\n\nresp = requests.post(\n    "https://api.joymaas.com/v1/chat/completions",\n    headers={\n        "Authorization": f"Bearer {JOYMAAS_API_KEY}",\n        "Content-Type": "application/json",\n    },\n    json={\n        "model": "doubao-pro-256k",\n        "messages": [\n            {"role": "system", "content": "你是一个简洁的助手"},\n            {"role": "user", "content": "用一句话解释什么是向量"},\n        ],\n    },\n)\nprint(resp.json())' },
+  { label: 'Node', code: 'const resp = await fetch("https://api.joymaas.com/v1/chat/completions", {\n  method: "POST",\n  headers: {\n    "Authorization": `Bearer ${process.env.JOYMAAS_API_KEY}`,\n    "Content-Type": "application/json",\n  },\n  body: JSON.stringify({\n    model: "doubao-pro-256k",\n    messages: [\n      { role: "system", content: "你是一个简洁的助手" },\n      { role: "user", content: "用一句话解释什么是向量" },\n    ],\n  }),\n});\nconsole.log(await resp.json());' },
+  { label: 'Go', code: '// 用 net/http 构造 POST 请求\n// body := `{"model":"doubao-pro-256k","messages":[...]}`\n// req, _ := http.NewRequest("POST", "https://api.joymaas.com/v1/chat/completions", strings.NewReader(body))\n// req.Header.Set("Authorization", "Bearer "+apiKey)\n// 参见完整 SDK 示例' }
+]} />
+
+## 响应参数
+
+<Params params={[
+  { name: 'id', type: 'string', required: true, description: '本次补全的唯一 ID' },
+  { name: 'model', type: 'string', required: true, description: '实际生成响应的模型 ID' },
+  { name: 'choices', type: 'array', required: true, description: '补全结果数组，通常长度为 1' },
+  { name: 'choices[].message', type: 'object', required: true, description: '含 role 和 content 的消息对象' },
+  { name: 'choices[].finish_reason', type: 'string', required: true, description: '停止原因：stop / length / tool_calls' },
+  { name: 'usage', type: 'object', required: true, description: 'token 用量统计' }
+]} />
+
+响应示例见 [快速开始](/docs/quickstart)。
+
+## 流式响应
+
+设 `stream: true` 时，响应以 SSE（Server-Sent Events）返回，每行一个 `data:` 块：
+
+```
+data: {"id":"chatcmpl-abc","choices":[{"delta":{"content":"你好"},"index":0}]}
+
+data: {"id":"chatcmpl-abc","choices":[{"delta":{"content":"！"},"index":0}]}
+
+data: [DONE]
+```
+
+<Callout variant="warning" title="流式处理注意">
+  流式模式下，客户端需按行解析 `data:` 前缀，遇到 `[DONE]` 结束。不要把整个响应当作一个 JSON 解析。每个 chunk 的 `choices[0].delta.content` 是增量内容。
+</Callout>
+
+## 错误处理
+
+接口错误码与排查方法见 [错误码排障](/docs/troubleshooting/errors)。
+
+<InternalOnly>
+  内部限流策略：单 Key 默认 1000 RPM / 2000000 TPM，超出返回 429。SLA：P99 < 2s，可用性 99.9%。内部容量水位看内部监控大盘 `joymaas-api-capacity`。
+</InternalOnly>
