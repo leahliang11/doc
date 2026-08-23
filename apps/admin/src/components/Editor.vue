@@ -192,7 +192,47 @@ function insertMdx(mdx: string) {
 
 defineExpose({ insertMdx, getContent })
 
-// ── AI 能力 ──
+// ── AI 能力（流式 SSE，边生成边显示）──
+
+// 通用 SSE 读取：fetch + ReadableStream，每个 chunk 调 onChunk
+async function streamSSE(
+  url: string,
+  body: Record<string, unknown>,
+  onChunk: (text: string) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...body, stream: true }),
+    signal,
+  })
+  if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`)
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split('\n')
+    buffer = lines.pop() ?? ''
+    for (const line of lines) {
+      const trimmed = line.trim()
+      if (!trimmed.startsWith('data:')) continue
+      const payload = trimmed.slice(5).trim()
+      if (payload === '[DONE]') return
+      try {
+        const parsed = JSON.parse(payload)
+        if (parsed.chunk) onChunk(parsed.chunk)
+        else if (parsed.error) throw new Error(parsed.error)
+      } catch {
+        // 半截 JSON 跳过
+      }
+    }
+  }
+}
+
 async function aiRewriteSelection(mode: 'simplify' | 'expand' | 'fix' | 'tone') {
   if (!view) return
   const sel = view.state.selection.main
@@ -200,19 +240,25 @@ async function aiRewriteSelection(mode: 'simplify' | 'expand' | 'fix' | 'tone') 
   if (!selected.trim()) return
   selMenu.value.show = false
   aiLoading.value = true
+  // 流式：边收边替换选区，用占位插入 + 增量更新
+  let inserted = false
   try {
-    const res = await fetch('/api/ai/rewrite', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: selected, mode }),
+    await streamSSE('/api/ai/rewrite', { text: selected, mode }, (chunk) => {
+      if (!inserted) {
+        view!.dispatch({
+          changes: { from: sel.from, to: sel.to, insert: chunk },
+          selection: { anchor: sel.from, head: sel.from + chunk.length },
+        })
+        inserted = true
+      } else {
+        // 后续 chunk 追加到光标处
+        const pos = view!.state.selection.main.head
+        view!.dispatch({
+          changes: { from: pos, to: pos, insert: chunk },
+          selection: { anchor: pos, head: pos + chunk.length },
+        })
+      }
     })
-    const data = await res.json()
-    if (data.text) {
-      view.dispatch({
-        changes: { from: sel.from, to: sel.to, insert: data.text },
-        selection: { anchor: sel.from, head: sel.from + data.text.length },
-      })
-    }
   } catch (e) {
     console.error('AI rewrite failed', e)
   } finally {
@@ -229,19 +275,23 @@ async function aiComplete() {
     view.state.doc.sliceString(0, sel.from).slice(-800) ||
     view.state.doc.sliceString(0, 800)
   aiLoading.value = true
+  let inserted = false
   try {
-    const res = await fetch('/api/ai/complete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ context: before }),
+    await streamSSE('/api/ai/complete', { context: before }, (chunk) => {
+      if (!inserted) {
+        view!.dispatch({
+          changes: { from: sel.from, to: sel.to, insert: chunk },
+          selection: { anchor: sel.from, head: sel.from + chunk.length },
+        })
+        inserted = true
+      } else {
+        const pos = view!.state.selection.main.head
+        view!.dispatch({
+          changes: { from: pos, to: pos, insert: chunk },
+          selection: { anchor: pos, head: pos + chunk.length },
+        })
+      }
     })
-    const data = await res.json()
-    if (data.text) {
-      view.dispatch({
-        changes: { from: sel.from, to: sel.to, insert: data.text },
-        selection: { anchor: sel.from, head: sel.from + data.text.length },
-      })
-    }
   } catch (e) {
     console.error('AI complete failed', e)
   } finally {
@@ -255,13 +305,9 @@ async function aiGenerate() {
   generateLoading.value = true
   generateResult.value = ''
   try {
-    const res = await fetch('/api/ai/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: generateDesc.value, length: 'medium', style: 'concise' }),
+    await streamSSE('/api/ai/generate', { prompt: generateDesc.value }, (chunk) => {
+      generateResult.value += chunk
     })
-    const data = await res.json()
-    generateResult.value = data.text || ''
   } catch (e) {
     console.error('AI generate failed', e)
   } finally {

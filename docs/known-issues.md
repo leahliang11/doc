@@ -93,3 +93,44 @@ OpenAPI 的 `enum` 字段生成器没提取，description 里不列出可选值�
 
 Week 8 迁移决策详见 `docs/migration-decision.md`。
 
+## 5. chat-completions 迁移决策（Week 8 出，Week 9 确认）
+
+**决策：选项 C 混合策略——重要接口手写 + 参考接口生成。**
+
+- chat-completions 保持手写（流式响应 + 错误处理是差异化内容，OpenAPI 不表达）
+- completions/embeddings/moderations 用生成（标准参数接口）
+- **定位：产品策略，不是技术妥协**。重要接口差异化内容多，生成器要补一堆扩展（x-streaming/x-errors）性价比低；标准接口参数为主，生成器红利大。
+- 详见 `docs/migration-decision.md`（Leah 已拍板选 C）。
+
+## 6. AI 真接 Joybuilder dogfooding 发现（Week 9）
+
+Week 9 把 AI 4 能力从 mock 换成真 Joybuilder 模型（DeepSeek-V4-Flash），dogfooding 暴露的真实问题：
+
+### 6.1 LikeCodeNex 注入 JOYBUILDER_API_KEY 污染（已修复）
+- **现象**：后端读到的 key 是 `pk-a6759...`（无效），不是 .env 填的 `pk-3f3b...`，401。
+- **根因**：LikeCodeNex IDE 环境注入了同名 `JOYBUILDER_API_KEY`，dotenv 默认不覆盖已有 env，shell 污染压过 .env。
+- **修复**：`config.ts` 的 `dotenv({ override: true })`，让 .env 覆盖 shell 注入。和 Week 1/6/7 的 Next 污染同源。
+- **记录**：这是第 4 次踩 shell 污染坑（Next vars ×3 + Joybuilder key）。dev.mjs 只清了 Next 变量，后端 Node 服务需要单独 override。
+
+### 6.2 流式请求不能传 request.signal（已修复）
+- **现象**：流式 rewrite 报 `This operation was aborted`。
+- **根因**：Fastify 的 `request.raw.signal` 在 reply 开始发送后会 abort，传给 chatStream 会导致中途取消。
+- **修复**：流式端点不传 request.signal，靠连接关闭自然结束。
+
+### 6.3 延迟观察（Flash 模型）
+- rewrite 平均 ~1500ms（含 2 次失败重试，成功单次 ~700-800ms）
+- audit 平均 ~2500ms（JSON mode 略慢，含结构化解析）
+- **结论**：Flash 单次 < 5s，不开流式也能用，但流式（SSE 边生成边显示）体验明显更好，已默认开。
+
+### 6.4 模型质量观察
+- **改写质量高**：「这个功能的话，我们可以通过搞定一些配置来啥的整一下」→「该功能可通过完成相关配置来实现」（口语转书面准确）。
+- **体检质量高**：真模型理解语义，检测出 mock 规则抓不到的问题（如「整篇跟着做一遍」→「按照本文步骤操作」），还给了具体改写建议和定位文本。
+- **glm-5.2 带 reasoning_content**（思维链），输出冗长，不适合做助手；Flash/Pro 干净，默认用 Flash。
+
+### 6.5 失败率
+- rewrite 4 次 2 失败（failRate 0.5）——失败的是调试期 key 污染那次 + 流式 signal 那次，修复后稳定。
+- 修复后无失败。Week 10 部署后长期监控真实失败率。
+
+### dogfooding 价值
+真用 Joybuilder 写文档，提前暴露了 key 污染、流式 signal、延迟、模型质量等真实问题。这些问题反哺 JoyMaaS 文档系统自身迭代 + Joybuilder 产品体验优化。
+
