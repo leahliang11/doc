@@ -61,7 +61,7 @@ print(resp.json())` },
   { label: 'Node', code: `const resp = await fetch("https://api.joymaas.com/v1/embeddings", {
   method: "POST",
   headers: {
-    "Authorization": \`Bearer ${process.env.JOYMAAS_API_KEY}\`,
+    "Authorization": \`Bearer \${process.env.JOYMAAS_API_KEY}\`,
     "Content-Type": "application/json",
   },
   body: JSON.stringify({

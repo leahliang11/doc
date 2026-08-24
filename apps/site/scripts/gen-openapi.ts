@@ -46,9 +46,10 @@ type Spec = {
   paths?: Record<string, Record<string, Operation>>
 }
 
-// 转义 mdx 里反引号代码块内的反引号
-function escapeBackticks(s: string): string {
-  return s.replace(/`/g, '\\`')
+// 代码示例嵌入 MDX 模板字符串前，必须同时转义反引号和 `${...}`。
+// 否则示例里的 process.env 会在文档页面渲染时被当成真实表达式执行。
+function escapeTemplateLiteral(s: string): string {
+  return s.replace(/`/g, '\\`').replace(/\$\{/g, '\\${')
 }
 
 // 属性 → Params 数组项的 mdx 片段（name 可含点路径，如 choices[].message）
@@ -110,7 +111,7 @@ function schemaToParams(schema: Schema | undefined): string {
 function codeSamplesToTabs(samples: CodeSample[] | undefined): string {
   if (!samples || samples.length === 0) return ''
   const tabs = samples.map((s) => {
-    const code = escapeBackticks(s.code.trim())
+    const code = escapeTemplateLiteral(s.code.trim())
     return `  { label: '${s.label}', code: \`${code}\` }`
   })
   return `<CodeTabs tabs={[\n${tabs.join(',\n')}\n]} />`
