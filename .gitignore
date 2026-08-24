@@ -46,3 +46,4 @@ public/pagefind/
 # temp
 .tmp/
 .cache/
+*.gen.mdx
