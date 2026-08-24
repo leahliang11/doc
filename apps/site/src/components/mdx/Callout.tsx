@@ -14,8 +14,8 @@ const variantConfig: Record<
 > = {
   info: {
     icon: Info,
-    surface: 'border-sky-200/70 bg-sky-50/55 dark:border-sky-900/70 dark:bg-sky-950/25',
-    iconColor: 'text-sky-700 dark:text-sky-300',
+    surface: 'border-brand/20 bg-brand-soft',
+    iconColor: 'text-brand',
   },
   warning: {
     icon: AlertTriangle,

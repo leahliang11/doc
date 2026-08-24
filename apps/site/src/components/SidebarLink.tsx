@@ -25,7 +25,7 @@ export function SidebarLink({ href, children, badge }: SidebarLinkProps) {
       }`}
     >
       {isActive && (
-        <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-gradient-to-b from-brand to-brand-pink" aria-hidden="true" />
+        <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-brand" aria-hidden="true" />
       )}
       <span className="min-w-0 flex-1 truncate">{children}</span>
       {badge && (
@@ -33,7 +33,7 @@ export function SidebarLink({ href, children, badge }: SidebarLinkProps) {
           className={`rounded px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wide ${
             badge === 'GET'
               ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
-              : 'bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300'
+              : 'bg-brand-soft text-brand'
           }`}
         >
           {badge}

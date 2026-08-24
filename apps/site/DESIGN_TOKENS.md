@@ -20,10 +20,9 @@
 | `--foreground` | `#1E293B` | `#E2E8F0` | 主要正文与控件 |
 | `--muted-foreground` | `#64748B` | `#94A3B8` | 正文说明、次级信息 |
 | `--subtle-foreground` | `#94A3B8` | `#64748B` | 元数据、弱标签 |
-| `--primary` | `#0B6E99` | `#5CC0E8` | 链接、激活态、主操作 |
-| `--accent` | `#E8F4FA` | `#0B2D3D` | 主色浅底 |
+| `--primary` | `#7257E8` | `#A78BFA` | 链接、激活态、主操作 |
+| `--accent` | `#F1EFFC` | `#2B2348` | 主色浅底 |
 | `--brand` | `#7257E8` | `#A78BFA` | 品牌标识、当前栏目、关键入口 |
-| `--brand-pink` | `#CF5FC8` | `#F0ABFC` | 品牌渐变末端，仅小面积使用 |
 | `--border` | `#E2E8F0` | `#2A3850` | 常规边框 |
 | `--border-soft` | `#EEF2F7` | `#1F2B3E` | 大面板弱边框 |
 

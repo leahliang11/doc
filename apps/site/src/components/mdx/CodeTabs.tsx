@@ -38,7 +38,7 @@ function CodeTabs({ tabs }: CodeTabsProps) {
               onClick={() => setActiveLabel(tab.label)}
               className={`relative h-11 shrink-0 px-3 text-xs font-medium transition-colors ${
                 tab.label === activeTab.label
-                  ? 'text-white after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-sky-400'
+                  ? 'text-white after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >

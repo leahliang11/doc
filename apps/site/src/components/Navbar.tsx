@@ -16,7 +16,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 border-b border-border/80 bg-background/90 backdrop-blur-xl">
       <div className="mx-auto grid h-16 max-w-[1500px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 md:grid-cols-[minmax(210px,240px)_minmax(260px,1fr)_auto] md:gap-6 md:px-5 lg:px-8">
         <Link href="/" className="flex items-center gap-2.5" aria-label="JoyMaaS 文档首页">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-brand via-violet-500 to-brand-pink text-white shadow-sm shadow-violet-500/20">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white shadow-sm shadow-violet-500/20">
             <BookOpen className="h-4 w-4" />
           </span>
           <span className="text-[15px] font-semibold tracking-tight text-foreground">JoyMaaS</span>
