@@ -132,3 +132,45 @@ export function countPendingBuildTasks(): number {
     .get() as { c: number }
   return r.c
 }
+
+// ── 发布记录 / 工作台 / 待办（本周新增）──
+
+// 发布记录：分页查已 merged 的，按发布时间倒序
+export function listPublishedReviews(page: number, pageSize: number): { items: any[]; total: number } {
+  const offset = (page - 1) * pageSize
+  const items = db
+    .prepare(
+      `SELECT id, source, slug, branch, mr_iid, submitter, reviewer, reviewed_at, created_at, comment
+       FROM review_tasks WHERE status = 'merged' ORDER BY reviewed_at DESC LIMIT ? OFFSET ?`,
+    )
+    .all(pageSize, offset)
+  const total =
+    (
+      db
+        .prepare("SELECT count(*) as c FROM review_tasks WHERE status = 'merged'")
+        .get() as { c: number }
+    ).c
+  return { items, total }
+}
+
+// 本周已发布数（reviewed_at >= 本周一）
+export function countMergedThisWeek(): number {
+  // weekday 0 = 本周日往前推算，这里用 'weekday 1' 拿本周一 00:00
+  const r = db
+    .prepare(
+      `SELECT count(*) as c FROM review_tasks
+       WHERE status = 'merged' AND reviewed_at >= date('now', 'weekday 1')`,
+    )
+    .get() as { c: number }
+  return r.c
+}
+
+// 最近 N 条审核活动（含来源，工作台"最近活动"用）
+export function recentReviewTasks(limit: number): any[] {
+  return db
+    .prepare(
+      `SELECT id, source, slug, branch, mr_iid, submitter, reviewer, status, created_at, reviewed_at
+       FROM review_tasks ORDER BY created_at DESC LIMIT ?`,
+    )
+    .all(limit)
+}

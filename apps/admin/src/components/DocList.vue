@@ -1,21 +1,36 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { listDocs, type DocListItem } from '../api'
+import CreateDocDialog from './CreateDocDialog.vue'
 
-const emit = defineEmits<{ open: [doc: DocListItem] }>()
+const emit = defineEmits<{
+  open: [doc: DocListItem]
+  created: [slug: string]
+  openapiGenerated: [docs: DocListItem[]]
+}>()
 const docs = ref<DocListItem[]>([])
 const loading = ref(true)
 const error = ref('')
+const showCreate = ref(false)
 
-onMounted(async () => {
+async function refresh() {
   try {
     docs.value = await listDocs()
   } catch (e: any) {
     error.value = e.message
-  } finally {
-    loading.value = false
   }
-})
+}
+
+onMounted(refresh)
+
+function onCreated(slug: string) {
+  emit('created', slug)
+  refresh()
+}
+function onOpenapiGenerated(newDocs: DocListItem[]) {
+  docs.value = newDocs
+  emit('openapiGenerated', newDocs)
+}
 
 const categoryLabels: Record<string, string> = {
   quickstart: '快速开始',
@@ -34,6 +49,13 @@ const statusLabels: Record<string, string> = {
 
 <template>
   <div>
+    <div class="doc-toolbar">
+      <h2 class="doc-title-h">文档</h2>
+      <button class="btn btn-primary create-btn" @click="showCreate = true">
+        <span class="plus">+</span> 新建文档
+      </button>
+    </div>
+
     <div v-if="loading" class="state">加载中…</div>
     <div v-else-if="error" class="state error">加载失败：{{ error }}（确认后端 :3001 已启动）</div>
     <table v-else class="doc-table">
@@ -56,10 +78,40 @@ const statusLabels: Record<string, string> = {
         </tr>
       </tbody>
     </table>
+
+    <CreateDocDialog
+      :show="showCreate"
+      @close="showCreate = false"
+      @created="onCreated"
+      @openapi-generated="onOpenapiGenerated"
+    />
   </div>
 </template>
 
 <style scoped>
+.doc-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.doc-title-h {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+.create-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+.create-btn .plus {
+  font-size: 16px;
+  line-height: 1;
+}
 .doc-table {
   width: 100%;
   background: var(--bg-card);

@@ -6,7 +6,8 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as yaml from 'js-yaml'
 
-const ROOT = path.resolve(__dirname, '../../..')
+// ROOT：优先用环境变量（供后端 dynamic import 调用），否则用 __dirname 推导
+const ROOT = process.env.DOCS_ROOT || path.resolve(__dirname, '../../..')
 const OPENAPI_PATH = path.join(ROOT, 'content-repo/openapi/openapi.yaml')
 const CONTENT_API_DIR = path.join(ROOT, 'content-repo/content/api')
 
@@ -227,15 +228,13 @@ function getExistingSource(filePath: string): string | null {
   return m ? m[1] : null
 }
 
-function main(): void {
+export function main(): void {
   if (!fs.existsSync(OPENAPI_PATH)) {
-    console.error(`openapi.yaml 不存在：${OPENAPI_PATH}`)
-    process.exit(1)
+    throw new Error(`openapi.yaml 不存在：${OPENAPI_PATH}`)
   }
   const spec = yaml.load(fs.readFileSync(OPENAPI_PATH, 'utf-8')) as Spec
   if (!spec.paths) {
-    console.error('openapi.yaml 无 paths')
-    process.exit(1)
+    throw new Error('openapi.yaml 无 paths')
   }
 
   fs.mkdirSync(CONTENT_API_DIR, { recursive: true })
@@ -269,4 +268,7 @@ function main(): void {
   console.log(`\n完成：生成 ${generated} 篇，跳过 ${skipped} 篇`)
 }
 
-main()
+// 仅在直接运行时执行（被 import 时不自动跑）
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main()
+}
