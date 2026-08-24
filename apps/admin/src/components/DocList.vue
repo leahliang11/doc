@@ -14,10 +14,14 @@ const error = ref('')
 const showCreate = ref(false)
 
 async function refresh() {
+  loading.value = true
+  error.value = ''
   try {
     docs.value = await listDocs()
   } catch (e: any) {
     error.value = e.message
+  } finally {
+    loading.value = false
   }
 }
 
