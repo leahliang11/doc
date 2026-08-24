@@ -3,6 +3,9 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import Sidebar from './components/Sidebar.vue'
 import DocsView from './views/DocsView.vue'
 import ReviewView from './views/ReviewView.vue'
+import PublishView from './views/PublishView.vue'
+import DashboardView from './views/DashboardView.vue'
+import TodoView from './views/TodoView.vue'
 import PlaceholderView from './views/PlaceholderView.vue'
 import { listBuildTasks, runBuild, type BuildTask } from './api'
 
@@ -138,8 +141,11 @@ const currentLabel = computed(() => labels[currentRoute.value] || '文档')
         </div>
       </header>
       <div class="main-body">
-        <DocsView v-if="currentRoute === '/docs'" />
+        <DashboardView v-if="currentRoute === '/dashboard'" @navigate="navigate" />
+        <DocsView v-else-if="currentRoute === '/docs'" />
         <ReviewView v-else-if="currentRoute === '/review'" />
+        <PublishView v-else-if="currentRoute === '/publish'" @navigate="navigate" />
+        <TodoView v-else-if="currentRoute === '/todo'" @navigate="navigate" />
         <PlaceholderView v-else :label="currentLabel" />
       </div>
     </main>

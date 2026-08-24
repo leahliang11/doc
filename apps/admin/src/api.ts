@@ -168,3 +168,49 @@ export async function runBuild(): Promise<{ status: string; task_id: number }> {
   return post('/build/run', {})
 }
 
+// ── 发布记录 / 工作台 / 待办（本周新增）──
+
+export interface PublishItem {
+  id: number
+  source: 'web' | 'gitlab_mr'
+  slug: string
+  branch: string
+  mr_iid: number | null
+  submitter: string
+  reviewer: string | null
+  reviewed_at: string | null
+  created_at: string
+  comment: string | null
+}
+
+export async function listPublish(
+  page = 1,
+  pageSize = 20,
+): Promise<{ items: PublishItem[]; total: number; page: number; pageSize: number }> {
+  return getJson(`/publish?page=${page}&pageSize=${pageSize}`)
+}
+
+export interface DashboardStats {
+  docsTotal: number
+  pendingReview: number
+  publishedThisWeek: number
+  aiCallsThisWeek: number
+  buildPending: number
+  recentEdits: ReviewTask[]
+}
+
+export async function getDashboardStats(): Promise<DashboardStats> {
+  return getJson('/dashboard/stats')
+}
+
+export interface TodoGroup {
+  pendingReviews: ReviewTask[]
+  conflicts: ReviewTask[]
+  aiWarnings: ReviewTask[]
+  buildPending: BuildTask[]
+}
+
+export async function getTodos(): Promise<TodoGroup> {
+  return getJson('/todos')
+}
+

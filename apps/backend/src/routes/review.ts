@@ -1,12 +1,19 @@
-// 审核 API：列表 / 详情 / diff / 通过(merge) / 驳回(close)
+// 审核 API：列表 / 详情 / diff / 通过(merge) / 驳回(close) / 发布记录 / 工作台 / 待办
 import type { FastifyInstance } from 'fastify'
 import {
   listReviewTasks,
   getReviewTask,
   updateReviewTaskStatus,
+  listPublishedReviews,
+  countMergedThisWeek,
+  recentReviewTasks,
+  countPendingBuildTasks,
 } from '../services/db.js'
+import { listBuildTasks } from '../services/db.js'
 import { getDiff } from '../services/git.js'
 import { mergeMR, closeMR, getMRStatus } from '../services/gitlab.js'
+import { listDocs } from '../lib/list-docs.js'
+import { getMetrics } from '../services/ai-log.js'
 
 // Week 8 登录前，审核者硬编码
 const REVIEWER = 'leah'
@@ -107,6 +114,54 @@ export async function reviewRoutes(app: FastifyInstance): Promise<void> {
     } catch (e: any) {
       request.log.error(e)
       return reply.code(500).send({ error: '关闭 MR 失败：' + e.message })
+    }
+  })
+
+  // 发布记录：分页查已 merged
+  app.get('/api/publish', async (request) => {
+    const { page = '1', pageSize = '20' } = request.query as { page?: string; pageSize?: string }
+    const p = Math.max(1, Number(page) || 1)
+    const ps = Math.min(100, Math.max(1, Number(pageSize) || 20))
+    const { items, total } = listPublishedReviews(p, ps)
+    return { items, total, page: p, pageSize: ps }
+  })
+
+  // 工作台统计
+  app.get('/api/dashboard/stats', async () => {
+    const allDocs = listDocs()
+    const pending = listReviewTasks('pending')
+    const publishedThisWeek = countMergedThisWeek()
+    const recentEdits = recentReviewTasks(5)
+    const buildPending = countPendingBuildTasks()
+
+    // AI 调用数：汇总各能力 count
+    let aiCallsThisWeek = 0
+    try {
+      const m = getMetrics()
+      aiCallsThisWeek = Object.values(m).reduce((s, v) => s + (v.count || 0), 0)
+    } catch {
+      /* ai-log 可能没数据 */
+    }
+
+    return {
+      docsTotal: allDocs.length,
+      pendingReview: pending.length,
+      publishedThisWeek,
+      aiCallsThisWeek,
+      buildPending,
+      recentEdits,
+    }
+  })
+
+  // 待办：4 分组（conflicts/aiWarnings P0 降级空）
+  app.get('/api/todos', async () => {
+    const pendingReviews = listReviewTasks('pending')
+    const buildPending = listBuildTasks('pending')
+    return {
+      pendingReviews,
+      conflicts: [], // P0 降级：draft 分支冲突检测复杂，见审核队列
+      aiWarnings: [], // P0 降级：不持久化 AI 结果
+      buildPending,
     }
   })
 }
