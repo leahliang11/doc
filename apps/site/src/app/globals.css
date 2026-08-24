@@ -438,6 +438,16 @@
   font-size: 13px;
 }
 
+/* Fenced examples use a dark canvas in both color modes. Rehype Pretty Code
+   emits both light and dark token variables; explicitly choose the dark
+   palette here so the light-theme token colors do not become low-contrast
+   navy text on the dark surface. */
+.prose-doc figure[data-rehype-pretty-code-figure] code[data-theme*=" "],
+.prose-doc figure[data-rehype-pretty-code-figure] code[data-theme*=" "] span {
+  color: var(--shiki-dark) !important;
+  background-color: transparent !important;
+}
+
 .prose-doc blockquote {
   margin: 18px 0;
   border-left: 3px solid var(--primary);
