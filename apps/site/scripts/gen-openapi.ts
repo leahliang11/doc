@@ -32,7 +32,7 @@ interface Operation {
   operationId?: string
   summary?: string
   description?: string
-  parameters?: any[]
+  parameters?: unknown[]
   requestBody?: {
     required?: boolean
     content?: Record<string, { schema?: Schema }>
@@ -240,7 +240,7 @@ function main(): void {
   fs.mkdirSync(CONTENT_API_DIR, { recursive: true })
 
   let generated = 0
-  let skipped = 0
+  const skipped = 0
   for (const [url, methods] of Object.entries(spec.paths)) {
     for (const [method, op] of Object.entries(methods)) {
       const slug = deriveSlug(url)

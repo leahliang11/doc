@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, BookOpenText } from 'lucide-react'
 
 interface NextStepItem {
   title: string
@@ -11,26 +11,25 @@ interface NextStepsProps {
   items: NextStepItem[]
 }
 
-// Vercel Docs 风格：极细边、无阴影、hover 边框加深 + 微抬，高度由内容决定
-// 配色见 DESIGN_TOKENS.md §6
 function NextSteps({ items }: NextStepsProps) {
   if (!items || items.length === 0) return null
 
   return (
-    <div className="my-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <div className={`my-6 grid grid-cols-1 gap-3 ${items.length > 1 ? 'sm:grid-cols-2' : ''}`}>
       {items.map((item) => (
         <Link
           key={item.href}
           href={item.href}
-          className="group relative rounded-md border border-border bg-card p-4 transition-all hover:border-neutral-400 dark:hover:border-neutral-500 hover:-translate-y-px"
+          className="group flex min-h-[92px] items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/30 hover:bg-primary/[0.04]"
         >
-          <h3 className="mb-1 text-[15px] font-medium text-foreground leading-snug">
-            {item.title}
-          </h3>
-          <p className="text-[13px] text-muted-foreground leading-snug">
-            {item.description}
-          </p>
-          <ArrowRight className="absolute right-4 bottom-4 h-3 w-3 text-primary opacity-50 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100" />
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+            <BookOpenText className="h-4 w-4" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[14px] font-semibold leading-5 text-foreground group-hover:text-primary">{item.title}</span>
+            <span className="mt-1 block text-[12px] leading-5 text-muted-foreground">{item.description}</span>
+          </span>
+          <ArrowRight className="h-4 w-4 shrink-0 text-subtle-foreground transition-all group-hover:translate-x-0.5 group-hover:text-primary" />
         </Link>
       ))}
     </div>
@@ -44,7 +43,7 @@ type NextStepsWithToMarkdown = typeof NextSteps & {
   toMarkdown: (props: NextStepsProps) => string
 }
 const NextStepsExport = Object.assign(NextSteps, {
-  toMarkdown: (_props: NextStepsProps): string => {
+  toMarkdown: (): string => {
     throw new Error('Not implemented - Week 2')
   },
 }) as NextStepsWithToMarkdown

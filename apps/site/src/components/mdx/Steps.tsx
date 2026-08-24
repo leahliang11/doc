@@ -5,14 +5,19 @@ interface StepsProps {
 }
 
 function Steps({ children }: StepsProps) {
+  const items = React.Children.toArray(children)
+
   return (
-    <ol className="my-6 space-y-6">
-      {React.Children.map(children, (child, index) => (
-        <li className="flex gap-4" key={index}>
-          <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-normal">
+    <ol className="my-7 space-y-0">
+      {items.map((child, index) => (
+        <li className="relative grid grid-cols-[32px_minmax(0,1fr)] gap-4 pb-7 last:pb-0" key={index}>
+          {index < items.length - 1 && (
+            <span className="absolute bottom-0 left-[15px] top-8 w-px bg-gradient-to-b from-primary/35 to-primary/10" aria-hidden="true" />
+          )}
+          <span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-xs font-semibold text-primary ring-4 ring-background">
             {index + 1}
           </span>
-          <div className="flex-1 pt-0.5">{child}</div>
+          <div className="min-w-0 pt-0.5 [&>h3:first-child]:mt-0 [&>p:last-child]:mb-0">{child}</div>
         </li>
       ))}
     </ol>
@@ -25,7 +30,7 @@ type StepsWithToMarkdown = typeof Steps & {
   toMarkdown: (props: StepsProps) => string
 }
 const StepsExport = Object.assign(Steps, {
-  toMarkdown: (_props: StepsProps): string => {
+  toMarkdown: (): string => {
     throw new Error('Not implemented - Week 2')
   },
 }) as StepsWithToMarkdown

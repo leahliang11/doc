@@ -40,7 +40,7 @@ export function CopyAsMarkdown({ slug }: CopyAsMarkdownProps) {
       }
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch (e) {
+    } catch {
       setError(true)
       setTimeout(() => setError(false), 2000)
     }
@@ -49,9 +49,10 @@ export function CopyAsMarkdown({ slug }: CopyAsMarkdownProps) {
   return (
     <button
       onClick={handleCopy}
-      className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-neutral-400 hover:text-foreground dark:hover:border-neutral-500"
+      className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-medium text-muted-foreground shadow-sm shadow-slate-950/[0.02] transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
       aria-label="复制为 Markdown"
       title="复制本文档的纯 Markdown（供 AI 使用）"
+      data-document-slug={slug}
     >
       {copied ? (
         <>
@@ -66,7 +67,7 @@ export function CopyAsMarkdown({ slug }: CopyAsMarkdownProps) {
       ) : (
         <>
           <Copy className="h-3.5 w-3.5" />
-          Copy as Markdown
+          复制页面
         </>
       )}
     </button>

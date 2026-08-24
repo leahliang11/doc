@@ -30,8 +30,8 @@ export interface ParamsProps {
 }
 
 // Steps / InternalOnly 无结构化 props，只有 children
-export interface StepsProps {}
-export interface InternalOnlyProps {}
+export type StepsProps = Record<string, never>
+export type InternalOnlyProps = Record<string, never>
 
 // NextSteps
 export interface NextStepItem {

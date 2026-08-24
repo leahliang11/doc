@@ -1,15 +1,20 @@
-import Link from 'next/link'
 import { allDocs } from 'contentlayer2/generated'
+import { SidebarLink } from './SidebarLink'
 
 const categoryLabels: Record<string, string> = {
-  quickstart: '快速开始',
+  quickstart: '开始使用',
   api: 'API 参考',
-  models: '模型说明',
-  guides: '场景指南',
+  models: '模型能力',
+  guides: '构建与实践',
   troubleshooting: '排障',
 }
 
-const categoryOrder = ['quickstart', 'api', 'models', 'guides', 'troubleshooting']
+const categoryOrder = ['quickstart', 'guides', 'api', 'troubleshooting', 'models']
+
+function apiMethod(slug?: string) {
+  if (!slug?.startsWith('api/')) return undefined
+  return slug === 'api/models' ? 'GET' : 'POST'
+}
 
 export function Sidebar() {
   // 按 category 分组
@@ -30,21 +35,18 @@ export function Sidebar() {
   })
 
   return (
-    <nav className="space-y-6">
+    <nav className="space-y-7" aria-label="文档导航">
       {categories.map((category) => (
         <div key={category}>
-          <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <h2 className="mb-2 px-3 text-[11px] font-semibold tracking-wide text-subtle-foreground">
             {categoryLabels[category] || category}
-          </h3>
+          </h2>
           <ul className="space-y-1">
             {grouped[category].map((doc) => (
               <li key={doc.slug}>
-                <Link
-                  href={doc.url}
-                  className="block rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-primary transition-colors"
-                >
+                <SidebarLink href={doc.url} badge={apiMethod(doc.slug)}>
                   {doc.title}
-                </Link>
+                </SidebarLink>
               </li>
             ))}
           </ul>

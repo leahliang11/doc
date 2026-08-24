@@ -62,7 +62,7 @@ function extractProps(node: MdxJsxElement): Record<string, unknown> {
         if (typeof code === 'string') {
           try {
             props[name] = evaluateExpression(code)
-          } catch (e) {
+          } catch {
             props[name] = undefined
           }
         }
@@ -143,7 +143,7 @@ export function transform(tree: Root, audience: Audience): Root {
           md = nextStepsToMarkdown(props as never)
           break
       }
-    } catch (e) {
+    } catch {
       md = `<!-- mdx-to-md: failed to parse <${componentName}> props -->`
     }
 

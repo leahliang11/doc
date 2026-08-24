@@ -9,8 +9,8 @@
     "start": "next start",
     "lint": "eslint",
     "contentlayer": "contentlayer2 build",
-    "test": "node --test src/lib/mdx-to-md/__tests__/*.test.ts",
-    "test:coverage": "node --test --experimental-test-coverage src/lib/mdx-to-md/__tests__/*.test.ts"
+    "test": "tsx --test src/lib/mdx-to-md/__tests__/*.test.ts",
+    "test:coverage": "tsx --test --experimental-test-coverage src/lib/mdx-to-md/__tests__/*.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

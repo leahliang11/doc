@@ -1,4 +1,4 @@
-import { Lock, ChevronRight } from 'lucide-react'
+import { LockKeyhole, ChevronRight } from 'lucide-react'
 
 interface InternalOnlyProps {
   children: React.ReactNode
@@ -10,35 +10,36 @@ interface InternalOnlyProps {
 function InternalOnly({ children, collapsible = true, title }: InternalOnlyProps) {
   // Week 1：始终显示（模拟内部视角）
   // Week 8：根据 ViewToggle 上下文决定，外部视角返回 null
-  const label = title ?? '仅内部可见'
+  const label = title ?? '内部内容'
 
-  // 可收起：收起态一行灰底，锁图标橙色点缀，容器全 neutral
   if (collapsible) {
     return (
-      <details className="my-4 group rounded-md border border-border bg-muted overflow-hidden">
-        <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-2">
-          <Lock className="h-3 w-3 text-[#f5a623]" />
-          <span className="text-xs font-medium text-muted-foreground">{label}</span>
-          <ChevronRight className="ml-auto h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-90" />
+      <details className="group my-5 overflow-hidden rounded-xl border border-amber-200 border-l-2 border-l-amber-500 bg-amber-50/50 dark:border-amber-900 dark:border-l-amber-500 dark:bg-amber-950/25">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2.5 px-4 py-2.5 outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+          <span className="grid h-6 w-6 place-items-center rounded-md bg-amber-100 dark:bg-amber-900">
+            <LockKeyhole className="h-3.5 w-3.5 text-amber-700 dark:text-amber-300" />
+          </span>
+          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-amber-800 dark:bg-amber-900 dark:text-amber-200">INTERNAL</span>
+          <span className="text-xs font-medium text-foreground">{label}</span>
+          <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground transition-transform group-open:rotate-90" />
         </summary>
-        <div className="border-t border-border bg-card px-4 py-3 text-sm text-muted-foreground leading-relaxed [&>p]:my-0 [&>p+p]:mt-1.5">
+        <div className="border-t border-amber-200 bg-background/75 px-4 py-3.5 text-sm leading-6 text-muted-foreground dark:border-amber-900 [&>p]:my-0 [&>p+p]:mt-2">
           {children}
         </div>
       </details>
     )
   }
 
-  // 不可收起：始终展开，与 Callout 同结构
   return (
-    <div className="my-4 rounded-md border border-border bg-card px-4 py-3">
-      <div className="flex items-center gap-2 mb-1">
-        <Lock className="h-3 w-3 text-[#f5a623]" />
-        <span className="text-xs font-medium text-muted-foreground">{label}</span>
+    <aside className="my-5 rounded-xl border border-amber-200 border-l-2 border-l-amber-500 bg-amber-50/50 px-4 py-3.5 dark:border-amber-900 dark:bg-amber-950/25">
+      <div className="mb-2 flex items-center gap-2">
+        <LockKeyhole className="h-3.5 w-3.5 text-amber-700 dark:text-amber-300" />
+        <span className="text-xs font-semibold text-foreground">{label}</span>
       </div>
-      <div className="pl-[20px] text-sm text-muted-foreground leading-relaxed [&>p]:my-0 [&>p+p]:mt-1.5">
+      <div className="text-sm leading-6 text-muted-foreground [&>p]:my-0 [&>p+p]:mt-2">
         {children}
       </div>
-    </div>
+    </aside>
   )
 }
 
@@ -48,7 +49,7 @@ type InternalOnlyWithToMarkdown = typeof InternalOnly & {
   toMarkdown: (props: InternalOnlyProps, audience: 'internal' | 'external') => string
 }
 const InternalOnlyExport = Object.assign(InternalOnly, {
-  toMarkdown: (_props: InternalOnlyProps, _audience: 'internal' | 'external'): string => {
+  toMarkdown: (): string => {
     throw new Error('Not implemented - Week 2')
   },
 }) as InternalOnlyWithToMarkdown
