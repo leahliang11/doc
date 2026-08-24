@@ -1,10 +1,59 @@
-// 文档 API 路由：list / open / save / submit-review
+// 文档 API 路由：list / open / save / submit-review / create / gen-openapi
 import type { FastifyInstance } from 'fastify'
+import path from 'path'
+import fs from 'fs'
 import * as git from '../services/git.js'
 import * as gitlab from '../services/gitlab.js'
 import { recordEditSession, createReviewTask } from '../services/db.js'
 import { parseFrontmatter } from '../lib/frontmatter.js'
 import { listDocs } from '../lib/list-docs.js'
+import { CONTENT_REPO_PATH, SITE_DIR } from '../config.js'
+
+// slug 合法性校验：小写字母/数字/连字符/斜杠，禁 .. 和绝对路径防穿越
+function isValidSlug(slug: string): boolean {
+  return /^[a-z0-9][a-z0-9/-]*$/.test(slug) && !slug.includes('..') && !slug.startsWith('/')
+}
+
+// 新建文档的文件路径（文件不存在，用 <slug>.mdx 或 <slug>/index.mdx 规则）
+function resolveNewFilePath(slug: string): { abs: string; gitPath: string } {
+  const CONTENT_DIR = path.join(CONTENT_REPO_PATH, 'content-repo', 'content')
+  const abs = slug.includes('/')
+    ? path.join(CONTENT_DIR, `${slug}.mdx`)
+    : path.join(CONTENT_DIR, slug, 'index.mdx')
+  const gitPath = path.relative(CONTENT_REPO_PATH, abs)
+  return { abs, gitPath }
+}
+
+// 模板内容
+function getTemplateContent(template: string | undefined, title: string, slug: string): string {
+  const today = new Date().toISOString().slice(0, 10)
+  if (template === 'quickstart') {
+    const templatePath = path.join(CONTENT_REPO_PATH, 'content-repo', 'content', 'quickstart', 'index.mdx')
+    if (fs.existsSync(templatePath)) {
+      let content = fs.readFileSync(templatePath, 'utf-8')
+      content = content.replace(/^title: .*/m, `title: ${title}`)
+      content = content.replace(/^slug: .*/m, `slug: ${slug}`)
+      return content
+    }
+  }
+  return `---
+title: ${title}
+description: ${title}
+slug: ${slug}
+category: guides
+audience: external
+updated: ${today}
+status: draft
+owner: leah
+ai_readable: true
+source: manual
+---
+
+# ${title}
+
+开始写文档。
+`
+}
 
 export async function docsRoutes(app: FastifyInstance): Promise<void> {
   // 列出所有文档
@@ -105,6 +154,62 @@ export async function docsRoutes(app: FastifyInstance): Promise<void> {
     } catch (e: any) {
       request.log.error(e)
       return reply.code(500).send({ error: e.message })
+    }
+  })
+
+  // 新建文档：写文件 + commit 到 main + push
+  app.post('/api/docs/create', async (request, reply) => {
+    const { title, slug, template, user } = request.body as {
+      title: string
+      slug: string
+      template?: string
+      user: { name: string; email: string }
+    }
+    if (!title || !slug) {
+      return reply.code(400).send({ error: '缺少 title/slug' })
+    }
+    if (!isValidSlug(slug)) {
+      return reply.code(400).send({ error: 'slug 不合法（只能小写字母/数字/连字符/斜杠）' })
+    }
+
+    const { abs, gitPath } = resolveNewFilePath(slug)
+    if (fs.existsSync(abs)) {
+      return reply.code(409).send({ error: `文档已存在：${slug}` })
+    }
+
+    try {
+      const mdxContent = getTemplateContent(template, title, slug)
+      fs.mkdirSync(path.dirname(abs), { recursive: true })
+      // 写文件 + commit main + push（绕过双通道，P0 新建走快速通道）
+      const { commitHash } = await git.commitToMain(
+        slug,
+        mdxContent,
+        user?.name || 'unknown',
+        user?.email || 'unknown@example.com',
+        abs,
+        gitPath,
+      )
+      return { slug, commit_hash: commitHash }
+    } catch (e: any) {
+      request.log.error(e)
+      return reply.code(500).send({ error: e.message })
+    }
+  })
+
+  // 从 OpenAPI 全量生成：dynamic import gen-openapi 的 main()
+  // sandbox 下 spawn/exec 找不到 shell，改在进程内直接调用生成器函数
+  app.post('/api/docs/gen-openapi', async (request, reply) => {
+    try {
+      // gen-openapi 用 DOCS_ROOT 定位根，内部拼 ROOT/content-repo/...，所以 ROOT = CONTENT_REPO_PATH（=doc 根）
+      process.env.DOCS_ROOT = CONTENT_REPO_PATH
+      // dynamic import site 的生成器（tsx 运行时支持 .ts import）
+      const genPath = path.resolve(SITE_DIR, 'scripts', 'gen-openapi.ts')
+      const mod = await import(`file://${genPath}`)
+      mod.main()
+      return { generated: true, docs: listDocs() }
+    } catch (e: any) {
+      request.log.error(e)
+      return reply.code(500).send({ error: '生成失败：' + e.message })
     }
   })
 }

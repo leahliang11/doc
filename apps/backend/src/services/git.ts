@@ -58,6 +58,41 @@ export async function createDraftBranch(slug: string): Promise<string> {
   return branch
 }
 
+// 新建文档：直接在 main 上写 + commit + push（不走 draft 分支）
+// 与 writeAndCommit 区别：不切分支，直接改 main。供「新建文档」用——
+// 新文档需立即出现在 main 上，列表才能看到。
+// 注意：这绕过了双通道审核，P0 新建走快速通道，后续可改成新建也走 draft+MR。
+export async function commitToMain(
+  slug: string,
+  markdown: string,
+  authorName: string,
+  authorEmail: string,
+  filePath: string, // 绝对路径（新建文件不存在，slugToFilePath 会抛错，由调用方传入）
+  gitPath: string, // 仓库相对路径（git add 用）
+): Promise<{ commitHash: string; branch: string }> {
+  // 确保在 main 分支
+  await git.checkout('main')
+
+  // 写文件
+  fs.writeFileSync(filePath, markdown, 'utf-8')
+
+  // 只 add 这个文件
+  await git.add(gitPath)
+
+  // commit，author 设登录用户
+  await git.commit(`docs: create ${slug}`, gitPath, {
+    '--author': `${authorName} <${authorEmail}>`,
+  })
+
+  // push main
+  await git.push('origin', 'main')
+
+  const log = await git.log({ maxCount: 1 })
+  const commitHash = log.latest?.hash ?? ''
+
+  return { commitHash, branch: 'main' }
+}
+
 // 写文件 + 限定路径 commit + push
 // author 用登录用户（非 bot），committer 用仓库默认 config
 export async function writeAndCommit(

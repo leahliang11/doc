@@ -83,6 +83,25 @@ export async function submitReview(
   })
 }
 
+// ── 新建文档（本周新增）──
+
+export interface CreateResult {
+  slug: string
+  commit_hash: string
+}
+
+export async function createDoc(params: {
+  title: string
+  slug: string
+  template?: string
+}): Promise<CreateResult> {
+  return post<CreateResult>('/docs/create', { ...params, user: USER })
+}
+
+export async function genOpenApi(): Promise<{ generated: boolean; docs: DocListItem[] }> {
+  return post('/docs/gen-openapi', {})
+}
+
 // ── 审核队列（Week 5）──
 
 export interface ReviewTask {

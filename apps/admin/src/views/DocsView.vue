@@ -81,6 +81,12 @@ async function onOpen(doc: DocListItem) {
   }
 }
 
+// 新建文档后自动打开
+async function onCreated(slug: string) {
+  toast.value = '文档已创建，打开中…'
+  await onOpen({ slug, title: '', category: '', status: 'draft', updated: '' })
+}
+
 async function onSave(content: string) {
   saving.value = true
   saveState.value = 'saving'
@@ -181,7 +187,7 @@ async function discardMine() {
   <div>
     <div v-if="toast" class="toast">{{ toast }}</div>
 
-    <DocList v-if="mode === 'list'" @open="onOpen" />
+    <DocList v-if="mode === 'list'" @open="onOpen" @created="onCreated" />
     <Editor
       v-else
       ref="editorRef"

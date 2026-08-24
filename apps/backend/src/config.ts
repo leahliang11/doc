@@ -1,7 +1,11 @@
 // 集中读取环境变量
 // override:true 让 .env 覆盖 shell 注入的同名变量（LikeCodeNex IDE 会注入 JOYBUILDER_API_KEY 等污染变量）
 import { config as dotenvConfig } from 'dotenv'
+import path from 'path'
+import { fileURLToPath } from 'url'
 dotenvConfig({ override: true })
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 function required(key: string): string {
   const v = process.env[key]
@@ -15,6 +19,8 @@ export const CODING_PROJECT_ID = Number(required('CODING_PROJECT_ID'))
 export const CONTENT_REPO_PATH = required('CONTENT_REPO_PATH')
 export const PORT = Number(process.env.PORT ?? 3001)
 export const DB_PATH = process.env.DB_PATH ?? './data/app.sqlite'
+// site 目录（gen-openapi 脚本所在），config.ts 在 apps/backend/src/，往上 2 层到 apps/backend，再拼 ../site
+export const SITE_DIR = process.env.SITE_DIR ?? path.resolve(__dirname, '..', '..', 'site')
 export const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET ?? '' // Coding webhook 配置时设的 X-Gitlab-Token；空则不校验（仅本地调试）
 
 // Joybuilder AI（dogfooding：用自家 JoyMaaS 模型做文档 AI 助手）
