@@ -12,13 +12,23 @@ export async function docsRoutes(app: FastifyInstance): Promise<void> {
     return listDocs()
   })
 
-  // 打开文档：git pull + 读 mdx + 记 base_commit
+  // 打开文档：git pull（失败跳过）+ 读 mdx + 记 base_commit
   app.post('/api/docs/open', async (request, reply) => {
     const { slug, user } = request.body as { slug: string; user: string }
     if (!slug) return reply.code(400).send({ error: '缺少 slug' })
 
     try {
-      await git.pull()
+      // git pull 拉最新（云机访问 coding 不通时会超时失败，跳过不影响读本地内容）
+      // SKIP_PULL=true 时直接跳过（云机部署用，避免每次开文档等 pull 超时）
+      const skipPull = process.env.SKIP_PULL === 'true'
+      if (!skipPull) {
+        await Promise.race([
+          git.pull(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('pull timeout')), 3000)),
+        ]).catch(() => {
+          request.log.warn('git pull 失败/超时，用本地内容')
+        })
+      }
       const raw = git.readFile(slug)
       const baseCommit = await git.getHeadCommit()
       recordEditSession(slug, user || 'unknown', baseCommit)
