@@ -14,10 +14,10 @@ function InternalOnly({ children, collapsible = true, title }: InternalOnlyProps
 
   if (collapsible) {
     return (
-      <details className="group my-4 overflow-hidden rounded-lg border border-dashed border-border bg-slate-50/55 dark:bg-white/[0.02]">
+      <details className="group my-4 overflow-hidden rounded-lg border border-dashed border-violet-200/80 bg-violet-50/35 dark:border-violet-900/70 dark:bg-violet-950/15">
         <summary className="flex min-h-9 cursor-pointer list-none items-center gap-2 px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-          <LockKeyhole className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wide text-muted-foreground">INTERNAL</span>
+          <LockKeyhole className="h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-300" />
+          <span className="rounded border border-violet-200/80 bg-background/80 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wide text-violet-700 dark:border-violet-900 dark:text-violet-300">INTERNAL</span>
           <span className="text-xs font-medium text-foreground">{label}</span>
           <ChevronRight className="ml-auto h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-90" />
         </summary>
@@ -29,9 +29,9 @@ function InternalOnly({ children, collapsible = true, title }: InternalOnlyProps
   }
 
   return (
-    <aside className="my-4 rounded-lg border border-dashed border-border bg-slate-50/55 px-3 py-2.5 dark:bg-white/[0.02]">
+    <aside className="my-4 rounded-lg border border-dashed border-violet-200/80 bg-violet-50/35 px-3 py-2.5 dark:border-violet-900/70 dark:bg-violet-950/15">
       <div className="mb-1.5 flex items-center gap-2">
-        <LockKeyhole className="h-3.5 w-3.5 text-muted-foreground" />
+        <LockKeyhole className="h-3.5 w-3.5 text-violet-600 dark:text-violet-300" />
         <span className="text-xs font-semibold text-foreground">{label}</span>
       </div>
       <div className="text-[13px] leading-[1.65] text-muted-foreground [&>p]:my-0 [&>p+p]:mt-1.5">

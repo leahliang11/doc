@@ -10,22 +10,26 @@ interface CalloutProps {
 
 const variantConfig: Record<
   CalloutVariant,
-  { icon: typeof Info; iconColor: string }
+  { icon: typeof Info; surface: string; iconColor: string }
 > = {
   info: {
     icon: Info,
-    iconColor: 'text-primary',
+    surface: 'border-indigo-200/70 bg-indigo-50/55 dark:border-indigo-900/70 dark:bg-indigo-950/25',
+    iconColor: 'text-indigo-600 dark:text-indigo-300',
   },
   warning: {
     icon: AlertTriangle,
+    surface: 'border-violet-200/70 bg-violet-50/55 dark:border-violet-900/70 dark:bg-violet-950/25',
     iconColor: 'text-violet-600 dark:text-violet-300',
   },
   danger: {
     icon: AlertCircle,
+    surface: 'border-rose-200/70 bg-rose-50/50 dark:border-rose-900/70 dark:bg-rose-950/20',
     iconColor: 'text-rose-700 dark:text-rose-300',
   },
   success: {
     icon: CheckCircle,
+    surface: 'border-emerald-200/70 bg-emerald-50/50 dark:border-emerald-900/70 dark:bg-emerald-950/20',
     iconColor: 'text-emerald-700 dark:text-emerald-300',
   },
 }
@@ -34,7 +38,7 @@ function Callout({ variant = 'info', title, children }: CalloutProps) {
   const config = variantConfig[variant]
   const Icon = config.icon
   return (
-    <aside className="doc-callout my-4 rounded-lg border border-border-soft bg-slate-50/75 px-3 py-2.5 dark:bg-white/[0.025]">
+    <aside className={`doc-callout my-4 rounded-lg border px-3 py-2.5 ${config.surface}`}>
       <div className="flex items-start gap-2.5">
         <Icon className={`mt-[3px] h-3.5 w-3.5 shrink-0 ${config.iconColor}`} />
         <div className="min-w-0 text-[13px] leading-[1.65] text-muted-foreground">
