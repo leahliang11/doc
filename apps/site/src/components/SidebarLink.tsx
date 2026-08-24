@@ -20,12 +20,12 @@ export function SidebarLink({ href, children, badge }: SidebarLinkProps) {
       aria-current={isActive ? 'page' : undefined}
       className={`group relative flex min-h-9 items-center gap-2 rounded-lg px-3 py-2 text-[13px] transition-colors ${
         isActive
-          ? 'bg-primary/10 font-medium text-primary'
+          ? 'bg-brand-soft font-medium text-brand'
           : 'text-muted-foreground hover:bg-muted hover:text-foreground'
       }`}
     >
       {isActive && (
-        <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-primary" aria-hidden="true" />
+        <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-gradient-to-b from-brand to-brand-pink" aria-hidden="true" />
       )}
       <span className="min-w-0 flex-1 truncate">{children}</span>
       {badge && (

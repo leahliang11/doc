@@ -70,7 +70,7 @@ export function DocumentToc() {
                 item.level === 3 ? 'pl-6' : ''
               } ${
                 activeId === item.id
-                  ? '-ml-px border-primary font-medium text-primary'
+                  ? '-ml-px border-brand font-medium text-brand'
                   : '-ml-px border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >

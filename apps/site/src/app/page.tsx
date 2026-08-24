@@ -15,9 +15,9 @@ export default function HomePage() {
 
   return (
     <main className="relative isolate overflow-hidden bg-background">
-      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.14),transparent_62%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] bg-[radial-gradient(circle_at_42%_0%,rgba(114,87,232,0.16),transparent_58%)]" />
       <section className="mx-auto max-w-6xl px-6 pb-20 pt-24 text-center sm:pt-32">
-        <span className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary">
+        <span className="inline-flex items-center gap-2 rounded-full border border-brand/15 bg-brand-soft px-3 py-1.5 text-xs font-medium text-brand">
           <BookOpen className="h-3.5 w-3.5" />
           JoyMaaS 开发者中心
         </span>
@@ -31,7 +31,7 @@ export default function HomePage() {
           <div className="mt-9 flex justify-center gap-3">
             <Link
               href={quickstart.url}
-              className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm shadow-sky-500/20 transition-transform hover:-translate-y-0.5"
+              className="inline-flex h-11 items-center gap-2 rounded-lg bg-gradient-to-r from-brand to-brand-pink px-5 text-sm font-semibold text-white shadow-sm shadow-violet-500/20 transition-transform hover:-translate-y-0.5"
             >
               开始接入
               <ArrowRight className="h-4 w-4" />
