@@ -33,7 +33,7 @@ export function SidebarLink({ href, children, badge }: SidebarLinkProps) {
           className={`rounded px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wide ${
             badge === 'GET'
               ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
-              : 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
+              : 'bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300'
           }`}
         >
           {badge}

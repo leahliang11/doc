@@ -31,7 +31,7 @@ export default function HomePage() {
           <div className="mt-9 flex justify-center gap-3">
             <Link
               href={quickstart.url}
-              className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm shadow-indigo-500/20 transition-transform hover:-translate-y-0.5"
+              className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm shadow-sky-500/20 transition-transform hover:-translate-y-0.5"
             >
               开始接入
               <ArrowRight className="h-4 w-4" />

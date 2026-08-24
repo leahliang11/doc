@@ -14,13 +14,13 @@ const variantConfig: Record<
 > = {
   info: {
     icon: Info,
-    surface: 'border-indigo-200/70 bg-indigo-50/55 dark:border-indigo-900/70 dark:bg-indigo-950/25',
-    iconColor: 'text-indigo-600 dark:text-indigo-300',
+    surface: 'border-sky-200/70 bg-sky-50/55 dark:border-sky-900/70 dark:bg-sky-950/25',
+    iconColor: 'text-sky-700 dark:text-sky-300',
   },
   warning: {
     icon: AlertTriangle,
-    surface: 'border-violet-200/70 bg-violet-50/55 dark:border-violet-900/70 dark:bg-violet-950/25',
-    iconColor: 'text-violet-600 dark:text-violet-300',
+    surface: 'border-orange-200/70 bg-orange-50/55 dark:border-orange-900/70 dark:bg-orange-950/25',
+    iconColor: 'text-orange-700 dark:text-orange-300',
   },
   danger: {
     icon: AlertCircle,

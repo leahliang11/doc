@@ -62,20 +62,20 @@
   --card-foreground: #1e293b;
   --popover: #ffffff;
   --popover-foreground: #1e293b;
-  --primary: #4f46e5;
+  --primary: #0b6e99;
   --primary-foreground: #ffffff;
   --secondary: #f8fafc;
   --secondary-foreground: #1e293b;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-  --accent: #eef2ff;
-  --accent-foreground: #3730a3;
+  --accent: #e8f4fa;
+  --accent-foreground: #075a7d;
   --destructive: #dc2626;
   --border: #e2e8f0;
   --border-soft: #eef2f7;
   --input: #dbe3ee;
-  --ring: #6366f1;
-  --chart-1: #4f46e5;
+  --ring: #38a4cf;
+  --chart-1: #0b6e99;
   --chart-2: #0891b2;
   --chart-3: #16a34a;
   --chart-4: #d97706;
@@ -83,12 +83,12 @@
   --radius: 0.5rem;
   --sidebar: #ffffff;
   --sidebar-foreground: #334155;
-  --sidebar-primary: #4f46e5;
+  --sidebar-primary: #0b6e99;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #eef2ff;
-  --sidebar-accent-foreground: #3730a3;
+  --sidebar-accent: #e8f4fa;
+  --sidebar-accent-foreground: #075a7d;
   --sidebar-border: #e2e8f0;
-  --sidebar-ring: #6366f1;
+  --sidebar-ring: #38a4cf;
 }
 
 .dark {
@@ -101,27 +101,27 @@
   --card-foreground: #e2e8f0;
   --popover: #111827;
   --popover-foreground: #e2e8f0;
-  --primary: #818cf8;
-  --primary-foreground: #0f172a;
+  --primary: #5cc0e8;
+  --primary-foreground: #08212d;
   --secondary: #172033;
   --secondary-foreground: #e2e8f0;
   --muted: #172033;
   --muted-foreground: #94a3b8;
-  --accent: #1e1b4b;
-  --accent-foreground: #c7d2fe;
+  --accent: #0b2d3d;
+  --accent-foreground: #bae6f8;
   --destructive: #f87171;
   --border: #2a3850;
   --border-soft: #1f2b3e;
   --input: #334155;
-  --ring: #818cf8;
+  --ring: #5cc0e8;
   --sidebar: #0f172a;
   --sidebar-foreground: #cbd5e1;
-  --sidebar-primary: #818cf8;
-  --sidebar-primary-foreground: #0f172a;
-  --sidebar-accent: #1e1b4b;
-  --sidebar-accent-foreground: #c7d2fe;
+  --sidebar-primary: #5cc0e8;
+  --sidebar-primary-foreground: #08212d;
+  --sidebar-accent: #0b2d3d;
+  --sidebar-accent-foreground: #bae6f8;
   --sidebar-border: #2a3850;
-  --sidebar-ring: #818cf8;
+  --sidebar-ring: #5cc0e8;
 }
 
 @layer base {
