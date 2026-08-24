@@ -257,6 +257,8 @@
 .prose-doc pre code {
   padding: 0;
   background: transparent;
+  border: 0;
+  border-radius: 0;
   font-size: 13px;
 }
 .prose-doc blockquote {

@@ -78,7 +78,7 @@
   background: var(--pv-muted); border: 1px solid var(--pv-border);
 }
 .mdx-preview .prose-doc pre code {
-  padding: 0; background: transparent; font-size: 13px;
+  padding: 0; background: transparent; border: 0; border-radius: 0; font-size: 13px;
 }
 .mdx-preview .prose-doc blockquote {
   margin: 16px 0; padding-left: 14px;
@@ -156,7 +156,7 @@
   overflow-x: auto; border-radius: 0 0 var(--pv-radius) var(--pv-radius);
   background: var(--pv-code-bg); padding: 16px; margin: 0;
 }
-.pv-codetab-pre code { color: var(--pv-code-fg); font-family: var(--pv-mono); font-size: 13px; }
+.pv-codetab-pre code { color: var(--pv-code-fg); font-family: var(--pv-mono); font-size: 13px; border: 0; background: transparent; padding: 0; }
 
 /* Params：表格 */
 .pv-params { margin: 24px 0; }
