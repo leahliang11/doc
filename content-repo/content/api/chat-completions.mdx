@@ -14,7 +14,7 @@ source: manual
 
 ## 接口概述
 
-```
+```http
 POST /v1/chat/completions
 ```
 
@@ -63,7 +63,7 @@ POST /v1/chat/completions
 
 设 `stream: true` 时，响应以 SSE（Server-Sent Events）返回，每行一个 `data:` 块：
 
-```
+```http
 data: {"id":"chatcmpl-abc","choices":[{"delta":{"content":"你好"},"index":0}]}
 
 data: {"id":"chatcmpl-abc","choices":[{"delta":{"content":"！"},"index":0}]}

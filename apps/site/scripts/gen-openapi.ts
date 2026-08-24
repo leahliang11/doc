@@ -144,7 +144,7 @@ function operationToMdx(method: string, url: string, op: Operation): string {
   // 接口概述
   parts.push('## 接口概述')
   parts.push('')
-  parts.push('```')
+  parts.push('```http')
   parts.push(`${method.toUpperCase()} ${url}`)
   parts.push('```')
   if (description) {
