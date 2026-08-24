@@ -39,6 +39,9 @@ export function GET() {
     return ia - ib
   })
 
+  // contentlayer 生成的 url 不含 basePath，部署在子路径时需手动补前缀
+  const base = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
+
   const lines: string[] = [
     '# JoyMaaS 文档',
     '',
@@ -50,8 +53,8 @@ export function GET() {
     lines.push(`## ${categoryLabels[category] || category}`)
     lines.push('')
     for (const doc of grouped[category]) {
-      // url 形如 /docs/quickstart，.md 版本即 url + .md
-      lines.push(`- [${doc.title}](${doc.url}.md): ${doc.description}`)
+      // url 形如 /docs/quickstart，补 basePath 前缀，.md 版本即 url + .md
+      lines.push(`- [${doc.title}](${base}${doc.url}.md): ${doc.description}`)
     }
     lines.push('')
   }

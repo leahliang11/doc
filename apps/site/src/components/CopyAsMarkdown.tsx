@@ -11,17 +11,38 @@ interface CopyAsMarkdownProps {
 
 export function CopyAsMarkdown({ slug }: CopyAsMarkdownProps) {
   const [copied, setCopied] = useState(false)
+  const [error, setError] = useState(false)
 
   const handleCopy = async () => {
     try {
-      const resp = await fetch(`/docs/${slug}.md`)
-      if (!resp.ok) return
+      // 用当前页面路径推算 .md URL：basePath 下 location.pathname 已含前缀，
+      // 直接 pathname + '.md' 不管部署在哪个子路径都对
+      const url = `${location.pathname}.md`
+      const resp = await fetch(url)
+      if (!resp.ok) {
+        setError(true)
+        setTimeout(() => setError(false), 2000)
+        return
+      }
       const markdown = await resp.text()
-      await navigator.clipboard.writeText(markdown)
+      // 优先用 clipboard API；失败（如页面未聚焦/被禁）时用 execCommand 兜底，保证总能复制
+      try {
+        await navigator.clipboard.writeText(markdown)
+      } catch {
+        const ta = document.createElement('textarea')
+        ta.value = markdown
+        ta.style.position = 'fixed'
+        ta.style.opacity = '0'
+        document.body.appendChild(ta)
+        ta.select()
+        document.execCommand('copy')
+        document.body.removeChild(ta)
+      }
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (e) {
-      // 静默失败，不阻塞页面
+      setError(true)
+      setTimeout(() => setError(false), 2000)
     }
   }
 
@@ -36,6 +57,11 @@ export function CopyAsMarkdown({ slug }: CopyAsMarkdownProps) {
         <>
           <Check className="h-3.5 w-3.5 text-primary" />
           已复制
+        </>
+      ) : error ? (
+        <>
+          <Copy className="h-3.5 w-3.5 text-destructive" />
+          复制失败
         </>
       ) : (
         <>
