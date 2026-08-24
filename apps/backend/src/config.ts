@@ -20,6 +20,6 @@ export const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET ?? '' // Coding webhook
 // Joybuilder AI（dogfooding：用自家 JoyMaaS 模型做文档 AI 助手）
 export const JOYBUILDER_API_KEY = required('JOYBUILDER_API_KEY')
 export const JOYBUILDER_BASE_URL =
-  process.env.JOYBUILDER_BASE_URL ?? 'http://ai-api.jdcloud.com/v1'
+  process.env.JOYBUILDER_BASE_URL ?? 'https://modelservice.jdcloud.com/v1'
 export const JOYBUILDER_MODEL = process.env.JOYBUILDER_MODEL ?? 'DeepSeek-V4-Flash'
 export const AI_LOG = process.env.AI_LOG === 'true' // 日志开关，默认关
