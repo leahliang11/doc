@@ -214,3 +214,39 @@ export async function getTodos(): Promise<TodoGroup> {
   return getJson('/todos')
 }
 
+// ============ 文档层级结构（_meta.yaml） ============
+
+export interface MetaGroup {
+  id: string
+  label: string
+  order?: number
+  pages?: string[]
+}
+export interface MetaSection {
+  id: string
+  label: string
+  icon?: string
+  order?: number
+  groups?: MetaGroup[]
+}
+export interface Meta {
+  sections: MetaSection[]
+}
+
+export async function getMeta(): Promise<Meta> {
+  return getJson('/meta')
+}
+
+/** 保存整棵层级树（走 draft 分支 + MR） */
+export async function saveMeta(meta: Meta): Promise<{ mr_iid: number; mr_url: string }> {
+  return post('/meta', { yaml: meta })
+}
+
+/** 移动文档到新组（走 draft + MR） */
+export async function moveDoc(
+  slug: string,
+  toSectionId: string,
+  toGroupId: string,
+): Promise<{ status: string }> {
+  return post('/docs/move', { slug, toSectionId, toGroupId })
+}

@@ -1,0 +1,62 @@
+# 文档层级权威源：section → group → page 三层结构
+# 修改本文件走正常 Git 流程（draft 分支 + MR 审核）
+
+sections:
+  - id: getting-started
+    label: 开始使用
+    icon: rocket
+    order: 1
+    groups:
+      - id: onboarding
+        label: 入门
+        order: 1
+        pages:
+          - quickstart
+  - id: api
+    label: API 参考
+    icon: code
+    order: 2
+    groups:
+      - id: chat
+        label: Chat
+        order: 1
+        pages:
+          - api/chat-completions
+          - api/completions
+      - id: embeddings
+        label: Embeddings
+        order: 2
+        pages:
+          - api/embeddings
+      - id: models
+        label: 模型列表
+        order: 3
+        pages:
+          - api/models
+      - id: moderation
+        label: 内容审核
+        order: 4
+        pages:
+          - api/moderations
+  - id: guides
+    label: 构建与实践
+    icon: book
+    order: 3
+    groups:
+      - id: guides
+        label: 指南
+        order: 1
+        pages:
+          - guides/authentication
+          - guides/rate-limits
+          - guides/sdk-usage
+  - id: troubleshooting
+    label: 排障
+    icon: wrench
+    order: 4
+    groups:
+      - id: errors
+        label: 错误码
+        order: 1
+        pages:
+          - troubleshooting/errors

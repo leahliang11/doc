@@ -4,6 +4,7 @@ import DocList from '../components/DocList.vue'
 import Editor from '../components/Editor.vue'
 import ConflictDialog from '../components/ConflictDialog.vue'
 import ComponentInsertDialog from '../components/ComponentInsertDialog.vue'
+import DocTree from '../components/DocTree.vue'
 import { openDoc, saveDoc, submitReview, type DocListItem } from '../api'
 
 const mode = ref<'list' | 'edit'>('list')
@@ -187,7 +188,14 @@ async function discardMine() {
   <div>
     <div v-if="toast" class="toast">{{ toast }}</div>
 
-    <DocList v-if="mode === 'list'" @open="onOpen" @created="onCreated" />
+    <div v-if="mode === 'list'" class="list-layout">
+      <div class="tree-col">
+        <DocTree @open="(slug: string) => onOpen({ slug, title: '', category: '', status: 'draft', updated: '' } as DocListItem)" />
+      </div>
+      <div class="list-col">
+        <DocList @open="onOpen" @created="onCreated" />
+      </div>
+    </div>
     <Editor
       v-else
       ref="editorRef"
@@ -297,5 +305,20 @@ async function discardMine() {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+}
+.list-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.tree-col {
+  position: sticky;
+  top: 0;
+}
+@media (max-width: 900px) {
+  .list-layout {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

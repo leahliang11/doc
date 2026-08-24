@@ -130,6 +130,44 @@ export async function writeAndCommit(
   return { commitHash, branch }
 }
 
+// 写任意文件到仓库指定路径 + 走 draft 分支 commit + push
+// 供 meta.yaml（不按 slug 定位）等特殊文件使用。流程同 writeAndCommit。
+export async function writeAnyFileToDraft(
+  absoluteFilePath: string, // 文件绝对路径（已存在则覆盖，不存在则创建）
+  gitPath: string, // 相对仓库根的路径（git add 用）
+  content: string,
+  commitMessage: string,
+  authorName: string,
+  authorEmail: string,
+): Promise<{ commitHash: string; branch: string }> {
+  // 切 draft 分支（基于 origin/main），与 writeAndCommit 一致
+  const branch = draftBranchName(gitPath.replace(/\//g, '-'))
+  await git.checkoutBranch(branch, 'origin/main')
+
+  // 写文件
+  fs.mkdirSync(path.dirname(absoluteFilePath), { recursive: true })
+  fs.writeFileSync(absoluteFilePath, content, 'utf-8')
+
+  // 只 add 这个文件
+  await git.add(gitPath)
+
+  // commit，author 设登录用户
+  await git.commit(commitMessage, gitPath, {
+    '--author': `${authorName} <${authorEmail}>`,
+  })
+
+  // push 到远端
+  await git.push('origin', branch, { '--set-upstream': null })
+
+  const log = await git.log({ maxCount: 1 })
+  const commitHash = log.latest?.hash ?? ''
+
+  // 回到 main，让工作区恢复干净
+  await git.checkout('main')
+
+  return { commitHash, branch }
+}
+
 // 取某分支相对 main 的 diff（审核用）
 // 先 fetch 确保远端分支引用最新，再 diff origin/<branch>..main
 export async function getDiff(branch: string): Promise<string> {

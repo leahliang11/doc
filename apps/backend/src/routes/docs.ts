@@ -8,6 +8,7 @@ import { recordEditSession, createReviewTask } from '../services/db.js'
 import { parseFrontmatter } from '../lib/frontmatter.js'
 import { listDocs } from '../lib/list-docs.js'
 import { CONTENT_REPO_PATH, SITE_DIR } from '../config.js'
+import { dumpMeta, saveMetaViaDraft, appendPageAndCommitMain, movePageInMeta } from './meta.js'
 
 // slug 合法性校验：小写字母/数字/连字符/斜杠，禁 .. 和绝对路径防穿越
 function isValidSlug(slug: string): boolean {
@@ -159,10 +160,12 @@ export async function docsRoutes(app: FastifyInstance): Promise<void> {
 
   // 新建文档：写文件 + commit 到 main + push
   app.post('/api/docs/create', async (request, reply) => {
-    const { title, slug, template, user } = request.body as {
+    const { title, slug, template, sectionId, groupId, user } = request.body as {
       title: string
       slug: string
       template?: string
+      sectionId?: string
+      groupId?: string
       user: { name: string; email: string }
     }
     if (!title || !slug) {
@@ -189,7 +192,33 @@ export async function docsRoutes(app: FastifyInstance): Promise<void> {
         abs,
         gitPath,
       )
-      return { slug, commit_hash: commitHash }
+      // 若指定了 section/group，同步把新 slug 追加进 _meta.yaml（同样直降 main 快速通道）
+      const metaRes = await appendPageAndCommitMain(slug, sectionId, groupId)
+      return { slug, commit_hash: commitHash, meta: metaRes }
+    } catch (e: any) {
+      request.log.error(e)
+      return reply.code(500).send({ error: e.message })
+    }
+  })
+
+  // 移动文档：把 slug 从 A 分组移到 B 分组（走 draft 分支 + MR 审核，复用 meta PUT 流程）
+  app.post('/api/docs/move', async (request, reply) => {
+    const { slug, fromSectionId, fromGroupId, toSectionId, toGroupId } = request.body as {
+      slug: string
+      fromSectionId?: string
+      fromGroupId?: string
+      toSectionId?: string
+      toGroupId?: string
+    }
+    if (!slug) {
+      return reply.code(400).send({ error: '缺少 slug' })
+    }
+
+    try {
+      // 先在所有组移除该 slug，再追加到目标组（movePageInMeta 内部调用 getMeta）
+      const { meta, found } = movePageInMeta(slug, toSectionId, toGroupId)
+      const result = await saveMetaViaDraft(dumpMeta(meta))
+      return { ...result, appended: found }
     } catch (e: any) {
       request.log.error(e)
       return reply.code(500).send({ error: e.message })

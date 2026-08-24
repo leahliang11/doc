@@ -247,11 +247,11 @@ export function main(): void {
       const fileName = slug.replace(/^api\//, '') + '.mdx'
       const outPath = path.join(CONTENT_API_DIR, fileName)
 
-      // manual 保护：手写文件不覆盖，旁路输出 .gen.mdx 供对比
+      // manual 保护：手写文件不覆盖，旁路输出 .gen.md（非 mdx，contentlayer 不会收录）供对比
       const existing = getExistingSource(outPath)
       const mdx = operationToMdx(method, url, op)
       if (existing === 'manual') {
-        const genName = fileName.replace(/\.mdx$/, '.gen.mdx')
+        const genName = fileName.replace(/\.mdx$/, '.gen.md')
         const genPath = path.join(CONTENT_API_DIR, genName)
         fs.writeFileSync(genPath, mdx, 'utf-8')
         console.warn(`对比模式：${fileName} 是手写，生成版写到 ${genName}`)
