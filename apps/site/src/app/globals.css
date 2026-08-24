@@ -369,6 +369,14 @@
 
 .prose-doc p { margin: 0 0 16px; }
 
+.prose-doc .doc-callout-body > p {
+  margin: 0;
+}
+
+.prose-doc .doc-callout-body > p + p {
+  margin-top: 6px;
+}
+
 .prose-doc ul,
 .prose-doc ol {
   margin: 0 0 16px;
