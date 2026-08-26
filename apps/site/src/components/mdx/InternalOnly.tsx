@@ -1,4 +1,7 @@
+'use client'
+
 import { LockKeyhole, ChevronRight } from 'lucide-react'
+import { useAudience } from '@/providers/audience-provider'
 
 interface InternalOnlyProps {
   children: React.ReactNode
@@ -8,9 +11,15 @@ interface InternalOnlyProps {
 }
 
 function InternalOnly({ children, collapsible = true, title }: InternalOnlyProps) {
-  // Week 1：始终显示（模拟内部视角）
-  // Week 8：根据 ViewToggle 上下文决定，外部视角返回 null
+  const { audience, ready } = useAudience()
   const label = title ?? '内部内容'
+
+  // SSR + 客户端首帧默认 external（audience 初值），此时不显示
+  // 客户端 hydrate 后从 localStorage 恢复，若为 internal 则显示
+  // ready 前显示为 null，避免 SSR/客户端渲染不一致的闪烁
+  if (!ready || audience === 'external') {
+    return null
+  }
 
   if (collapsible) {
     return (

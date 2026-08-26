@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { allDocs } from 'contentlayer2/generated'
 import { BookOpen, ExternalLink } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle'
+import { AudienceToggle } from './AudienceToggle'
 import { DocSearch } from './DocSearch'
 
 export function Navbar() {
@@ -44,6 +45,7 @@ export function Navbar() {
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
           <ThemeToggle />
+          <AudienceToggle />
         </nav>
       </div>
     </header>
