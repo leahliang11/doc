@@ -173,6 +173,7 @@ const componentTemplates: Record<string, () => string> = {
   Steps: () => `<Steps>\n\n第一步\n\n第二步\n\n</Steps>`,
   InternalOnly: () => `<InternalOnly title="仅内部可见">\n\n内部内容\n\n</InternalOnly>`,
   NextSteps: () => `<NextSteps items={[\n  { title: '相关文档', description: '描述', href: '/docs/xxx' }\n]} />`,
+  Playground: () => `<Playground endpoint="chat-completions" />`,
 }
 
 function insertComponent(name: string) {
@@ -373,6 +374,7 @@ const componentTools = [
   { icon: 'ri-table-line', title: 'Params 参数表', name: 'Params' },
   { icon: 'ri-lock-line', title: 'InternalOnly 仅内部', name: 'InternalOnly' },
   { icon: 'ri-rocket-line', title: 'NextSteps 下一步', name: 'NextSteps' },
+  { icon: 'ri-play-circle-line', title: 'Playground 在线试用', name: 'Playground' },
 ]
 
 const aiTools = [

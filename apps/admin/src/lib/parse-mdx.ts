@@ -6,7 +6,7 @@ export type Segment =
   | { type: 'markdown'; raw: string }
   | { type: 'component'; name: string; props: Record<string, any>; children: string; raw: string; error?: string }
 
-const COMPONENT_NAMES = ['Callout', 'Steps', 'CodeTabs', 'Params', 'InternalOnly', 'NextSteps']
+const COMPONENT_NAMES = ['Callout', 'Steps', 'CodeTabs', 'Params', 'InternalOnly', 'NextSteps', 'Playground']
 
 /**
  * 解析 MDX 源为段数组

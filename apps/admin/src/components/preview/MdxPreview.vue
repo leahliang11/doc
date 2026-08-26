@@ -8,6 +8,7 @@ import PreviewCodeTabs from './PreviewCodeTabs.vue'
 import PreviewParams from './PreviewParams.vue'
 import PreviewInternalOnly from './PreviewInternalOnly.vue'
 import PreviewNextSteps from './PreviewNextSteps.vue'
+import PreviewPlayground from './PreviewPlayground.vue'
 
 const props = defineProps<{
   source: string
@@ -87,6 +88,10 @@ defineExpose({
         <PreviewNextSteps
           v-else-if="seg.name === 'NextSteps'"
           :items="seg.props.items"
+        />
+        <PreviewPlayground
+          v-else-if="seg.name === 'Playground'"
+          :endpoint="seg.props.endpoint"
         />
       </template>
     </div>
