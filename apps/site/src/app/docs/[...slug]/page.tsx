@@ -51,7 +51,7 @@ export default async function DocPage({
   const endpoint = isApi ? extractEndpoint(doc.body.raw) : null
 
   return (
-    <div className={isApi ? 'api-page-shell' : 'doc-page-shell'}>
+    <div className="doc-page-shell">
       <article className={isApi ? 'api-document' : 'doc-document'}>
         <header className="doc-header">
           <div className="doc-breadcrumb">
@@ -80,11 +80,7 @@ export default async function DocPage({
         </div>
       </article>
 
-      {isApi ? (
-        <aside className="api-example-rail" aria-label="调用示例" />
-      ) : (
-        <DocumentToc />
-      )}
+      <DocumentToc />
     </div>
   )
 }

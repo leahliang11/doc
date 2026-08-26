@@ -507,19 +507,8 @@
   display: none;
 }
 
-@media (min-width: 1200px) {
-  .api-doc-body > h2:has(+ .code-tabs) { display: none; }
-  .api-doc-body > .code-tabs {
-    position: absolute;
-    top: 0;
-    left: calc(100% + 32px);
-    right: auto;
-    z-index: 2;
-    width: min(38vw, 460px);
-    max-width: calc(100vw - 100% - 80px);
-    margin: 0;
-  }
-}
+/* 代码示例块跟着章节走，不再绝对定位到右侧
+   （原「工作台」风格代码块飘在右上角视觉游离，改回自然流布局） */
 
 @media (max-width: 1279px) {
   .doc-page-shell {
