@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import {
   listReviewTasks,
   getDiff,
@@ -12,6 +12,8 @@ const tasks = ref<ReviewTask[]>([])
 const loading = ref(false)
 const toast = ref('')
 const tab = ref<'pending' | 'all'>('pending')
+// source_kind 筛选：all / pm / engineer / auto
+const kindFilter = ref<'all' | 'pm' | 'engineer' | 'auto'>('all')
 // 展开的行 id
 const expandedId = ref<number | null>(null)
 const diffText = ref('')
@@ -23,6 +25,12 @@ const actionLoading = ref(false)
 const sourceLabels: Record<string, string> = {
   web: 'PM 通道',
   gitlab_mr: '工程师 Git',
+  auto: '智能运营',
+}
+const sourceKindLabels: Record<string, string> = {
+  pm: 'PM',
+  engineer: '工程师',
+  auto: '机器',
 }
 const statusLabels: Record<string, string> = {
   pending: '待审核',
@@ -30,6 +38,12 @@ const statusLabels: Record<string, string> = {
   rejected: '驳回',
   merged: '已合入',
 }
+
+// 前端过滤 source_kind
+const filteredTasks = computed(() => {
+  if (kindFilter.value === 'all') return tasks.value
+  return tasks.value.filter((t: any) => (t.source_kind ?? 'pm') === kindFilter.value)
+})
 
 async function load() {
   loading.value = true
@@ -111,12 +125,24 @@ onMounted(load)
           全部
         </button>
       </div>
+      <!-- source_kind 筛选 -->
+      <div class="kind-filter">
+        <button
+          v-for="k in ['all', 'pm', 'engineer', 'auto'] as const"
+          :key="k"
+          :class="['kind-btn', { active: kindFilter === k }]"
+          @click="kindFilter = k"
+        >
+          <span v-if="k !== 'all'" :class="['kind-dot', `kind-dot--${k}`]"></span>
+          {{ k === 'all' ? '全部来源' : sourceKindLabels[k] }}
+        </button>
+      </div>
       <button class="btn refresh-btn" @click="load" :disabled="loading">
         <i class="ri-refresh-line"></i> {{ loading ? '加载中…' : '刷新' }}
       </button>
     </div>
 
-    <table class="review-table" v-if="tasks.length">
+    <table class="review-table" v-if="filteredTasks.length">
       <thead>
         <tr>
           <th>来源</th>
@@ -130,10 +156,15 @@ onMounted(load)
         </tr>
       </thead>
       <tbody>
-        <template v-for="t in tasks" :key="t.id">
+        <template v-for="t in filteredTasks" :key="t.id">
           <tr class="review-row" @click="toggleExpand(t)">
             <td>
-              <span :class="['source-tag', t.source]">{{ sourceLabels[t.source] || t.source }}</span>
+              <div class="source-cell">
+                <span :class="['source-tag', (t as any).source]">{{ sourceLabels[(t as any).source] || (t as any).source }}</span>
+                <span :class="['kind-badge', `kind-badge--${(t as any).source_kind ?? 'pm'}`]">
+                  {{ sourceKindLabels[(t as any).source_kind ?? 'pm'] }}
+                </span>
+              </div>
             </td>
             <td class="slug-cell">{{ t.slug }}</td>
             <td class="branch-cell" :title="t.branch">{{ t.branch.slice(0, 28) }}{{ t.branch.length > 28 ? '…' : '' }}</td>
@@ -182,7 +213,7 @@ onMounted(load)
     </table>
     <div v-else-if="!loading" class="empty">
       <i class="ri-inbox-line empty-icon"></i>
-      <p>{{ tab === 'pending' ? '暂无待审核任务' : '暂无记录' }}</p>
+      <p>{{ kindFilter !== 'all' ? `没有来自「${sourceKindLabels[kindFilter]}」的任务` : (tab === 'pending' ? '暂无待审核任务' : '暂无记录') }}</p>
     </div>
   </div>
 </template>
@@ -249,8 +280,31 @@ onMounted(load)
   border-radius: 4px;
   font-size: 11px;
 }
-.source-tag.web { background: rgba(79, 70, 229, 0.1); color: #4f46e5; }
-.source-tag.gitlab_mr { background: rgba(0, 112, 243, 0.1); color: #0070f3; }
+.source-tag.web { background: var(--brand-soft); color: var(--brand); }
+.source-tag.gitlab_mr { background: #dbeafe; color: #1d4ed8; }
+.source-tag.auto { background: var(--orange-light); color: #92400e; }
+.source-cell { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+/* source_kind badge */
+.kind-badge {
+  padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600;
+}
+.kind-badge--pm { background: var(--brand-soft); color: var(--brand); }
+.kind-badge--engineer { background: var(--green-light); color: var(--green-dark, #16a34a); }
+.kind-badge--auto { background: var(--orange-light); color: #92400e; }
+/* kind filter bar */
+.kind-filter { display: flex; align-items: center; gap: 4px; }
+.kind-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 6px; font-size: 12px;
+  background: var(--bg-hover); color: var(--text-secondary);
+  border: 1px solid transparent; cursor: pointer; transition: all 0.15s;
+}
+.kind-btn:hover { background: var(--bg-card); border-color: var(--border); }
+.kind-btn.active { background: var(--brand-soft); color: var(--brand); border-color: var(--brand)/20; }
+.kind-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.kind-dot--pm { background: var(--brand); }
+.kind-dot--engineer { background: var(--green); }
+.kind-dot--auto { background: var(--orange); }
 .status-tag {
   padding: 2px 8px;
   border-radius: 4px;

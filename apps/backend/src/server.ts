@@ -5,6 +5,8 @@ import { docsRoutes } from './routes/docs.js'
 import { aiRoutes } from './routes/ai.js'
 import { playgroundRoutes } from './routes/playground.js'
 import { askRoutes } from './routes/ask.js'
+import { gapsRoutes } from './routes/gaps.js'
+import { startClusterScheduler } from './services/cluster.js'
 import { webhookRoutes } from './routes/webhook.js'
 import { reviewRoutes } from './routes/review.js'
 import { buildRoutes } from './routes/build.js'
@@ -21,12 +23,16 @@ await app.register(docsRoutes)
 await app.register(aiRoutes)
 await app.register(playgroundRoutes)
 await app.register(askRoutes)
+await app.register(gapsRoutes)
 await app.register(webhookRoutes)
 await app.register(reviewRoutes)
 await app.register(buildRoutes)
 await app.register(metaRoutes)
 
 app.get('/health', async () => ({ status: 'ok' }))
+
+// 启动文档缺口聚类调度器（6h 定时）
+startClusterScheduler((msg) => app.log.info(msg))
 
 const start = async () => {
   try {

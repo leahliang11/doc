@@ -70,6 +70,20 @@ db.exec(`
     ok INTEGER DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  -- 文档缺口候选（W16 智能运营层）
+  CREATE TABLE IF NOT EXISTS doc_gaps (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cluster_hash TEXT UNIQUE NOT NULL,
+    representative_query TEXT NOT NULL,
+    query_count INTEGER DEFAULT 1,
+    first_seen TEXT NOT NULL DEFAULT (datetime('now')),
+    last_seen TEXT NOT NULL DEFAULT (datetime('now')),
+    status TEXT NOT NULL DEFAULT 'pending',  -- pending | drafting | mr-created | merged | dismissed
+    mr_iid INTEGER,
+    draft_slug TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `)
 
 // ── ask_sessions ──
@@ -127,6 +141,64 @@ export function listAiSessions(docSlug: string, limit = 30): any[] {
   return db
     .prepare(`SELECT * FROM ai_sessions WHERE doc_slug = ? ORDER BY created_at DESC LIMIT ?`)
     .all(docSlug, limit)
+}
+
+// ── review_tasks.source_kind 迁移（W16，幂等）──
+try {
+  db.exec(`ALTER TABLE review_tasks ADD COLUMN source_kind TEXT DEFAULT 'pm'`)
+} catch {
+  // 已存在则跳过
+}
+
+// ── doc_gaps ──
+export function upsertDocGap(data: {
+  clusterHash: string
+  representativeQuery: string
+}): void {
+  const existing = db.prepare('SELECT id, query_count FROM doc_gaps WHERE cluster_hash = ?').get(data.clusterHash) as any
+  if (existing) {
+    db.prepare(`UPDATE doc_gaps SET query_count = query_count + 1, last_seen = datetime('now') WHERE cluster_hash = ?`)
+      .run(data.clusterHash)
+  } else {
+    db.prepare(
+      `INSERT INTO doc_gaps (cluster_hash, representative_query) VALUES (?, ?)`
+    ).run(data.clusterHash, data.representativeQuery)
+  }
+}
+
+export function listPendingGaps(minCount = 3): any[] {
+  return db
+    .prepare(`SELECT * FROM doc_gaps WHERE status = 'pending' AND query_count >= ? ORDER BY query_count DESC`)
+    .all(minCount)
+}
+
+export function listAllGaps(limit = 50): any[] {
+  return db.prepare(`SELECT * FROM doc_gaps ORDER BY created_at DESC LIMIT ?`).all(limit)
+}
+
+export function updateGapStatus(id: number, status: string, mrIid?: number, draftSlug?: string): void {
+  db.prepare(`UPDATE doc_gaps SET status = ?, mr_iid = ?, draft_slug = ? WHERE id = ?`)
+    .run(status, mrIid ?? null, draftSlug ?? null, id)
+}
+
+export function dismissGap(id: number): void {
+  db.prepare(`UPDATE doc_gaps SET status = 'dismissed' WHERE id = ?`).run(id)
+}
+
+// review_tasks 加 source_kind 支持
+export function createReviewTaskWithKind(task: {
+  source: 'web' | 'gitlab_mr' | 'auto'
+  sourceKind: 'pm' | 'engineer' | 'auto'
+  slug: string
+  branch: string
+  mrIid: number
+  submitter: string
+}): number {
+  const result = db.prepare(
+    `INSERT INTO review_tasks (source, source_kind, slug, branch, mr_iid, submitter, status)
+     VALUES (?, ?, ?, ?, ?, ?, 'pending')`,
+  ).run(task.source, task.sourceKind, task.slug, task.branch, task.mrIid, task.submitter)
+  return Number(result.lastInsertRowid)
 }
 
 // ── edit_sessions ──
