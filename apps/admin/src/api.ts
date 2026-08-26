@@ -94,8 +94,25 @@ export async function createDoc(params: {
   title: string
   slug: string
   template?: string
+  content?: string    // AI 生成或自定义初始内容（W17 新增）
 }): Promise<CreateResult> {
   return post<CreateResult>('/docs/create', { ...params, user: USER })
+}
+
+export interface AiDraftResult {
+  title: string
+  suggestedSlug: string
+  category: string
+  description: string
+  tags: string[]
+  mdxContent: string
+}
+
+export async function aiDraftDoc(params: {
+  description: string
+  categoryHint?: string
+}): Promise<AiDraftResult> {
+  return post<AiDraftResult>('/docs/ai-draft', params)
 }
 
 export async function genOpenApi(): Promise<{ generated: boolean; docs: DocListItem[] }> {

@@ -160,10 +160,11 @@ export async function docsRoutes(app: FastifyInstance): Promise<void> {
 
   // 新建文档：写文件 + commit 到 main + push
   app.post('/api/docs/create', async (request, reply) => {
-    const { title, slug, template, sectionId, groupId, user } = request.body as {
+    const { title, slug, template, content, sectionId, groupId, user } = request.body as {
       title: string
       slug: string
       template?: string
+      content?: string   // AI 生成的完整 MDX（传了则直接用，不走模板）
       sectionId?: string
       groupId?: string
       user: { name: string; email: string }
@@ -181,7 +182,8 @@ export async function docsRoutes(app: FastifyInstance): Promise<void> {
     }
 
     try {
-      const mdxContent = getTemplateContent(template, title, slug)
+      // content 优先；否则走模板
+      const mdxContent = content?.trim() || getTemplateContent(template, title, slug)
       fs.mkdirSync(path.dirname(abs), { recursive: true })
       // 写文件 + commit main + push（绕过双通道，P0 新建走快速通道）
       const { commitHash } = await git.commitToMain(
@@ -227,6 +229,80 @@ export async function docsRoutes(app: FastifyInstance): Promise<void> {
 
   // 从 OpenAPI 全量生成：dynamic import gen-openapi 的 main()
   // sandbox 下 spawn/exec 找不到 shell，改在进程内直接调用生成器函数
+  // AI 一句话生成文档草稿（W17 新增）
+  // 输入：一句描述（如"写一篇流式响应接入指南"）
+  // 输出：完整 MDX 内容 + frontmatter 推断（title/slug/category/description）
+  app.post('/api/docs/ai-draft', async (request, reply) => {
+    const { description, categoryHint } = request.body as {
+      description: string
+      categoryHint?: string
+    }
+    if (!description?.trim()) {
+      return reply.code(400).send({ error: '缺少 description' })
+    }
+
+    try {
+      // 1. 用 AI 生成正文（复用 services/ai.ts 的 generate 函数）
+      const { generate, genFrontmatter } = await import('../services/ai.js')
+      const today = new Date().toISOString().slice(0, 10)
+
+      const genPrompt = `
+请为 JoyMaaS 文档站生成一篇完整的 MDX 文档正文（不含 frontmatter）。
+
+文档主题：${description}
+文档类别提示：${categoryHint ?? '场景指南'}
+今天日期：${today}
+
+要求：
+- 正文直接从 ## 二级标题开始（不要写 # 一级标题）
+- 结构清晰，包含概述段落 + 主体内容（可使用 Callout/Steps/CodeTabs/Params 组件）
+- 代码示例使用中文注释，Python 或 curl 为主
+- 如果是 API 类文档，包含 <Playground> 组件占位（如 <Playground endpoint="chat-completions" />）
+- 末尾加 <NextSteps> 相关链接组件
+- 只返回文档正文，不要 frontmatter
+`.trim()
+
+      const bodyContent = await generate(genPrompt)
+
+      // 2. 根据正文推断 frontmatter
+      const fm = await genFrontmatter(description + '\n\n' + bodyContent)
+
+      // 3. 构造完整 MDX
+      const safeCategory = fm.category ?? categoryHint ?? 'guides'
+      const slugSuffix = fm.title
+        ? fm.title.toLowerCase().replace(/[^a-z0-9一-龥]+/g, '-').replace(/^-|-$/g, '').replace(/[一-龥]+/g, '')
+        : `draft-${Date.now()}`
+      const suggestedSlug = `${safeCategory}/${slugSuffix || `draft-${Date.now()}`}`
+
+      const fullMdx = `---
+title: ${fm.title || description.slice(0, 30)}
+description: ${fm.description || description}
+slug: ${suggestedSlug}
+category: ${safeCategory}
+status: draft
+audience: external
+ai_readable: true
+updated: ${today}
+source: manual
+---
+
+${bodyContent.trim()}
+`
+
+      return {
+        title: fm.title || description.slice(0, 30),
+        suggestedSlug,
+        category: safeCategory,
+        description: fm.description || description,
+        tags: fm.tags || [],
+        mdxContent: fullMdx,
+      }
+    } catch (e: any) {
+      request.log.error(e)
+      return reply.code(500).send({ error: 'AI 生成失败：' + e.message })
+    }
+  })
+
   app.post('/api/docs/gen-openapi', async (request, reply) => {
     try {
       // gen-openapi 用 DOCS_ROOT 定位根，内部拼 ROOT/content-repo/...，所以 ROOT = CONTENT_REPO_PATH（=doc 根）
