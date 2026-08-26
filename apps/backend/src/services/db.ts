@@ -58,6 +58,18 @@ db.exec(`
     page_slug TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  -- AI 写作会话历史（W14 新增）
+  CREATE TABLE IF NOT EXISTS ai_sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    doc_slug TEXT NOT NULL,
+    action TEXT NOT NULL,        -- rewrite/complete/generate/audit/gen-params/gen-frontmatter
+    prompt TEXT,
+    response TEXT,
+    latency_ms INTEGER,
+    ok INTEGER DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `)
 
 // ── ask_sessions ──
@@ -83,6 +95,38 @@ export function setAskUseful(sessionId: string, useful: boolean): void {
   db.prepare(
     `UPDATE ask_sessions SET useful = ? WHERE session_id = ? ORDER BY id DESC LIMIT 1`,
   ).run(useful ? 1 : 0, sessionId)
+}
+
+// ── ai_sessions ──
+export function logAiSession(data: {
+  docSlug: string
+  action: string
+  prompt?: string
+  response?: string
+  latencyMs?: number
+  ok?: boolean
+}): void {
+  try {
+    db.prepare(
+      `INSERT INTO ai_sessions (doc_slug, action, prompt, response, latency_ms, ok)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    ).run(
+      data.docSlug,
+      data.action,
+      (data.prompt ?? '').slice(0, 500),
+      (data.response ?? '').slice(0, 500),
+      data.latencyMs ?? null,
+      data.ok !== false ? 1 : 0,
+    )
+  } catch {
+    // 写 DB 失败不影响主流程
+  }
+}
+
+export function listAiSessions(docSlug: string, limit = 30): any[] {
+  return db
+    .prepare(`SELECT * FROM ai_sessions WHERE doc_slug = ? ORDER BY created_at DESC LIMIT ?`)
+    .all(docSlug, limit)
 }
 
 // ── edit_sessions ──

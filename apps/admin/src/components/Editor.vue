@@ -6,6 +6,7 @@ import { defaultKeymap, history, historyKeymap, undo, redo } from '@codemirror/c
 import { markdown } from '@codemirror/lang-markdown'
 import { openSearchPanel } from '@codemirror/search'
 import MdxPreview from './preview/MdxPreview.vue'
+import AIChatPanel from './AIChatPanel.vue'
 import '../styles/preview.css'
 
 const props = defineProps<{
@@ -28,6 +29,9 @@ const emit = defineEmits<{
 const editorHost = ref<HTMLElement | null>(null)
 const doc = ref('') // 当前编辑器内容，驱动预览
 let view: EditorView | null = null
+
+// AI 历史面板
+const showAiHistory = ref(false)
 
 // AI 选中改写浮菜单
 const selMenu = ref<{ x: number; y: number; show: boolean }>({ x: 0, y: 0, show: false })
@@ -462,6 +466,15 @@ try {
       <button v-for="a in aiTools" :key="a.title" class="tool-btn ai-btn" :title="a.title" :disabled="aiLoading" @click="a.action">
         <i :class="a.icon"></i>
       </button>
+      <!-- AI 历史面板开关 -->
+      <button
+        class="tool-btn ai-btn"
+        :class="{ 'tool-btn--active': showAiHistory }"
+        title="AI 写作历史"
+        @click="showAiHistory = !showAiHistory"
+      >
+        <i class="ri-history-line"></i>
+      </button>
       <div class="tool-spacer"></div>
       <span class="base-commit" :title="'base: ' + baseCommit">base: {{ baseCommit.slice(0, 8) }}</span>
       <button class="btn btn-primary" :disabled="saving" @click="onSave">
@@ -483,6 +496,13 @@ try {
           <MdxPreview :source="doc" />
         </div>
       </div>
+      <!-- AI 历史面板 -->
+      <AIChatPanel
+        :doc-slug="slug"
+        :visible="showAiHistory"
+        @close="showAiHistory = false"
+        @reuse="(text) => insertText(text)"
+      />
     </div>
     <!-- 状态条 -->
     <div class="editor-status-bar">
@@ -582,6 +602,10 @@ try {
 }
 .ai-btn {
   color: var(--primary);
+}
+.tool-btn--active {
+  background: var(--brand-soft, #f1effc);
+  color: var(--brand, #7257e8);
 }
 .back-btn {
   font-size: 13px;
