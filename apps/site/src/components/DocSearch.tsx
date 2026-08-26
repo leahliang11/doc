@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Search, Sparkles, X } from 'lucide-react'
+import { Search, Sparkles, X, MessageCircle } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 interface SearchItem {
@@ -127,8 +127,26 @@ export function DocSearch({ items }: DocSearchProps) {
                   </Link>
                 ))
               ) : (
-                <div className="px-4 py-10 text-center text-sm text-muted-foreground">
-                  没有找到匹配文档
+                <div className="px-4 py-8 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    没有找到「{query}」相关文档
+                  </p>
+                  {query.trim() && (
+                    <div className="mt-4 flex flex-col items-center gap-2">
+                      <p className="text-xs text-muted-foreground/60">试试问 AI？</p>
+                      <button
+                        onClick={() => {
+                          setOpen(false)
+                          // 触发 AskWidget 打开（通过自定义事件）
+                          window.dispatchEvent(new CustomEvent('open-ask-widget', { detail: { query } }))
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-brand-soft px-4 py-2 text-xs font-semibold text-brand transition-colors hover:bg-brand-soft/70"
+                      >
+                        <MessageCircle className="h-3.5 w-3.5" />
+                        Ask JoyMaaS：{query.length > 20 ? query.slice(0, 20) + '…' : query}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

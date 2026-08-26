@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useId } from 'react'
+import { useState, useRef, useCallback, useId, useEffect } from 'react'
 import { MessageCircle, X, Send, ThumbsUp, ThumbsDown, Loader2 } from 'lucide-react'
 import { useAudience } from '@/providers/audience-provider'
 
@@ -42,6 +42,21 @@ export function AskWidget({ pageSlug }: AskWidgetProps) {
   // 滚到底部
   const scrollToBottom = useCallback(() => {
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
+  }, [])
+
+  // 监听搜索零结果跳转（DocSearch 发出 open-ask-widget 事件）
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { query?: string }
+      setOpen(true)
+      sessionId.current = randomId()
+      if (detail?.query) {
+        setInput(detail.query)
+        setTimeout(() => inputRef.current?.focus(), 150)
+      }
+    }
+    window.addEventListener('open-ask-widget', handler)
+    return () => window.removeEventListener('open-ask-widget', handler)
   }, [])
 
   const handleOpen = () => {

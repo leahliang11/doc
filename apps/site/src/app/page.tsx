@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { allDocs } from 'contentlayer2/generated'
-import { ArrowRight, BookOpen, Braces, CircleHelp, Sparkles } from 'lucide-react'
+import { ArrowRight, BookOpen, Braces, CircleHelp, Sparkles, Play, MessageCircle, Copy } from 'lucide-react'
 
 export default function HomePage() {
   const quickstart = allDocs.find((d) => d.slug === 'quickstart')
@@ -12,6 +12,24 @@ export default function HomePage() {
     { doc: apiDoc, label: 'API 参考', desc: '查看请求参数、响应结构和可直接运行的调用示例。', icon: Braces },
     { doc: errorsDoc, label: '问题排查', desc: '快速定位常见错误码、权限与网络问题。', icon: CircleHelp },
   ].filter((c) => c.doc)
+
+  const features = [
+    {
+      icon: Play,
+      title: '读到即可试',
+      desc: 'API 参考页内嵌 Playground，填参数点运行，不离开文档就能跑通调用。',
+    },
+    {
+      icon: MessageCircle,
+      title: '问即可答',
+      desc: '右下角 Ask JoyMaaS，文档助手基于全部文档实时回答，卡住不用找人。',
+    },
+    {
+      icon: Copy,
+      title: '复制即可接',
+      desc: '每篇文档一键「Copy as Markdown」，直接喂给你的 AI 助手，零转换成本。',
+    },
+  ]
 
   return (
     <main className="relative isolate overflow-hidden bg-background">
@@ -46,6 +64,7 @@ export default function HomePage() {
           </div>
         )}
 
+        {/* 文档导航卡片 */}
         <div className="mt-20 grid grid-cols-1 gap-4 text-left md:grid-cols-3">
           {cards.map(({ doc, label, desc, icon: Icon }) => (
             <Link
@@ -64,6 +83,26 @@ export default function HomePage() {
               </span>
             </Link>
           ))}
+        </div>
+
+        {/* 三件套差异化功能展示 */}
+        <div className="mt-20">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+            为 AI 时代的开发者体验而设计
+          </p>
+          <div className="mt-8 grid grid-cols-1 gap-6 text-left md:grid-cols-3">
+            {features.map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="flex gap-4 rounded-xl border border-border/60 bg-canvas p-5">
+                <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand">
+                  <Icon className="h-4 w-4" />
+                </span>
+                <div>
+                  <h3 className="text-sm font-semibold text-heading">{title}</h3>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     </main>
