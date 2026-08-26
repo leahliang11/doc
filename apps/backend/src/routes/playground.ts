@@ -127,7 +127,7 @@ export async function playgroundRoutes(app: FastifyInstance): Promise<void> {
         try { errJson = JSON.parse(errText) } catch { /* 忽略 */ }
         writeSSE(reply, 'error', {
           status: res.status,
-          message: errJson ?? errText.slice(0, 300) || `HTTP ${res.status}`,
+          message: (errJson ?? errText.slice(0, 300)) || `HTTP ${res.status}`,
         })
         reply.raw.end()
         return
