@@ -417,7 +417,8 @@
 }
 
 .prose-doc figure[data-rehype-pretty-code-figure] {
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   margin: 20px 0;
   border: 1px solid #263348;
   border-radius: 12px;
@@ -511,9 +512,11 @@
   .api-doc-body > .code-tabs {
     position: absolute;
     top: 0;
-    left: calc(100% + 98px);
+    left: calc(100% + 32px);
+    right: auto;
     z-index: 2;
-    width: min(33vw, 470px);
+    width: min(38vw, 460px);
+    max-width: calc(100vw - 100% - 80px);
     margin: 0;
   }
 }
