@@ -4,6 +4,7 @@ import cors from '@fastify/cors'
 import { docsRoutes } from './routes/docs.js'
 import { aiRoutes } from './routes/ai.js'
 import { playgroundRoutes } from './routes/playground.js'
+import { askRoutes } from './routes/ask.js'
 import { webhookRoutes } from './routes/webhook.js'
 import { reviewRoutes } from './routes/review.js'
 import { buildRoutes } from './routes/build.js'
@@ -19,6 +20,7 @@ await app.register(cors, {
 await app.register(docsRoutes)
 await app.register(aiRoutes)
 await app.register(playgroundRoutes)
+await app.register(askRoutes)
 await app.register(webhookRoutes)
 await app.register(reviewRoutes)
 await app.register(buildRoutes)

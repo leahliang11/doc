@@ -1,4 +1,5 @@
 import { Sidebar } from '@/components/Sidebar'
+import { AskWidgetWrapper } from '@/components/AskWidgetWrapper'
 
 export default function DocsLayout({
   children,
@@ -15,6 +16,8 @@ export default function DocsLayout({
       <main className="min-w-0 bg-canvas">
         {children}
       </main>
+      {/* Ask JoyMaaS 浮球（全站 docs 布局内） */}
+      <AskWidgetWrapper />
     </div>
   )
 }

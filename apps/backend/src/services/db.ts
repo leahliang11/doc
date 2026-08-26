@@ -45,7 +45,45 @@ db.exec(`
     built_at TEXT,
     log TEXT
   );
+
+  -- Ask JoyMaaS 会话（W13 新增）
+  CREATE TABLE IF NOT EXISTS ask_sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL,
+    query TEXT NOT NULL,
+    answer TEXT,
+    result_none INTEGER DEFAULT 0,     -- 1 = AI 答"文档里没有找到"
+    useful INTEGER,                    -- NULL / 1(👍) / 0(👎)
+    audience TEXT NOT NULL DEFAULT 'external',
+    page_slug TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `)
+
+// ── ask_sessions ──
+export function createAskSession(data: {
+  sessionId: string
+  query: string
+  audience: string
+  pageSlug?: string
+}): number {
+  const r = db.prepare(
+    `INSERT INTO ask_sessions (session_id, query, audience, page_slug) VALUES (?, ?, ?, ?)`,
+  ).run(data.sessionId, data.query, data.audience, data.pageSlug ?? null)
+  return Number(r.lastInsertRowid)
+}
+
+export function updateAskSession(id: number, answer: string, resultNone: boolean): void {
+  db.prepare(
+    `UPDATE ask_sessions SET answer = ?, result_none = ? WHERE id = ?`,
+  ).run(answer, resultNone ? 1 : 0, id)
+}
+
+export function setAskUseful(sessionId: string, useful: boolean): void {
+  db.prepare(
+    `UPDATE ask_sessions SET useful = ? WHERE session_id = ? ORDER BY id DESC LIMIT 1`,
+  ).run(useful ? 1 : 0, sessionId)
+}
 
 // ── edit_sessions ──
 export function recordEditSession(slug: string, user: string, baseCommit: string): void {
