@@ -4,8 +4,9 @@ import { CodeTabs } from './CodeTabs'
 import { Params } from './Params'
 import { InternalOnly } from './InternalOnly'
 import { NextSteps } from './NextSteps'
+import { Playground } from './Playground'
 
-export { Callout, Steps, CodeTabs, Params, InternalOnly, NextSteps }
+export { Callout, Steps, CodeTabs, Params, InternalOnly, NextSteps, Playground }
 
 // MDX components 映射表，供 useMDXComponent 使用
 export const mdxComponents = {
@@ -15,4 +16,5 @@ export const mdxComponents = {
   Params,
   InternalOnly,
   NextSteps,
+  Playground,
 }
