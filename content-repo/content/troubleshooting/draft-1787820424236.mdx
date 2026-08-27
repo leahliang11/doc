@@ -1,0 +1,178 @@
+---
+title: 错误码
+description: JoyMaaS API 错误码说明与处理指南
+slug: troubleshooting/draft-1787820424236
+category: troubleshooting
+status: draft
+audience: external
+ai_readable: true
+updated: 2026-08-27
+source: manual
+---
+
+## 错误码概述
+
+JoyMaaS API 遵循标准的 HTTP 状态码规范，并在响应体中返回详细的错误信息。当请求失败时，API 会返回一个包含 `error` 字段的 JSON 对象，其中包含错误类型、描述和可能的解决方案。
+
+## 错误响应格式
+
+所有错误响应均采用统一的 JSON 格式：
+
+```json
+{
+  "error": {
+    "code": "invalid_request_error",
+    "message": "请求参数无效",
+    "param": "model",
+    "type": "invalid_request_error"
+  }
+}
+```
+
+## 常见错误码
+
+<Params params={[
+  { name: "invalid_request_error", type: "string", required: true, description: "请求参数无效或格式错误，请检查请求体中的参数" },
+  { name: "authentication_error", type: "string", required: true, description: "API Key 无效或缺失，请检查请求头中的 Authorization" },
+  { name: "rate_limit_error", type: "string", required: false, description: "请求频率超出限制，请稍后重试" },
+  { name: "server_error", type: "string", required: false, description: "服务端内部错误，请联系技术支持" }
+]} />
+
+## 错误码详解
+
+### 400 Bad Request - invalid_request_error
+
+当请求参数不符合规范时返回此错误。
+
+<Callout type="warning" title="常见原因">
+  缺少必填参数、参数类型错误、参数值超出允许范围。
+</Callout>
+
+**示例：缺少必填参数**
+
+```python
+import requests
+
+url = "https://api.joymaas.com/v1/chat/completions"
+headers = {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json"
+}
+
+# 错误：缺少必填参数 'model'
+data = {
+    "messages": [{"role": "user", "content": "你好"}]
+}
+
+response = requests.post(url, headers=headers, json=data)
+print(response.json())
+# 输出：{"error": {"code": "invalid_request_error", "message": "缺少必填参数: model", "param": "model", "type": "invalid_request_error"}}
+```
+
+### 401 Unauthorized - authentication_error
+
+API Key 无效或未提供时返回此错误。
+
+```bash
+# 错误示例：未提供 API Key
+curl -X POST https://api.joymaas.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "joymaas-1",
+    "messages": [{"role": "user", "content": "你好"}]
+  }'
+# 返回：{"error": {"code": "authentication_error", "message": "未提供 API Key，请在请求头中添加 Authorization"}}
+```
+
+### 429 Too Many Requests - rate_limit_error
+
+当请求频率超过账户限制时返回此错误。
+
+<Callout type="info" title="限制说明">
+  免费用户每分钟最多 20 次请求，付费用户根据套餐不同，限制为每分钟 100-500 次。
+</Callout>
+
+**解决方案：实现指数退避重试**
+
+```python
+import time
+import requests
+
+def request_with_retry(url, headers, data, max_retries=3):
+    for attempt in range(max_retries):
+        response = requests.post(url, headers=headers, json=data)
+        if response.status_code == 429:
+            # 获取重试等待时间，默认为 1 秒
+            retry_after = int(response.headers.get("Retry-After", 1))
+            print(f"请求频率过高，等待 {retry_after} 秒后重试...")
+            time.sleep(retry_after * (2 ** attempt))  # 指数退避
+            continue
+        return response
+    return response
+
+# 使用示例
+url = "https://api.joymaas.com/v1/chat/completions"
+headers = {"Authorization": "Bearer YOUR_API_KEY"}
+data = {
+    "model": "joymaas-1",
+    "messages": [{"role": "user", "content": "你好"}]
+}
+
+response = request_with_retry(url, headers, data)
+print(response.json())
+```
+
+### 500 Internal Server Error - server_error
+
+服务端发生意外错误时返回此错误。
+
+<Callout type="error" title="处理建议">
+  1. 等待几秒后重试
+  2. 检查请求参数是否正确
+  3. 如果问题持续存在，请联系技术支持并提供完整的请求日志
+</Callout>
+
+## 完整错误码列表
+
+| HTTP 状态码 | error.code | 说明 |
+|------------|------------|------|
+| 400 | invalid_request_error | 请求参数错误 |
+| 401 | authentication_error | 认证失败 |
+| 403 | permission_error | 权限不足 |
+| 404 | not_found_error | 资源不存在 |
+| 409 | conflict_error | 资源冲突 |
+| 429 | rate_limit_error | 请求频率限制 |
+| 500 | server_error | 服务端错误 |
+| 503 | service_unavailable | 服务暂不可用 |
+
+## 最佳实践
+
+<Steps>
+### 统一错误处理
+
+在应用中实现统一的错误处理函数，避免重复代码。
+
+### 记录错误日志
+
+记录完整的错误响应和请求上下文，便于排查问题。
+
+### 实现重试机制
+
+对 429 和 5xx 错误实现指数退避重试策略。
+
+### 监控错误率
+
+定期检查错误率变化，及时发现潜在问题。
+</Steps>
+
+## 调试工具
+
+<Playground endpoint="chat-completions" />
+
+使用 Playground 调试请求参数，实时查看错误响应。
+
+<NextSteps>
+  - [API 认证指南](/guides/authentication)
+  - [请求频率限制](/guides/rate-limits)
+  - [API 参考文档](/api/chat-completions)
+</NextSteps>
