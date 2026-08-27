@@ -1,0 +1,85 @@
+---
+title: glm
+description: 5 分钟跑通第一次 JoyMaaS API 调用
+slug: models/glm
+category: quickstart
+audience: external
+tags: [chat, streaming, quickstart]
+updated: 2026-08-23
+status: published
+owner: leah
+ai_readable: true
+source: manual
+---
+
+5 分钟拿到 API Key、跑通第一个对话请求。整篇跟着做一遍，你就能开始用 JoyMaaS。
+
+<Steps>
+  <div>
+    **创建 API Key**
+
+    登录 JoyMaaS 控制台，进入「API 管理」页面，点击「创建 Key」。Key 只在创建时显示一次，请立刻保存到环境变量。
+  </div>
+  <div>
+    **发起第一个请求**
+
+    任选一种语言复制下面的代码，把 `$JOYMAAS_API_KEY` 换成你的 Key，运行即可拿到第一个响应。
+  </div>
+  <div>
+    **查看响应**
+
+    响应是一个标准 JSON，`choices[0].message.content` 就是模型的回答。
+  </div>
+</Steps>
+
+## 完整示例
+
+<CodeTabs tabs={[
+  { label: 'cURL', code: 'curl -X POST https://api.joymaas.com/v1/chat/completions \\\n  -H "Authorization: Bearer $JOYMAAS_API_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d \'{\n    "model": "doubao-pro-256k",\n    "messages": [\n      {"role": "user", "content": "你好，介绍一下你自己"}\n    ]\n  }\'' },
+  { label: 'Python', code: 'import requests\n\nresp = requests.post(\n    "https://api.joymaas.com/v1/chat/completions",\n    headers={\n        "Authorization": f"Bearer {JOYMAAS_API_KEY}",\n        "Content-Type": "application/json",\n    },\n    json={\n        "model": "doubao-pro-256k",\n        "messages": [{"role": "user", "content": "你好，介绍一下你自己"}],\n    },\n)\nprint(resp.json())' },
+  { label: 'Node', code: 'const resp = await fetch("https://api.joymaas.com/v1/chat/completions", {\n  method: "POST",\n  headers: {\n    "Authorization": `Bearer ${process.env.JOYMAAS_API_KEY}`,\n    "Content-Type": "application/json",\n  },\n  body: JSON.stringify({\n    model: "doubao-pro-256k",\n    messages: [{ role: "user", content: "你好，介绍一下你自己" }],\n  }),\n});\nconst data = await resp.json();\nconsole.log(data);' }
+]} />
+
+响应示例：
+
+```json
+{
+  "id": "chatcmpl-abc123",
+  "object": "chat.completion",
+  "model": "doubao-pro-256k",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "你好！我是由 JoyMaaS 提供的对话模型……"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 12,
+    "completion_tokens": 28,
+    "total_tokens": 40
+  }
+}
+```
+
+<Callout variant="info" title="模型 ID 从哪里查">
+  控制台「模型广场」或 `GET /v1/models` 接口。
+</Callout>
+
+<Callout variant="warning" title="保管好你的 Key">
+  不要提交到代码仓库，用环境变量管理。
+</Callout>
+
+## 下一步
+
+<NextSteps items={[
+  { title: 'Chat Completions API', description: '完整接口参数和流式响应', href: '/docs/api/chat-completions' },
+  { title: '错误码排障', description: '常见错误和重试策略', href: '/docs/troubleshooting/errors' }
+]} />
+
+<InternalOnly>
+  内部测试环境：endpoint 用 `https://api-staging.joymaas.internal/v1/chat/completions`，测试 Key 找 @leah 领取，不限流。对外正式环境走 `api.joymaas.com`。
+</InternalOnly>
