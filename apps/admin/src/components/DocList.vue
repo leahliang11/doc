@@ -13,38 +13,16 @@ const docs = ref<DocListItem[]>([])
 const loading = ref(true)
 const error = ref('')
 const showCreate = ref(false)
-const selected = ref<string[]>([])
 
 async function refresh() {
   loading.value = true
   error.value = ''
   try {
     docs.value = await listDocs()
-    selected.value = selected.value.filter((slug) => docs.value.some((d) => d.slug === slug))
   } catch (e: any) {
     error.value = e.message
   } finally {
     loading.value = false
-  }
-}
-function toggleSelected(slug: string) {
-  selected.value = selected.value.includes(slug) ? selected.value.filter((item) => item !== slug) : [...selected.value, slug]
-}
-function toggleAll() {
-  selected.value = selected.value.length === docs.value.length ? [] : docs.value.map((doc) => doc.slug)
-}
-async function deleteSelected() {
-  if (!selected.value.length) return
-  if (!confirm(`确定批量删除选中的 ${selected.value.length} 篇文档吗？将分别提交删除审核。`)) return
-  const targets = [...selected.value]
-  try {
-    const results = await Promise.all(targets.map((slug) => deleteDoc(slug)))
-    selected.value = []
-    alert(`已提交 ${results.length} 篇文档的删除审核`)
-    await refresh()
-    emit('deleted')
-  } catch (e: any) {
-    alert('批量删除未完成：' + e.message)
   }
 }
 
@@ -89,9 +67,7 @@ const statusLabels: Record<string, string> = {
 <template>
   <div>
     <div class="doc-toolbar">
-      <h2 class="doc-title-h">文档</h2>
       <div class="doc-toolbar-actions">
-        <button v-if="selected.length" class="btn btn-danger-outline" @click="deleteSelected">批量删除（{{ selected.length }}）</button>
         <button class="btn btn-primary create-btn" @click="showCreate = true"><span class="plus">+</span> 新建文档</button>
       </div>
     </div>
@@ -101,7 +77,6 @@ const statusLabels: Record<string, string> = {
     <table v-else class="doc-table">
       <thead>
         <tr>
-          <th class="select-col"><input type="checkbox" :checked="selected.length === docs.length && docs.length > 0" aria-label="全选文档" @change="toggleAll" /></th>
           <th>标题</th>
           <th>分类</th>
           <th>状态</th>
@@ -112,7 +87,6 @@ const statusLabels: Record<string, string> = {
       </thead>
       <tbody>
         <tr v-for="d in docs" :key="d.slug" class="doc-row" @click="emit('open', d)">
-          <td class="select-cell" @click.stop><input type="checkbox" :checked="selected.includes(d.slug)" :aria-label="`选择${d.title}`" @change="toggleSelected(d.slug)" /></td>
           <td class="doc-title">{{ d.title }}</td>
           <td>{{ categoryLabels[d.category] || d.category }}</td>
           <td><span class="badge" :class="d.status">{{ statusLabels[d.status] || d.status }}</span></td>
@@ -143,18 +117,12 @@ const statusLabels: Record<string, string> = {
 .doc-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-bottom: 12px;
 }
 .doc-toolbar-actions { display: flex; align-items: center; gap: 8px; }
 .btn-danger-outline { padding: 6px 11px; border: 1px solid #f1b4be; border-radius: 6px; color: #be123c; background: #fff7f8; font-size: 13px; }
 .btn-danger-outline:hover { background: #fff0f2; }
-.doc-title-h {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text);
-  margin: 0;
-}
 .create-btn {
   display: flex;
   align-items: center;
@@ -175,13 +143,12 @@ const statusLabels: Record<string, string> = {
   border: 1px solid var(--border);
   border-collapse: collapse;
 }
-.select-col, .select-cell { width: 42px; text-align: center !important; }
-.doc-table th:nth-child(2), .doc-table td:nth-child(2) { width: 23%; }
-.doc-table th:nth-child(3), .doc-table td:nth-child(3) { width: 14%; }
-.doc-table th:nth-child(4), .doc-table td:nth-child(4) { width: 12%; }
-.doc-table th:nth-child(5), .doc-table td:nth-child(5) { width: 15%; }
-.doc-table th:nth-child(6), .doc-table td:nth-child(6) { width: 26%; }
-.doc-table th:nth-child(7), .doc-table td:nth-child(7) { width: 8%; }
+.doc-table th:nth-child(1), .doc-table td:nth-child(1) { width: 23%; }
+.doc-table th:nth-child(2), .doc-table td:nth-child(2) { width: 14%; }
+.doc-table th:nth-child(3), .doc-table td:nth-child(3) { width: 12%; }
+.doc-table th:nth-child(4), .doc-table td:nth-child(4) { width: 15%; }
+.doc-table th:nth-child(5), .doc-table td:nth-child(5) { width: 26%; }
+.doc-table th:nth-child(6), .doc-table td:nth-child(6) { width: 10%; }
 .doc-table th,
 .doc-table td {
   padding: 11px 14px;

@@ -205,7 +205,7 @@ const currentLabel = computed(() => labels[currentRoute.value] || '文档')
     <Sidebar :route="currentRoute" :nav-groups="navGroups" @navigate="navigate" />
     <main class="main-content">
       <header class="main-header">
-        <h1 class="main-title">{{ currentLabel }}</h1>
+        <h1 v-if="currentRoute !== '/docs'" class="main-title">{{ currentLabel }}</h1>
         <div class="header-actions">
           <span v-if="pendingBuilds.length" class="build-badge" :title="`${pendingBuilds.length} 篇待构建`">
             <i class="ri-hammer-line"></i> {{ pendingBuilds.length }} 待构建

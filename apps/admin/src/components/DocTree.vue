@@ -26,6 +26,7 @@ const dragOverGroup = ref<string | null>(null) // sectionId/groupId 复合 key
 const titleMap = ref<Record<string, string>>({})
 const collapsedSections = ref<Record<string, boolean>>({})
 const collapsedGroups = ref<Record<string, boolean>>({})
+const selectedSlugs = ref<string[]>([])
 
 async function refresh() {
   loading.value = true
@@ -36,10 +37,46 @@ async function refresh() {
     const resp = await adminFetch('/api/docs')
     const docs = await resp.json()
     titleMap.value = Object.fromEntries(docs.map((d: any) => [d.slug, d.title]))
+    selectedSlugs.value = selectedSlugs.value.filter((slug) => Object.prototype.hasOwnProperty.call(titleMap.value, slug))
   } catch (e: any) {
     error.value = e.message
   } finally {
     loading.value = false
+  }
+}
+
+const allSlugs = computed(() => Object.keys(titleMap.value))
+const allSelected = computed(() => allSlugs.value.length > 0 && selectedSlugs.value.length === allSlugs.value.length)
+
+function toggleSelected(slug: string) {
+  selectedSlugs.value = selectedSlugs.value.includes(slug)
+    ? selectedSlugs.value.filter((item) => item !== slug)
+    : [...selectedSlugs.value, slug]
+}
+
+function toggleAll() {
+  selectedSlugs.value = allSelected.value ? [] : [...allSlugs.value]
+}
+
+async function deleteSelected() {
+  if (!selectedSlugs.value.length) return
+  const targets = [...selectedSlugs.value]
+  if (!confirm(`确定删除选中的 ${targets.length} 篇文档吗？删除会分别创建审核合并请求。`)) return
+  saving.value = true
+  toast.value = `正在提交 ${targets.length} 篇文档的删除…`
+  try {
+    // 后端会在同一个工作区切换 draft 分支，必须串行执行，避免并发 checkout 导致删除失败。
+    const results = []
+    for (const slug of targets) results.push(await deleteDoc(slug))
+    selectedSlugs.value = []
+    toast.value = `已提交 ${results.length} 篇文档的删除审核`
+    emit('deleted')
+    await refresh()
+  } catch (err: any) {
+    toast.value = '批量删除失败：' + err.message
+  } finally {
+    saving.value = false
+    setTimeout(() => (toast.value = ''), 4500)
   }
 }
 
@@ -258,7 +295,16 @@ onMounted(refresh)
         <h3 class="tree-title">文档结构</h3>
         <span class="tree-hint">拖拽文档移动，目录支持新建、重命名和删除</span>
       </div>
-      <button class="tree-add" title="新建顶层目录" @click="addSection"><i class="ri-folder-add-line"></i> 新建目录</button>
+      <div class="tree-header-actions">
+        <button v-if="allSlugs.length" class="tree-select-all" type="button" @click="toggleAll">
+          <input type="checkbox" :checked="allSelected" tabindex="-1" aria-hidden="true" @click.stop />
+          <span>{{ allSelected ? '取消全选' : '全选文档' }}</span>
+        </button>
+        <button v-if="selectedSlugs.length" class="tree-batch-delete" type="button" @click="deleteSelected">
+          <i class="ri-delete-bin-line"></i> 批量删除 {{ selectedSlugs.length }} 项
+        </button>
+        <button class="tree-add" title="新建顶层目录" @click="addSection"><i class="ri-folder-add-line"></i> 新建目录</button>
+      </div>
     </div>
 
     <div v-if="loading" class="tree-loading">加载中…</div>
@@ -313,6 +359,7 @@ onMounted(refresh)
                 @click="emit('open', slug)"
               >
                 <span class="drag-handle"><i class="ri-drag-move-2-line"></i></span>
+                <input class="page-check" type="checkbox" :checked="selectedSlugs.includes(slug)" :aria-label="`选择${titleMap[slug] || slug}`" @click.stop @change="toggleSelected(slug)" />
                 <span class="page-title">{{ titleMap[slug] || slug }}</span>
                 <span class="page-slug">{{ slug }}</span>
                 <button class="page-action edit" title="编辑文档" @click.stop="emit('open', slug)">
@@ -343,6 +390,7 @@ onMounted(refresh)
             @click="emit('open', slug)"
           >
             <span class="drag-handle"><i class="ri-drag-move-2-line"></i></span>
+            <input class="page-check" type="checkbox" :checked="selectedSlugs.includes(slug)" :aria-label="`选择${titleMap[slug] || slug}`" @click.stop @change="toggleSelected(slug)" />
             <span class="page-title">{{ titleMap[slug] || slug }}</span>
             <span class="page-slug">{{ slug }}</span>
             <button class="page-action edit" title="编辑文档" @click.stop="emit('open', slug)">
@@ -391,6 +439,30 @@ onMounted(refresh)
   gap: 12px;
   margin-bottom: 12px;
 }
+.tree-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tree-select-all,
+.tree-batch-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+}
+.tree-select-all:hover { border-color: var(--primary); color: var(--primary); }
+.tree-batch-delete { border-color: #f1b4be; background: #fff7f8; color: #be123c; }
+.tree-batch-delete:hover { background: #fff0f2; }
 .tree-title {
   font-size: 15px;
   font-weight: 600;
@@ -514,7 +586,7 @@ onMounted(refresh)
 }
 .page-item {
   display: grid;
-  grid-template-columns: 16px minmax(0, 1fr) 112px 24px 24px;
+  grid-template-columns: 16px 18px minmax(0, 1fr) 112px 24px 24px;
   align-items: center;
   gap: 8px;
   min-height: 34px;
@@ -523,6 +595,13 @@ onMounted(refresh)
   cursor: pointer;
   font-size: 13px;
   transition: background 0.12s;
+}
+.page-check {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
 }
 .page-item:hover {
   background: var(--bg-hover);
