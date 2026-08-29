@@ -273,14 +273,16 @@ export async function docsRoutes(app: FastifyInstance): Promise<void> {
         : []
       // 未发布草稿不影响线上内容，直接删除；已发布/审核中的内容必须保留审核门禁。
       if (status !== 'published' && status !== 'review') {
-        const result = await git.deleteFilesDirect(
+        const result = await git.deleteFilesToDraft(
           [{ absoluteFilePath: docAbs, gitPath: docGitPath }],
           filesToWrite,
           `docs: delete draft ${slug}`,
           user?.name || 'unknown',
           user?.email || 'unknown@example.com',
         )
-        return { slug, commit_hash: result.commitHash, branch: 'main', direct: true, mr_iid: null, mr_url: null }
+        const pr = await gitlab.createMR(result.branch, `docs: ${slug} 删除草稿（自动合并）`)
+        await gitlab.mergeMR(pr.iid)
+        return { slug, commit_hash: result.commitHash, branch: result.branch, direct: true, mr_iid: pr.iid, mr_url: pr.webUrl }
       }
       const result = await git.deleteFilesToDraft(
         [{ absoluteFilePath: docAbs, gitPath: docGitPath }], filesToWrite,

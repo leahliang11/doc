@@ -54,7 +54,7 @@ function toggleSelected(slug: string) {
 async function deleteSelected() {
   if (!selectedSlugs.value.length) return
   const targets = [...selectedSlugs.value]
-  if (!confirm(`确定删除选中的 ${targets.length} 篇文档吗？删除会分别创建审核合并请求。`)) return
+  if (!confirm(`确定删除选中的 ${targets.length} 篇文档吗？\n草稿会立即删除，已发布文档才会进入审核。`)) return
   saving.value = true
   toast.value = `正在提交 ${targets.length} 篇文档的删除…`
   try {
@@ -62,7 +62,7 @@ async function deleteSelected() {
     const results = []
     for (const slug of targets) results.push(await deleteDoc(slug))
     selectedSlugs.value = []
-    toast.value = `已提交 ${results.length} 篇文档的删除审核`
+    toast.value = `已处理 ${results.length} 篇文档的删除请求`
     emit('deleted')
     await refresh()
   } catch (err: any) {
