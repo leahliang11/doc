@@ -291,7 +291,8 @@ onMounted(refresh)
       </div>
       <div class="tree-header-actions">
         <button v-if="selectedSlugs.length" class="tree-batch-delete" type="button" @click="deleteSelected">
-          <i class="ri-delete-bin-line"></i> 批量删除 {{ selectedSlugs.length }} 项
+          <i class="ri-delete-bin-line"></i>
+          <span class="tree-selected-count">{{ selectedSlugs.length }}</span>
         </button>
         <button class="tree-add" title="新建顶层目录" @click="addSection"><i class="ri-folder-add-line"></i> 新建目录</button>
       </div>
@@ -453,8 +454,9 @@ onMounted(refresh)
   cursor: pointer;
 }
 .tree-select-all:hover { border-color: var(--primary); color: var(--primary); }
-.tree-batch-delete { border-color: #f1b4be; background: #fff7f8; color: #be123c; }
+.tree-batch-delete { width: 32px; height: 30px; padding: 0; justify-content: center; position: relative; border-color: #f1b4be; background: #fff7f8; color: #be123c; }
 .tree-batch-delete:hover { background: #fff0f2; }
+.tree-selected-count { position: absolute; top: -7px; right: -7px; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 9px; background: #be123c; color: #fff; font-size: 10px; line-height: 16px; text-align: center; }
 .tree-title {
   font-size: 15px;
   font-weight: 600;
