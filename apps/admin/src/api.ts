@@ -162,8 +162,9 @@ export interface DeleteResult {
   slug: string
   commit_hash: string
   branch: string
-  mr_iid: number
-  mr_url: string
+  mr_iid: number | null
+  mr_url: string | null
+  direct?: boolean
 }
 
 export async function deleteDoc(slug: string): Promise<DeleteResult> {

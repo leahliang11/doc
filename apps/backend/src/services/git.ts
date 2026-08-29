@@ -210,6 +210,37 @@ export async function deleteFilesToDraft(
   }
 }
 
+// 删除未发布草稿：直接在 main 提交，避免为尚未上线的内容制造审核负担。
+export async function deleteFilesDirect(
+  filesToDelete: Array<{ absoluteFilePath: string; gitPath: string }>,
+  filesToWrite: Array<{ absoluteFilePath: string; gitPath: string; content: string }>,
+  commitMessage: string,
+  authorName: string,
+  authorEmail: string,
+): Promise<{ commitHash: string }> {
+  await git.checkout('main')
+  const gitPaths: string[] = []
+  for (const file of filesToDelete) {
+    if (fs.existsSync(file.absoluteFilePath)) {
+      await git.rm([file.gitPath])
+      gitPaths.push(file.gitPath)
+    }
+  }
+  for (const file of filesToWrite) {
+    fs.mkdirSync(path.dirname(file.absoluteFilePath), { recursive: true })
+    fs.writeFileSync(file.absoluteFilePath, file.content, 'utf-8')
+    await git.add(file.gitPath)
+    gitPaths.push(file.gitPath)
+  }
+  if (!gitPaths.length) throw new Error('没有可删除或更新的文件')
+  await git.commit(commitMessage, gitPaths, {
+    '--author': `${authorName} <${authorEmail}>`,
+  })
+  await git.push('origin', 'main')
+  const log = await git.log({ maxCount: 1 })
+  return { commitHash: log.latest?.hash ?? '' }
+}
+
 // 取某分支相对 main 的 diff（审核用）
 // 先 fetch 确保远端分支引用最新，再 diff origin/<branch>..main
 export async function getDiff(branch: string): Promise<string> {

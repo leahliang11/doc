@@ -263,12 +263,12 @@ async function onDrop(sectionId: string, groupId: string, e: DragEvent) {
 
 async function onDelete(slug: string) {
   const title = titleMap.value[slug] || slug
-  if (!confirm(`确定删除「${title}」吗？\n删除会创建审核合并请求，审核通过后才会从线上移除。`)) return
+  if (!confirm(`确定删除「${title}」吗？\n未发布草稿将直接删除，已发布文档会进入审核流程。`)) return
   saving.value = true
   toast.value = '删除提交中…'
   try {
     const result = await deleteDoc(slug)
-    toast.value = `已提交删除审核：MR #${result.mr_iid}`
+    toast.value = result.direct ? `草稿「${title}」已直接删除` : `已提交删除审核：PR #${result.mr_iid}`
     emit('deleted')
     await refresh()
   } catch (err: any) {

@@ -257,7 +257,9 @@ export async function docsRoutes(app: FastifyInstance): Promise<void> {
 
     try {
       // 先确认文档存在；git.readFile 同时复用现有的 slug 解析规则。
-      git.readFile(slug)
+      const raw = git.readFile(slug)
+      const { frontmatter } = parseFrontmatter(raw)
+      const status = String(frontmatter.status || 'draft')
       // slugToGitPath 能正确处理 <slug>.mdx 与 <slug>/index.mdx 两种布局。
       const docAbs = (() => {
         const direct = path.join(CONTENT_REPO_PATH, 'content-repo', 'content', `${slug}.mdx`)
@@ -269,12 +271,20 @@ export async function docsRoutes(app: FastifyInstance): Promise<void> {
       const filesToWrite = removed
         ? [{ absoluteFilePath: metaPath, gitPath: 'content-repo/content/_meta.yaml', content: dumpMeta(meta) }]
         : []
+      // 未发布草稿不影响线上内容，直接删除；已发布/审核中的内容必须保留审核门禁。
+      if (status !== 'published' && status !== 'review') {
+        const result = await git.deleteFilesDirect(
+          [{ absoluteFilePath: docAbs, gitPath: docGitPath }],
+          filesToWrite,
+          `docs: delete draft ${slug}`,
+          user?.name || 'unknown',
+          user?.email || 'unknown@example.com',
+        )
+        return { slug, commit_hash: result.commitHash, branch: 'main', direct: true, mr_iid: null, mr_url: null }
+      }
       const result = await git.deleteFilesToDraft(
-        [{ absoluteFilePath: docAbs, gitPath: docGitPath }],
-        filesToWrite,
-        `docs: delete ${slug}`,
-        user?.name || 'unknown',
-        user?.email || 'unknown@example.com',
+        [{ absoluteFilePath: docAbs, gitPath: docGitPath }], filesToWrite,
+        `docs: delete ${slug}`, user?.name || 'unknown', user?.email || 'unknown@example.com',
       )
       const mr = await gitlab.createMR(result.branch, `docs: ${slug} 删除文档待审核（by ${user?.name || 'unknown'}）`)
       createReviewTask({ source: 'web', slug, branch: result.branch, mrIid: mr.iid, submitter: user?.name || 'unknown' })

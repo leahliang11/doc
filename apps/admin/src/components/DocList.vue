@@ -25,10 +25,10 @@ async function refresh() {
 onMounted(refresh)
 
 async function onDelete(doc: DocListItem) {
-  if (!confirm(`确定删除「${doc.title}」吗？\n删除会创建审核合并请求，审核通过后才会从线上移除。`)) return
+  if (!confirm(`确定删除「${doc.title}」吗？\n未发布草稿将直接删除，已发布文档会进入审核流程。`)) return
   try {
     const result = await deleteDoc(doc.slug)
-    alert(`已提交删除审核：MR #${result.mr_iid}`)
+    alert(result.direct ? `草稿「${doc.title}」已直接删除` : `已提交删除审核：PR #${result.mr_iid}`)
     await refresh()
     emit('deleted')
   } catch (e: any) {
