@@ -1,18 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { deleteDoc, listDocs, type CreateResult, type DocListItem } from '../api'
-import CreateDocDialog from './CreateDocDialog.vue'
+import { deleteDoc, listDocs, type DocListItem } from '../api'
 
 const emit = defineEmits<{
   open: [doc: DocListItem]
-  created: [result: CreateResult]
-  openapiGenerated: [docs: DocListItem[]]
   deleted: []
 }>()
 const docs = ref<DocListItem[]>([])
 const loading = ref(true)
 const error = ref('')
-const showCreate = ref(false)
 
 async function refresh() {
   loading.value = true
@@ -27,15 +23,6 @@ async function refresh() {
 }
 
 onMounted(refresh)
-
-function onCreated(result: CreateResult) {
-  emit('created', result)
-  refresh()
-}
-function onOpenapiGenerated(newDocs: DocListItem[]) {
-  docs.value = newDocs
-  emit('openapiGenerated', newDocs)
-}
 
 async function onDelete(doc: DocListItem) {
   if (!confirm(`确定删除「${doc.title}」吗？\n删除会创建审核合并请求，审核通过后才会从线上移除。`)) return
@@ -68,7 +55,6 @@ const statusLabels: Record<string, string> = {
   <div>
     <div class="doc-toolbar">
       <div class="doc-toolbar-actions">
-        <button class="btn btn-primary create-btn" @click="showCreate = true"><span class="plus">+</span> 新建文档</button>
       </div>
     </div>
 
@@ -104,12 +90,6 @@ const statusLabels: Record<string, string> = {
       </tbody>
     </table>
 
-    <CreateDocDialog
-      :show="showCreate"
-      @close="showCreate = false"
-      @created="onCreated"
-      @openapi-generated="onOpenapiGenerated"
-    />
   </div>
 </template>
 

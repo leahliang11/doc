@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { adminFetch, deleteDoc, getMeta, moveDoc, saveMeta, type Meta } from '../api'
 
-const emit = defineEmits<{ open: [slug: string]; deleted: [] }>()
+const emit = defineEmits<{ open: [slug: string]; deleted: []; create: [sectionId?: string, groupId?: string] }>()
 
 const meta = ref<Meta>({ sections: [] })
 const loading = ref(true)
@@ -45,17 +45,10 @@ async function refresh() {
   }
 }
 
-const allSlugs = computed(() => Object.keys(titleMap.value))
-const allSelected = computed(() => allSlugs.value.length > 0 && selectedSlugs.value.length === allSlugs.value.length)
-
 function toggleSelected(slug: string) {
   selectedSlugs.value = selectedSlugs.value.includes(slug)
     ? selectedSlugs.value.filter((item) => item !== slug)
     : [...selectedSlugs.value, slug]
-}
-
-function toggleAll() {
-  selectedSlugs.value = allSelected.value ? [] : [...allSlugs.value]
 }
 
 async function deleteSelected() {
@@ -183,9 +176,9 @@ async function renameGroup(sectionId: string, groupId: string) {
 async function removeSection(sectionId: string) {
   const section = meta.value.sections.find((s) => s.id === sectionId)
   if (!section) return
-  const hasPages = section.groups?.some((g) => (g.pages?.length || 0) > 0)
-  if (hasPages) return (toast.value = '该目录下还有文档，请先移动文档后再删除')
-  if (!confirm(`确定删除目录「${section.label}」吗？`)) return
+  const pageCount = section.groups?.reduce((sum, group) => sum + (group.pages?.length || 0), 0) || 0
+  const suffix = pageCount ? `目录下的 ${pageCount} 篇文档会保留并变为未分类。` : '目录为空。'
+  if (!confirm(`确定删除目录「${section.label}」吗？\n${suffix}`)) return
   const next = copyMeta()
   next.sections = next.sections.filter((s) => s.id !== sectionId)
   await saveStructure(next, `已删除目录「${section.label}」`)
@@ -195,8 +188,9 @@ async function removeGroup(sectionId: string, groupId: string) {
   const section = meta.value.sections.find((s) => s.id === sectionId)
   const group = section?.groups?.find((g) => g.id === groupId)
   if (!section || !group) return
-  if (group.pages?.length) return (toast.value = '该分组下还有文档，请先移动文档后再删除')
-  if (!confirm(`确定删除分组「${group.label}」吗？`)) return
+  const pageCount = group.pages?.length || 0
+  const suffix = pageCount ? `分组下的 ${pageCount} 篇文档会保留并变为未分类。` : '分组为空。'
+  if (!confirm(`确定删除分组「${group.label}」吗？\n${suffix}`)) return
   const next = copyMeta()
   next.sections.find((s) => s.id === sectionId)!.groups = section.groups!.filter((g) => g.id !== groupId)
   await saveStructure(next, `已删除分组「${group.label}」`)
@@ -296,10 +290,6 @@ onMounted(refresh)
         <span class="tree-hint">拖拽文档移动，目录支持新建、重命名和删除</span>
       </div>
       <div class="tree-header-actions">
-        <button v-if="allSlugs.length" class="tree-select-all" type="button" @click="toggleAll">
-          <input type="checkbox" :checked="allSelected" tabindex="-1" aria-hidden="true" @click.stop />
-          <span>{{ allSelected ? '取消全选' : '全选文档' }}</span>
-        </button>
         <button v-if="selectedSlugs.length" class="tree-batch-delete" type="button" @click="deleteSelected">
           <i class="ri-delete-bin-line"></i> 批量删除 {{ selectedSlugs.length }} 项
         </button>
@@ -320,6 +310,7 @@ onMounted(refresh)
           {{ section.label }}
           <span class="structure-actions">
             <button title="新建分组" @click="addGroup(section.id)"><i class="ri-add-line"></i></button>
+            <button title="在此目录新建文档" @click="emit('create', section.id)"><i class="ri-file-add-line"></i></button>
             <button title="重命名目录" @click="renameSection(section.id)"><i class="ri-edit-line"></i></button>
             <button title="删除目录" @click="removeSection(section.id)"><i class="ri-delete-bin-line"></i></button>
           </span>
@@ -342,7 +333,8 @@ onMounted(refresh)
               {{ group.label }}
               <span class="group-count">{{ group.pages?.length || 0 }}</span>
               <span class="structure-actions">
-                <button title="重命名分组" @click.stop="renameGroup(section.id, group.id)"><i class="ri-edit-line"></i></button>
+              <button title="重命名分组" @click.stop="renameGroup(section.id, group.id)"><i class="ri-edit-line"></i></button>
+                <button title="在此分组新建文档" @click.stop="emit('create', section.id, group.id)"><i class="ri-file-add-line"></i></button>
                 <button title="删除分组" @click.stop="removeGroup(section.id, group.id)"><i class="ri-delete-bin-line"></i></button>
               </span>
             </div>

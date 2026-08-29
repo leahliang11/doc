@@ -5,6 +5,7 @@ import Editor from '../components/Editor.vue'
 import ConflictDialog from '../components/ConflictDialog.vue'
 import ComponentInsertDialog from '../components/ComponentInsertDialog.vue'
 import DocTree from '../components/DocTree.vue'
+import CreateDocDialog from '../components/CreateDocDialog.vue'
 import { openDoc, saveDoc, submitReview, type CreateResult, type DocListItem } from '../api'
 
 const mode = ref<'list' | 'edit'>('list')
@@ -19,6 +20,7 @@ const toast = ref('')
 const conflict = ref<{ remoteMarkdown: string; message: string } | null>(null)
 const mrResult = ref<{ iid: number; url: string } | null>(null)
 const treeVersion = ref(0)
+const createDialog = ref<{ show: boolean; sectionId?: string; groupId?: string }>({ show: false })
 
 // 组件插入弹窗
 const insertDialog = ref<{ show: boolean; component: 'CodeTabs' | 'Params' | null }>({
@@ -182,6 +184,14 @@ function onDocDeleted() {
   treeVersion.value += 1
 }
 
+function openCreateDialog(sectionId?: string, groupId?: string) {
+  createDialog.value = { show: true, sectionId, groupId }
+}
+
+function onCreateDialogClose() {
+  createDialog.value = { show: false }
+}
+
 // 冲突弹窗：用我的覆盖（重新 open 拿最新 base，再保存）
 async function overwriteMine() {
   if (!conflict.value) return
@@ -210,10 +220,10 @@ async function discardMine() {
 
     <div v-if="mode === 'list'" class="list-layout">
       <div class="tree-col">
-        <DocTree :key="treeVersion" @open="(slug: string) => onOpen({ slug, title: '', category: '', status: 'draft', updated: '' } as DocListItem)" @deleted="onDocDeleted" />
+        <DocTree :key="treeVersion" @open="(slug: string) => onOpen({ slug, title: '', category: '', status: 'draft', updated: '' } as DocListItem)" @deleted="onDocDeleted" @create="openCreateDialog" />
       </div>
       <div class="list-col">
-        <DocList @open="onOpen" @created="onCreated" @deleted="onDocDeleted" />
+        <DocList @open="onOpen" @deleted="onDocDeleted" />
       </div>
     </div>
     <Editor
@@ -239,6 +249,14 @@ async function discardMine() {
       :component="insertDialog.component"
       @close="insertDialog = { show: false, component: null }"
       @insert="onInsertMdx"
+    />
+
+    <CreateDocDialog
+      :show="createDialog.show"
+      :initial-section-id="createDialog.sectionId"
+      :initial-group-id="createDialog.groupId"
+      @close="onCreateDialogClose"
+      @created="onCreated"
     />
 
     <ConflictDialog

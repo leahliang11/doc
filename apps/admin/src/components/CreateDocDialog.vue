@@ -2,7 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { createDoc, genOpenApi, aiDraftDoc, getMeta, type DocListItem, type AiDraftResult, type CreateResult, type Meta } from '../api'
 
-const props = defineProps<{ show: boolean }>()
+const props = defineProps<{ show: boolean; initialSectionId?: string; initialGroupId?: string }>()
 const emit = defineEmits<{
   close: []
   created: [result: CreateResult]
@@ -77,8 +77,9 @@ async function loadMeta() {
   try {
     meta.value = await getMeta()
     const firstSection = meta.value.sections[0]
-    targetSectionId.value = firstSection?.id || ''
-    targetGroupId.value = firstSection?.groups?.[0]?.id || ''
+    targetSectionId.value = props.initialSectionId || firstSection?.id || ''
+    const selectedSection = meta.value.sections.find((section) => section.id === targetSectionId.value)
+    targetGroupId.value = props.initialGroupId || selectedSection?.groups?.[0]?.id || ''
   } catch { /* 目录加载失败时仍允许创建未分类文档 */ }
 }
 
