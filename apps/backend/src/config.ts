@@ -16,6 +16,11 @@ function required(key: string): string {
 export const CODING_TOKEN = required('CODING_TOKEN')
 export const CODING_HOST = process.env.CODING_HOST ?? 'https://coding.jd.com'
 export const CODING_PROJECT_ID = Number(required('CODING_PROJECT_ID'))
+// GitHub PR 审核链路。Token 只从服务端环境变量读取，严禁提交到仓库。
+export const GITHUB_TOKEN = process.env.GITHUB_TOKEN ?? ''
+export const GITHUB_OWNER = process.env.GITHUB_OWNER ?? 'leahliang11'
+export const GITHUB_REPO = process.env.GITHUB_REPO ?? 'doc'
+export const GITHUB_API_URL = process.env.GITHUB_API_URL ?? 'https://api.github.com'
 export const CONTENT_REPO_PATH = required('CONTENT_REPO_PATH')
 export const PORT = Number(process.env.PORT ?? 3001)
 export const DB_PATH = process.env.DB_PATH ?? './data/app.sqlite'
