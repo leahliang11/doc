@@ -2,6 +2,26 @@ import { defineDocumentType, makeSource } from 'contentlayer2/source-files'
 import rehypePrettyCode from 'rehype-pretty-code'
 import path from 'path'
 
+type AstNode = {
+  type?: string
+  name?: string
+  children?: AstNode[]
+}
+
+// 公开构建在 MDX 编译前彻底移除 InternalOnly，避免“仅 CSS 隐藏但内容仍进入浏览器 bundle”。
+function stripInternalOnly() {
+  return (tree: AstNode) => {
+    const walk = (node: AstNode) => {
+      if (!node.children) return
+      node.children = node.children.filter(
+        (child) => !(child.type === 'mdxJsxFlowElement' && child.name === 'InternalOnly'),
+      )
+      node.children.forEach(walk)
+    }
+    walk(tree)
+  }
+}
+
 // Doc 文档类型定义
 export const Doc = defineDocumentType(() => ({
   name: 'Doc',
@@ -66,6 +86,7 @@ export default makeSource({
   contentDirPath: path.resolve(process.cwd(), '../../content-repo/content'),
   documentTypes: [Doc],
   mdx: {
+    remarkPlugins: process.env.DOCS_BUILD_AUDIENCE === 'internal' ? [] : [stripInternalOnly],
     rehypePlugins: [[rehypePrettyCode, rehypePrettyCodeOptions]],
   },
 })

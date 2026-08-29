@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "NODE_OPTIONS=--experimental-sqlite tsx watch src/server.ts",
-    "start": "NODE_OPTIONS=--experimental-sqlite tsx src/server.ts",
+    "start": "NODE_ENV=production NODE_OPTIONS=--experimental-sqlite tsx src/server.ts",
     "verify-gitbeaker": "tsx scripts/verify-gitbeaker.ts"
   },
   "dependencies": {

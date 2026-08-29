@@ -6,6 +6,7 @@ import { AudienceToggle } from './AudienceToggle'
 import { DocSearch } from './DocSearch'
 
 export function Navbar() {
+  const internalViewEnabled = process.env.NEXT_PUBLIC_ENABLE_INTERNAL_VIEW === 'true'
   const searchItems = allDocs.map((doc) => ({
     title: doc.title,
     description: doc.description,
@@ -45,7 +46,7 @@ export function Navbar() {
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
           <ThemeToggle />
-          <AudienceToggle />
+          {internalViewEnabled && <AudienceToggle />}
         </nav>
       </div>
     </header>

@@ -1,6 +1,56 @@
 // 后端 API 封装（通过 vite 代理 /api → :3001）
 
 const API = '/api'
+const TOKEN_KEY = 'joymaas-admin-token'
+
+export function getStoredAdminToken(): string {
+  try { return localStorage.getItem(TOKEN_KEY) ?? '' } catch { return '' }
+}
+
+export function setStoredAdminToken(token: string): void {
+  try { localStorage.setItem(TOKEN_KEY, token) } catch { /* ignore */ }
+}
+
+export function clearStoredAdminToken(): void {
+  try { localStorage.removeItem(TOKEN_KEY) } catch { /* ignore */ }
+}
+
+function authHeaders(extra?: Record<string, string>): Record<string, string> {
+  const token = getStoredAdminToken()
+  return {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...extra,
+  }
+}
+
+export function adminFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+  return fetch(input, {
+    ...init,
+    headers: authHeaders(init.headers ? Object.fromEntries(new Headers(init.headers)) : undefined),
+  })
+}
+
+export async function checkAdminSession(token: string): Promise<boolean> {
+  const resp = await fetch(`${API}/admin/session`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return resp.ok
+}
+
+export async function loginAdmin(username: string, password: string): Promise<string> {
+  const resp = await fetch(`${API}/admin/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  })
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ error: resp.statusText }))
+    throw new Error(err.error || `HTTP ${resp.status}`)
+  }
+  const data = await resp.json() as { token?: string }
+  if (!data.token) throw new Error('登录服务未返回会话凭据')
+  return data.token
+}
 
 export interface DocListItem {
   slug: string
@@ -32,7 +82,7 @@ const USER = { name: 'leah', email: 'liangyuanwen.1@jd.com' }
 async function post<T>(path: string, body: unknown): Promise<T> {
   const resp = await fetch(`${API}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(body),
   })
   if (!resp.ok) {
@@ -49,7 +99,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 }
 
 export async function listDocs(): Promise<DocListItem[]> {
-  const resp = await fetch(`${API}/docs`)
+  const resp = await fetch(`${API}/docs`, { headers: authHeaders() })
   return resp.json()
 }
 
@@ -61,11 +111,13 @@ export async function saveDoc(
   slug: string,
   markdown: string,
   baseCommit: string,
+  branch?: string,
 ): Promise<SaveResult> {
   return post<SaveResult>('/docs/save', {
     slug,
     markdown,
     base_commit: baseCommit,
+    branch,
     user: USER,
   })
 }
@@ -88,6 +140,11 @@ export async function submitReview(
 export interface CreateResult {
   slug: string
   commit_hash: string
+  branch: string
+  mr_iid: number
+  mr_url: string
+  markdown: string
+  frontmatter: Record<string, unknown>
 }
 
 export async function createDoc(params: {
@@ -95,8 +152,22 @@ export async function createDoc(params: {
   slug: string
   template?: string
   content?: string    // AI 生成或自定义初始内容（W17 新增）
+  sectionId?: string
+  groupId?: string
 }): Promise<CreateResult> {
   return post<CreateResult>('/docs/create', { ...params, user: USER })
+}
+
+export interface DeleteResult {
+  slug: string
+  commit_hash: string
+  branch: string
+  mr_iid: number
+  mr_url: string
+}
+
+export async function deleteDoc(slug: string): Promise<DeleteResult> {
+  return post<DeleteResult>('/docs/delete', { slug, user: USER })
 }
 
 export interface AiDraftResult {
@@ -136,7 +207,7 @@ export interface ReviewTask {
 }
 
 async function getJson<T>(path: string): Promise<T> {
-  const resp = await fetch(`${API}${path}`)
+  const resp = await fetch(`${API}${path}`, { headers: authHeaders() })
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({ error: resp.statusText }))
     throw new Error(err.error || `HTTP ${resp.status}`)
@@ -256,7 +327,16 @@ export async function getMeta(): Promise<Meta> {
 
 /** 保存整棵层级树（走 draft 分支 + MR） */
 export async function saveMeta(meta: Meta): Promise<{ mr_iid: number; mr_url: string }> {
-  return post('/meta', { yaml: meta })
+  const resp = await fetch(`${API}/meta`, {
+    method: 'PUT',
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ sections: meta.sections }),
+  })
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ error: resp.statusText }))
+    throw new Error(err.error || `HTTP ${resp.status}`)
+  }
+  return resp.json()
 }
 
 /** 移动文档到新组（走 draft + MR） */

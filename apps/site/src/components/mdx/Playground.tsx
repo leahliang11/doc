@@ -63,8 +63,9 @@ export function Playground({ endpoint, defaultBody }: PlaygroundProps) {
       const parsed = JSON.parse(bodyText)
       setBodyError(null)
       return parsed
-    } catch (e: any) {
-      setBodyError('JSON 格式有误：' + e.message)
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : '无法解析'
+      setBodyError('JSON 格式有误：' + message)
       return null
     }
   }
@@ -150,8 +151,10 @@ export function Playground({ endpoint, defaultBody }: PlaygroundProps) {
           }
         }
       }
-    } catch (e: any) {
-      if (!aborted) setErrMsg(e.message ?? '请求异常')
+    } catch (error: unknown) {
+      if (!aborted) {
+        setErrMsg(error instanceof Error ? error.message : '请求异常')
+      }
     } finally {
       setRunning(false)
       abortRef.current = null
@@ -171,14 +174,14 @@ export function Playground({ endpoint, defaultBody }: PlaygroundProps) {
   }
 
   return (
-    <div className="not-prose my-6 overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+    <div className="not-prose my-4 overflow-hidden rounded-lg border border-border bg-background">
       {/* 标题栏 */}
-      <div className="flex items-center justify-between border-b border-border bg-muted/40 px-4 py-2.5">
+      <div className="flex items-center justify-between border-b border-border bg-muted/40 px-3 py-2">
         <div className="flex items-center gap-2.5">
-          <span className="rounded-md bg-brand px-2 py-0.5 font-mono text-[11px] font-semibold text-white">
+          <span className="rounded bg-brand px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white">
             POST
           </span>
-          <code className="text-[13px] text-foreground">
+          <code className="text-[12px] text-foreground">
             {ENDPOINT_LABELS[endpoint] ?? endpoint}
           </code>
         </div>
@@ -199,7 +202,7 @@ export function Playground({ endpoint, defaultBody }: PlaygroundProps) {
         <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
           {/* 左侧：请求编辑器 */}
           <div className="flex flex-col border-b border-border lg:border-b-0 lg:border-r">
-            <div className="flex items-center justify-between border-b border-border px-4 py-2">
+            <div className="flex items-center justify-between border-b border-border px-3 py-1.5">
               <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 请求体
               </span>
@@ -219,7 +222,7 @@ export function Playground({ endpoint, defaultBody }: PlaygroundProps) {
                 setBodyError(null)
               }}
               spellCheck={false}
-              className="min-h-[200px] flex-1 resize-none bg-canvas px-4 py-3 font-mono text-[12.5px] leading-relaxed text-foreground outline-none placeholder:text-muted-foreground lg:min-h-[260px]"
+              className="min-h-[160px] flex-1 resize-none bg-canvas px-3 py-2.5 font-mono text-[12px] leading-[1.6] text-foreground outline-none placeholder:text-muted-foreground lg:min-h-[210px]"
               placeholder="{}"
             />
             {bodyError && (
@@ -228,11 +231,11 @@ export function Playground({ endpoint, defaultBody }: PlaygroundProps) {
               </p>
             )}
             {/* Run / Stop 按钮 */}
-            <div className="flex items-center gap-2 border-t border-border px-4 py-2.5">
+            <div className="flex items-center gap-2 border-t border-border px-3 py-2">
               {running ? (
                 <button
                   onClick={handleStop}
-                  className="flex items-center gap-1.5 rounded-lg bg-red-50 px-4 py-1.5 text-[13px] font-medium text-red-600 transition-colors hover:bg-red-100 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-950/60"
+                  className="flex items-center gap-1.5 rounded-md bg-red-50 px-3 py-1.5 text-[12px] font-medium text-red-600 transition-colors hover:bg-red-100 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-950/60"
                 >
                   <Square className="h-3.5 w-3.5 fill-current" />
                   停止
@@ -240,7 +243,7 @@ export function Playground({ endpoint, defaultBody }: PlaygroundProps) {
               ) : (
                 <button
                   onClick={handleRun}
-                  className="flex items-center gap-1.5 rounded-lg bg-brand px-4 py-1.5 text-[13px] font-medium text-white shadow-sm transition-colors hover:bg-brand/90"
+                  className="flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-brand/90"
                 >
                   <Play className="h-3.5 w-3.5 fill-current" />
                   运行
@@ -256,7 +259,7 @@ export function Playground({ endpoint, defaultBody }: PlaygroundProps) {
 
           {/* 右侧：响应区 */}
           <div className="flex flex-col">
-            <div className="flex items-center border-b border-border px-4 py-2">
+            <div className="flex items-center border-b border-border px-3 py-1.5">
               <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 响应
               </span>
@@ -267,17 +270,17 @@ export function Playground({ endpoint, defaultBody }: PlaygroundProps) {
                 </span>
               )}
             </div>
-            <div className="relative min-h-[200px] flex-1 overflow-auto bg-[#0f172a] px-4 py-3 lg:min-h-[260px]">
+            <div className="relative min-h-[160px] flex-1 overflow-auto bg-[#f7f7f9] px-3 py-2.5 lg:min-h-[210px] dark:bg-[#1b1b1f]">
               {errMsg ? (
-                <pre className="whitespace-pre-wrap font-mono text-[12.5px] leading-relaxed text-red-400">
+                <pre className="whitespace-pre-wrap font-mono text-[12.5px] leading-relaxed text-rose-700 dark:text-rose-300">
                   {errMsg}
                 </pre>
               ) : output ? (
-                <pre className="whitespace-pre-wrap font-mono text-[12.5px] leading-relaxed text-slate-200">
+                <pre className="whitespace-pre-wrap font-mono text-[12.5px] leading-relaxed text-foreground">
                   {output}
                 </pre>
               ) : (
-                <p className="text-[12.5px] text-slate-500">
+                <p className="text-[12.5px] text-muted-foreground">
                   {running ? '等待响应...' : '点击「运行」发送请求'}
                 </p>
               )}

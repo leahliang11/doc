@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "gen:openapi": "tsx scripts/gen-openapi.ts",
-    "build": "tsx scripts/gen-openapi.ts && next build",
+    "build": "node scripts/clean-contentlayer.mjs && tsx scripts/gen-openapi.ts && contentlayer2 build && next build",
     "start": "next start",
     "lint": "eslint",
     "contentlayer": "contentlayer2 build",

@@ -62,6 +62,27 @@ describe('Steps', () => {
     assert.ok(md.includes('1. 标题'))
     assert.ok(md.includes('   详细说明'))
   })
+
+  it('MDX div 中标题和说明保持在同一个步骤', () => {
+    const raw = `<Steps>
+  <div>
+    **创建 API Key**
+
+    登录控制台创建并保存 Key。
+  </div>
+  <div>
+    **发起请求**
+
+    复制代码并运行。
+  </div>
+</Steps>`
+    const md = mdxToMarkdown(raw, 'external')
+    assert.ok(md.includes('1. **创建 API Key**'))
+    assert.ok(md.includes('   登录控制台创建并保存 Key。'))
+    assert.ok(md.includes('2. **发起请求**'))
+    assert.ok(md.includes('   复制代码并运行。'))
+    assert.ok(!md.includes('3.'))
+  })
 })
 
 // ── CodeTabs ──

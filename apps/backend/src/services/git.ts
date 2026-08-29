@@ -7,6 +7,14 @@ import { slugToGitPath, slugToFilePath } from '../lib/slug.js'
 
 const git = simpleGit({ baseDir: CONTENT_REPO_PATH })
 
+function preserveFrontmatter(filePath: string, markdown: string): string {
+  if (/^---\n/.test(markdown)) return markdown
+  if (!fs.existsSync(filePath)) return markdown
+  const current = fs.readFileSync(filePath, 'utf-8')
+  const frontmatter = current.match(/^---\n[\s\S]*?\n---\n?/)
+  return frontmatter ? `${frontmatter[0]}\n${markdown.replace(/^\s+/, '')}` : markdown
+}
+
 // 拉最新 main
 export async function pull(): Promise<void> {
   await git.fetch()
@@ -58,39 +66,12 @@ export async function createDraftBranch(slug: string): Promise<string> {
   return branch
 }
 
-// 新建文档：直接在 main 上写 + commit + push（不走 draft 分支）
-// 与 writeAndCommit 区别：不切分支，直接改 main。供「新建文档」用——
-// 新文档需立即出现在 main 上，列表才能看到。
-// 注意：这绕过了双通道审核，P0 新建走快速通道，后续可改成新建也走 draft+MR。
-export async function commitToMain(
-  slug: string,
-  markdown: string,
-  authorName: string,
-  authorEmail: string,
-  filePath: string, // 绝对路径（新建文件不存在，slugToFilePath 会抛错，由调用方传入）
-  gitPath: string, // 仓库相对路径（git add 用）
-): Promise<{ commitHash: string; branch: string }> {
-  // 确保在 main 分支
-  await git.checkout('main')
-
-  // 写文件
-  fs.writeFileSync(filePath, markdown, 'utf-8')
-
-  // 只 add 这个文件
-  await git.add(gitPath)
-
-  // commit，author 设登录用户
-  await git.commit(`docs: create ${slug}`, gitPath, {
-    '--author': `${authorName} <${authorEmail}>`,
-  })
-
-  // push main
-  await git.push('origin', 'main')
-
-  const log = await git.log({ maxCount: 1 })
-  const commitHash = log.latest?.hash ?? ''
-
-  return { commitHash, branch: 'main' }
+export async function checkoutDraftBranch(branch: string): Promise<void> {
+  if (!branch.startsWith('draft/')) throw new Error('只允许更新 draft/ 分支')
+  await git.fetch('origin', branch)
+  const local = await git.branchLocal()
+  if (local.all.includes(branch)) await git.checkout(branch)
+  else await git.checkoutBranch(branch, `origin/${branch}`)
 }
 
 // 写文件 + 限定路径 commit + push
@@ -105,7 +86,8 @@ export async function writeAndCommit(
   const gitPath = slugToGitPath(slug)
 
   // 写文件
-  fs.writeFileSync(filePath, markdown, 'utf-8')
+  // 编辑器只传正文；保存时保留当前分支文件的 frontmatter，避免文档元数据被清空。
+  fs.writeFileSync(filePath, preserveFrontmatter(filePath, markdown), 'utf-8')
 
   // 只 add 这个文件（绝不 git add .，避免混入 site 代码）
   await git.add(gitPath)
@@ -166,6 +148,66 @@ export async function writeAnyFileToDraft(
   await git.checkout('main')
 
   return { commitHash, branch }
+}
+
+export async function writeFilesToDraft(
+  slug: string,
+  files: Array<{ absoluteFilePath: string; gitPath: string; content: string }>,
+  commitMessage: string,
+  authorName: string,
+  authorEmail: string,
+): Promise<{ commitHash: string; branch: string }> {
+  const branch = await createDraftBranch(slug)
+  try {
+    for (const file of files) {
+      fs.mkdirSync(path.dirname(file.absoluteFilePath), { recursive: true })
+      fs.writeFileSync(file.absoluteFilePath, file.content, 'utf-8')
+      await git.add(file.gitPath)
+    }
+    await git.commit(commitMessage, files.map((file) => file.gitPath), {
+      '--author': `${authorName} <${authorEmail}>`,
+    })
+    await git.push('origin', branch, { '--set-upstream': null })
+    const log = await git.log({ maxCount: 1 })
+    return { commitHash: log.latest?.hash ?? '', branch }
+  } finally {
+    await git.checkout('main')
+  }
+}
+
+// 删除文档并可同步更新导航文件：所有改动放在同一个 draft 分支和 MR 中。
+export async function deleteFilesToDraft(
+  filesToDelete: Array<{ absoluteFilePath: string; gitPath: string }>,
+  filesToWrite: Array<{ absoluteFilePath: string; gitPath: string; content: string }>,
+  commitMessage: string,
+  authorName: string,
+  authorEmail: string,
+): Promise<{ commitHash: string; branch: string }> {
+  const branch = await createDraftBranch(`delete-${Date.now()}`)
+  try {
+    const gitPaths: string[] = []
+    for (const file of filesToDelete) {
+      if (fs.existsSync(file.absoluteFilePath)) {
+        await git.rm([file.gitPath])
+        gitPaths.push(file.gitPath)
+      }
+    }
+    for (const file of filesToWrite) {
+      fs.mkdirSync(path.dirname(file.absoluteFilePath), { recursive: true })
+      fs.writeFileSync(file.absoluteFilePath, file.content, 'utf-8')
+      await git.add(file.gitPath)
+      gitPaths.push(file.gitPath)
+    }
+    if (!gitPaths.length) throw new Error('没有可删除或更新的文件')
+    await git.commit(commitMessage, gitPaths, {
+      '--author': `${authorName} <${authorEmail}>`,
+    })
+    await git.push('origin', branch, { '--set-upstream': null })
+    const log = await git.log({ maxCount: 1 })
+    return { commitHash: log.latest?.hash ?? '', branch }
+  } finally {
+    await git.checkout('main')
+  }
 }
 
 // 取某分支相对 main 的 diff（审核用）

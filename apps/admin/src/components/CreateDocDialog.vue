@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { createDoc, genOpenApi, aiDraftDoc, type DocListItem, type AiDraftResult } from '../api'
+import { ref, computed, watch } from 'vue'
+import { createDoc, genOpenApi, aiDraftDoc, getMeta, type DocListItem, type AiDraftResult, type CreateResult, type Meta } from '../api'
 
 const props = defineProps<{ show: boolean }>()
 const emit = defineEmits<{
   close: []
-  created: [slug: string]
+  created: [result: CreateResult]
   openapiGenerated: [docs: DocListItem[]]
 }>()
+
+watch(() => props.show, (show) => {
+  if (show) loadMeta()
+})
 
 type Tab = 'blank' | 'template' | 'ai' | 'openapi'
 const tab = ref<Tab>('blank')
@@ -17,6 +21,9 @@ const title = ref('')
 const slug = ref('')
 const template = ref<'quickstart' | 'api-reference' | 'guide'>('quickstart')
 const slugEdited = ref(false)
+const meta = ref<Meta>({ sections: [] })
+const targetSectionId = ref('')
+const targetGroupId = ref('')
 
 // AI 生成字段
 const aiDescription = ref('')
@@ -60,6 +67,24 @@ const canSubmit = computed(() => {
   }
   return title.value.trim() !== '' && slug.value.trim() !== ''
 })
+
+const targetGroups = computed(() => {
+  const section = meta.value.sections.find((s) => s.id === targetSectionId.value)
+  return section?.groups || []
+})
+
+async function loadMeta() {
+  try {
+    meta.value = await getMeta()
+    const firstSection = meta.value.sections[0]
+    targetSectionId.value = firstSection?.id || ''
+    targetGroupId.value = firstSection?.groups?.[0]?.id || ''
+  } catch { /* 目录加载失败时仍允许创建未分类文档 */ }
+}
+
+function onSectionChange() {
+  targetGroupId.value = targetGroups.value[0]?.id || ''
+}
 
 const submitting = ref(false)
 const error = ref('')
@@ -110,15 +135,19 @@ async function onConfirm() {
         title: aiTitle.value.trim(),
         slug: aiSlug.value.trim(),
         content: aiResult.value.mdxContent,
+        sectionId: targetSectionId.value || undefined,
+        groupId: targetGroupId.value || undefined,
       })
-      emit('created', r.slug)
+      emit('created', r)
     } else {
       const r = await createDoc({
         title: title.value.trim(),
         slug: slug.value.trim(),
         template: tab.value === 'template' ? template.value : 'blank',
+        sectionId: targetSectionId.value || undefined,
+        groupId: targetGroupId.value || undefined,
       })
-      emit('created', r.slug)
+      emit('created', r)
     }
     emit('close')
     reset()
@@ -140,6 +169,8 @@ function reset() {
   aiTitle.value = ''
   aiSlug.value = ''
   aiError.value = ''
+  targetSectionId.value = ''
+  targetGroupId.value = ''
 }
 </script>
 
@@ -167,6 +198,20 @@ function reset() {
           <div class="cd-field">
             <label class="cd-label">标题</label>
             <input v-model="title" class="cd-input" placeholder="如：流式响应接入指南" @input="onTitleInput" />
+          </div>
+          <div class="cd-field">
+            <label class="cd-label">放入目录</label>
+            <div class="cd-form-row">
+              <select v-model="targetSectionId" class="cd-input cd-select" @change="onSectionChange">
+                <option value="">未分类</option>
+                <option v-for="section in meta.sections" :key="section.id" :value="section.id">{{ section.label }}</option>
+              </select>
+              <select v-model="targetGroupId" class="cd-input cd-select" :disabled="!targetSectionId">
+                <option value="">未分类</option>
+                <option v-for="group in targetGroups" :key="group.id" :value="group.id">{{ group.label }}</option>
+              </select>
+            </div>
+            <div class="cd-hint">创建后会自动出现在选定的分组中，并随审核 MR 一起生效。</div>
           </div>
           <div class="cd-field">
             <label class="cd-label">slug（URL 路径）</label>
@@ -256,7 +301,7 @@ function reset() {
           :disabled="!canSubmit || submitting"
           @click="onConfirm"
         >
-          {{ tab === 'openapi' ? '立即生成' : '创建并打开编辑器' }}
+          {{ tab === 'openapi' ? '立即生成' : '创建草稿并提交审核' }}
         </button>
       </div>
     </div>
@@ -306,6 +351,7 @@ function reset() {
 .cd-tab.active { color: var(--text); border-bottom-color: var(--brand); font-weight: 500; }
 .cd-body { padding: 16px 20px; overflow-y: auto; max-height: 60vh; }
 .cd-form { display: flex; flex-direction: column; gap: 14px; }
+.cd-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .cd-field { display: flex; flex-direction: column; gap: 6px; }
 .cd-label { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
 .cd-input {

@@ -54,7 +54,7 @@ const steps = computed(() => {
 <template>
   <ol class="pv-steps">
     <li v-for="(step, i) in steps" :key="i" class="pv-steps-item">
-      <span class="pv-steps-num">{{ i + 1 }}</span>
+      <span class="pv-steps-num">{{ String(i + 1).padStart(2, '0') }}</span>
       <div class="pv-steps-content" v-html="step"></div>
     </li>
   </ol>

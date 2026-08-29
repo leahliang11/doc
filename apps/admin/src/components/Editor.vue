@@ -7,10 +7,12 @@ import { markdown } from '@codemirror/lang-markdown'
 import { openSearchPanel } from '@codemirror/search'
 import MdxPreview from './preview/MdxPreview.vue'
 import AIChatPanel from './AIChatPanel.vue'
+import { adminFetch } from '../api'
 import '../styles/preview.css'
 
 const props = defineProps<{
   slug: string
+  title?: string
   markdown: string
   baseCommit: string
   saving: boolean
@@ -206,7 +208,7 @@ async function streamSSE(
   onChunk: (text: string) => void,
   signal?: AbortSignal,
 ): Promise<void> {
-  const res = await fetch(url, {
+  const res = await adminFetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...body, stream: true }),
@@ -334,7 +336,7 @@ async function aiAudit() {
   auditLoading.value = true
   auditResult.value = []
   try {
-    const res = await fetch('/api/ai/audit', {
+    const res = await adminFetch('/api/ai/audit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ doc: getContent() }),
@@ -446,11 +448,19 @@ try {
 
 <template>
   <div class="editor-page">
+    <div class="editor-context">
+      <button class="context-back" @click="emit('back')"><i class="ri-arrow-left-line"></i><span>返回文档</span></button>
+      <span class="context-divider"></span>
+      <div class="context-copy">
+        <strong>{{ title || slug }}</strong>
+        <span>{{ slug }}</span>
+      </div>
+      <span v-if="saveState === 'mr' && mrInfo" class="context-status context-status--review">审核中 · MR #{{ mrInfo.iid }}</span>
+      <span v-else-if="saveState === 'saved'" class="context-status context-status--saved">已保存</span>
+      <span v-else-if="saveState === 'conflict'" class="context-status context-status--danger">存在冲突</span>
+      <span v-else-if="saveState === 'unsaved'" class="context-status context-status--draft">未保存</span>
+    </div>
     <div class="editor-toolbar">
-      <button class="tool-btn back-btn" @click="emit('back')">
-        <i class="ri-arrow-left-line"></i> 返回列表
-      </button>
-      <div class="tool-divider"></div>
       <button class="tool-btn" title="撤销 (Cmd+Z)" @click="doUndo"><i class="ri-arrow-go-back-line"></i></button>
       <button class="tool-btn" title="重做 (Cmd+Shift+Z)" @click="doRedo"><i class="ri-arrow-go-forward-line"></i></button>
       <button class="tool-btn" title="查找替换 (Cmd+F)" @click="doSearch"><i class="ri-search-line"></i></button>
@@ -480,8 +490,8 @@ try {
       <button class="btn btn-primary" :disabled="saving" @click="onSave">
         {{ saving ? '保存中…' : '保存草稿' }}
       </button>
-      <button class="btn btn-primary" :disabled="submitting" @click="onSubmit">
-        {{ submitting ? '提交中…' : '提交审核' }}
+      <button class="btn btn-primary" :disabled="submitting || !!mrInfo" @click="onSubmit">
+        {{ mrInfo ? '已提交审核' : submitting ? '提交中…' : '提交审核' }}
       </button>
     </div>
     <div class="editor-body">
@@ -582,6 +592,36 @@ try {
   border-bottom: none;
   flex-wrap: wrap;
 }
+.editor-context {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+}
+.context-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.context-back:hover { background: var(--bg-hover); color: var(--text); }
+.context-divider { width: 1px; height: 24px; background: var(--border); }
+.context-copy { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.context-copy strong { max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-size: 15px; }
+.context-copy span { color: var(--text-tertiary); font: 11px ui-monospace, monospace; }
+.context-status { margin-left: auto; padding: 4px 8px; border-radius: 5px; font-size: 12px; }
+.context-status--saved { color: #047857; background: #ecfdf5; }
+.context-status--review { color: #6d28d9; background: var(--primary-lighter); }
+.context-status--draft { color: #a16207; background: #fefce8; }
+.context-status--danger { color: #be123c; background: #fff1f2; }
 .tool-btn {
   padding: 6px 10px;
   border-radius: 6px;

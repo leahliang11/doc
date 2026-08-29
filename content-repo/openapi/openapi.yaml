@@ -10,6 +10,7 @@ paths:
   /v1/chat/completions:
     post:
       operationId: createChatCompletion
+      x-playground: true
       summary: 创建对话补全
       description: 创建一个对话补全。给定一组消息列表，模型返回一个补全响应。支持流式返回和函数调用。兼容 OpenAI Chat Completions API。
       x-callout:
@@ -158,6 +159,7 @@ paths:
   /v1/embeddings:
     post:
       operationId: createEmbedding
+      x-playground: true
       summary: 创建文本向量
       description: 将输入文本转为向量，用于相似度检索、聚类、分类等场景。兼容 OpenAI Embeddings API 格式。
       x-callout:
@@ -373,6 +375,7 @@ paths:
   /v1/moderations:
     post:
       operationId: createModeration
+      x-playground: true
       summary: 内容审核
       description: 对输入文本进行内容审核，识别是否包含有害、暴力、色情等违规内容。返回各分类的命中标志与置信度分数。
       x-callout:
@@ -482,4 +485,3 @@ paths:
                 },
             )
             print(resp.json())
-

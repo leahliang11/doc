@@ -23,14 +23,14 @@ function InternalOnly({ children, collapsible = true, title }: InternalOnlyProps
 
   if (collapsible) {
     return (
-      <details className="group my-4 overflow-hidden rounded-lg border border-dashed border-slate-300 bg-slate-50/70 dark:border-slate-700 dark:bg-slate-900/35">
-        <summary className="flex min-h-9 cursor-pointer list-none items-center gap-2 px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+      <details className="group my-3 overflow-hidden rounded-[7px] border border-dashed border-slate-300 bg-slate-50/70 dark:border-slate-700 dark:bg-slate-900/35">
+        <summary className="flex min-h-8 cursor-pointer list-none items-center gap-1.5 px-2.5 py-1.5 outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
           <LockKeyhole className="h-3.5 w-3.5 shrink-0 text-slate-600 dark:text-slate-300" />
           <span className="rounded border border-slate-300 bg-background/80 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wide text-slate-700 dark:border-slate-700 dark:text-slate-300">INTERNAL</span>
           <span className="text-xs font-medium text-foreground">{label}</span>
           <ChevronRight className="ml-auto h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-90" />
         </summary>
-        <div className="border-t border-border bg-background/60 px-3 py-2.5 text-[13px] leading-[1.65] text-muted-foreground [&>p]:my-0 [&>p+p]:mt-1.5">
+        <div className="border-t border-border bg-background/60 px-2.5 py-2 text-[12.5px] leading-[1.6] text-muted-foreground [&>p]:my-0 [&>p+p]:mt-1.5">
           {children}
         </div>
       </details>
@@ -38,7 +38,7 @@ function InternalOnly({ children, collapsible = true, title }: InternalOnlyProps
   }
 
   return (
-    <aside className="my-4 rounded-lg border border-dashed border-slate-300 bg-slate-50/70 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-900/35">
+    <aside className="my-3 rounded-[7px] border border-dashed border-slate-300 bg-slate-50/70 px-2.5 py-2 dark:border-slate-700 dark:bg-slate-900/35">
       <div className="mb-1.5 flex items-center gap-2">
         <LockKeyhole className="h-3.5 w-3.5 text-slate-600 dark:text-slate-300" />
         <span className="text-xs font-semibold text-foreground">{label}</span>

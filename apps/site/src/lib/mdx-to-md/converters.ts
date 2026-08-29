@@ -42,7 +42,7 @@ export function stepsToMarkdown(_props: Record<string, never>, childrenMd: strin
   if (trimmed === '') return ''
   // 按空行分隔的块拆成步骤
   const blocks = trimmed
-    .split(/\n\s*\n/)
+    .split(childrenMd.includes('<!-- mdx-step -->') ? /\n*<!-- mdx-step -->\n*/ : /\n\s*\n/)
     .map((b) => b.trim())
     .filter((b) => b !== '')
   if (blocks.length === 0) return ''

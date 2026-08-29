@@ -24,6 +24,7 @@ function loadMeta(): Meta {
   try {
     // 可能的路径：content-repo/content/_meta.yaml 或 apps/site/content/_meta.yaml
     const candidates = [
+      path.resolve(process.cwd(), '../../content-repo/content/_meta.yaml'),
       path.join(process.cwd(), 'content-repo', 'content', '_meta.yaml'),
       path.join(process.cwd(), 'content', '_meta.yaml'),
     ]
@@ -54,17 +55,17 @@ export function Sidebar() {
   // 找当前活跃 slug（用于默认展开）——运行时从 usePathname 拿不到（这是 RSC 静态渲染），
   // 这里不展开逻辑由客户端 <details> 默认 open 控制；首项 open，其余交给用户点
   return (
-    <nav className="space-y-7" aria-label="文档导航">
+    <nav className="space-y-5" aria-label="文档导航">
       {sections.map((section) => {
         const groups = (section.groups || [])
           .slice()
           .sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
         return (
           <div key={section.id}>
-            <h2 className="mb-2 px-3 text-[11px] font-semibold tracking-wide text-subtle-foreground">
+            <h2 className="mb-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-subtle-foreground">
               {section.label}
             </h2>
-            <ul className="space-y-1">
+            <ul className="space-y-0.5">
               {groups.map((group) => {
                 const pages = group.pages || []
                 pages.forEach((s) => referenced.add(s))
@@ -86,7 +87,7 @@ export function Sidebar() {
                 return (
                   <li key={group.id}>
                     <details open className="group">
-                      <summary className="flex cursor-pointer items-center px-3 py-1.5 text-[13px] font-medium text-foreground hover:bg-muted/50 rounded-md select-none">
+                      <summary className="flex cursor-pointer select-none items-center rounded-md px-2.5 py-1.5 text-[12px] font-semibold text-foreground hover:bg-muted/50">
                         <svg
                           className="mr-1.5 h-3 w-3 shrink-0 transition-transform group-open:rotate-90"
                           viewBox="0 0 12 12"
@@ -98,7 +99,7 @@ export function Sidebar() {
                         </svg>
                         {group.label}
                       </summary>
-                      <ul className="ml-3 mt-1 space-y-1 border-l border-border pl-3">
+                      <ul className="ml-2.5 mt-0.5 space-y-0.5 border-l border-border pl-2.5">
                         {pages.map((slug) => {
                           const doc = docMap.get(slug)
                           if (!doc) return null
@@ -126,10 +127,10 @@ export function Sidebar() {
         if (uncategorized.length === 0) return null
         return (
           <div>
-            <h2 className="mb-2 px-3 text-[11px] font-semibold tracking-wide text-subtle-foreground">
+            <h2 className="mb-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-subtle-foreground">
               其他
             </h2>
-            <ul className="space-y-1">
+            <ul className="space-y-0.5">
               {uncategorized.map((doc) => (
                 <li key={doc.slug}>
                   <SidebarLink href={doc.url} badge={apiMethod(doc.slug)}>

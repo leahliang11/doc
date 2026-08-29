@@ -86,14 +86,14 @@ export function CopyAsMarkdown({ slug }: CopyAsMarkdownProps) {
       ? '已复制页面文字'
       : error
         ? '复制失败'
-        : '复制页面'
+          : '复制 Markdown'
 
   return (
     <div ref={wrapRef} className="relative inline-flex shrink-0">
       <button
         onClick={handleCopyMd}
         className={
-          'inline-flex h-9 items-center gap-1.5 rounded-l-lg border-y border-l px-3 text-xs font-medium shadow-sm transition-colors ' +
+          'inline-flex h-8 items-center gap-1.5 rounded-l-md border-y border-l px-2.5 text-[11px] font-medium transition-colors ' +
           (copied
             ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400'
             : error
@@ -109,7 +109,7 @@ export function CopyAsMarkdown({ slug }: CopyAsMarkdownProps) {
       <button
         onClick={() => setShowMenu((v) => !v)}
         className={
-          'inline-flex h-9 items-center rounded-r-lg border px-1.5 shadow-sm transition-colors ' +
+          'inline-flex h-8 items-center rounded-r-md border px-1.5 transition-colors ' +
           (showMenu
             ? 'border-primary/40 bg-primary/5 text-primary'
             : 'border-border bg-card text-muted-foreground hover:border-primary/30 hover:bg-primary/5 hover:text-primary')
@@ -121,10 +121,10 @@ export function CopyAsMarkdown({ slug }: CopyAsMarkdownProps) {
       </button>
 
       {showMenu && (
-        <div className="absolute right-0 top-full z-50 mt-1.5 w-72 rounded-xl border border-border bg-background p-1.5 shadow-lg shadow-slate-950/10">
+        <div className="absolute right-0 top-full z-50 mt-1.5 w-64 rounded-lg border border-border bg-background p-1 shadow-lg shadow-slate-950/10">
           <button
             onClick={handleCopyMd}
-            className="flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-muted"
+            className="flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-muted"
           >
             <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md bg-brand-soft text-brand">
               <FileCode className="h-3.5 w-3.5" />
@@ -138,7 +138,7 @@ export function CopyAsMarkdown({ slug }: CopyAsMarkdownProps) {
           </button>
           <button
             onClick={handleCopyText}
-            className="flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-muted"
+            className="flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-muted"
           >
             <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md bg-muted text-muted-foreground">
               <FileText className="h-3.5 w-3.5" />

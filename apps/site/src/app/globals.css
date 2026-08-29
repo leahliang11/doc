@@ -177,10 +177,10 @@
 
 .doc-page-shell {
   display: grid;
-  max-width: 1160px;
-  grid-template-columns: minmax(0, 820px) 190px;
-  gap: 56px;
-  padding: 48px 40px 88px;
+  max-width: 1200px;
+  grid-template-columns: minmax(0, 1fr) 168px;
+  gap: 24px;
+  padding: 28px 24px 64px;
 }
 
 .api-page-shell {
@@ -194,25 +194,25 @@
 .doc-document,
 .api-document {
   min-width: 0;
-  border: 1px solid var(--border-soft);
-  border-radius: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
   background: var(--background);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
 }
 
 .doc-document {
-  padding: 42px 46px 52px;
+  padding: 30px 34px 42px;
 }
 
 .api-document {
   position: relative;
-  padding: 36px 38px 52px;
+  padding: 30px 34px 42px;
 }
 
 .doc-header {
-  margin-bottom: 34px;
+  margin-bottom: 22px;
   border-bottom: 1px solid var(--border-soft);
-  padding-bottom: 28px;
+  padding-bottom: 20px;
 }
 
 .doc-breadcrumb {
@@ -220,7 +220,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 7px;
-  margin-bottom: 18px;
+  margin-bottom: 10px;
   color: var(--subtle-foreground);
   font-size: 12px;
   line-height: 1.5;
@@ -234,30 +234,30 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
+  gap: 18px;
 }
 
 .doc-title-row h1 {
   margin: 0;
-  font-size: clamp(30px, 3vw, 38px);
-  line-height: 1.2;
-  letter-spacing: -0.035em;
+  font-size: clamp(28px, 2.4vw, 34px);
+  line-height: 1.18;
+  letter-spacing: -0.03em;
 }
 
 .doc-title-row p {
   max-width: 660px;
-  margin: 12px 0 0;
+  margin: 8px 0 0;
   color: var(--muted-foreground);
-  font-size: 15px;
-  line-height: 1.7;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .doc-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 16px;
-  margin-top: 18px;
+  gap: 12px;
+  margin-top: 12px;
   color: var(--subtle-foreground);
   font-size: 12px;
 }
@@ -271,12 +271,12 @@
 .endpoint-bar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 48px;
-  margin-top: 24px;
-  padding: 7px 8px 7px 10px;
+  gap: 10px;
+  min-height: 40px;
+  margin-top: 16px;
+  padding: 5px 6px 5px 8px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 7px;
   background: var(--canvas);
 }
 
@@ -295,17 +295,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 50px;
-  height: 26px;
-  border-radius: 6px;
-  padding: 0 8px;
+  min-width: 46px;
+  height: 24px;
+  border-radius: 5px;
+  padding: 0 7px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.04em;
 }
 
-.endpoint-method-get { background: #e0f2fe; color: #0369a1; }
-.endpoint-method-post { background: #dcfce7; color: #15803d; }
+.endpoint-method-get { background: #ecfdf5; color: #047857; }
+.endpoint-method-post { background: var(--accent); color: var(--primary); }
 .endpoint-method-put,
 .endpoint-method-patch { background: #fef3c7; color: #b45309; }
 .endpoint-method-delete { background: #fee2e2; color: #b91c1c; }
@@ -314,9 +314,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
-  border-radius: 7px;
-  padding: 0 9px;
+  height: 28px;
+  border-radius: 6px;
+  padding: 0 8px;
   color: var(--muted-foreground);
   font-size: 12px;
   transition: background-color 160ms ease, color 160ms ease;
@@ -330,7 +330,7 @@
 .doc-toc,
 .api-example-rail {
   min-width: 0;
-  padding-top: 6px;
+  padding-top: 2px;
 }
 
 .api-example-rail {
@@ -340,16 +340,16 @@
 
 .prose-doc {
   color: var(--muted-foreground);
-  font-size: 15px;
-  line-height: 1.75;
+  font-size: 14px;
+  line-height: 1.68;
 }
 
 .prose-doc > *:first-child { margin-top: 0; }
 
 .prose-doc h2 {
-  margin: 44px 0 16px;
+  margin: 32px 0 11px;
   color: var(--heading);
-  font-size: 23px;
+  font-size: 20px;
   line-height: 1.35;
   font-weight: 600;
   letter-spacing: -0.025em;
@@ -357,9 +357,9 @@
 }
 
 .prose-doc h3 {
-  margin: 30px 0 12px;
+  margin: 22px 0 8px;
   color: var(--heading);
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.45;
   font-weight: 600;
   letter-spacing: -0.015em;
@@ -367,13 +367,13 @@
 }
 
 .prose-doc h4 {
-  margin: 24px 0 10px;
+  margin: 18px 0 7px;
   color: var(--heading);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
 }
 
-.prose-doc p { margin: 0 0 16px; }
+.prose-doc p { margin: 0 0 12px; }
 
 .prose-doc .doc-callout-body > p {
   margin: 0;
@@ -385,7 +385,7 @@
 
 .prose-doc ul,
 .prose-doc ol {
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   padding-left: 1.35rem;
 }
 
@@ -393,8 +393,19 @@
 .prose-doc ol { list-style: decimal; }
 
 .prose-doc li {
-  margin: 5px 0;
+  margin: 3px 0;
   padding-left: 2px;
+}
+
+.prose-doc .doc-steps {
+  margin: 20px 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.prose-doc .doc-steps > li {
+  margin: 0;
+  padding-left: 0;
 }
 
 .prose-doc a {
@@ -419,16 +430,16 @@
 .prose-doc figure[data-rehype-pretty-code-figure] {
   overflow-x: auto;
   overflow-y: hidden;
-  margin: 20px 0;
-  border: 1px solid #263348;
-  border-radius: 12px;
-  background: #0f172a;
+  margin: 16px 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #f7f7f9;
 }
 
 .prose-doc figure[data-rehype-pretty-code-figure] pre {
   margin: 0;
-  padding: 18px 0;
-  background: #0f172a !important;
+  padding: 14px 0;
+  background: #f7f7f9 !important;
 }
 
 .prose-doc pre code {
@@ -439,25 +450,25 @@
   font-size: 13px;
 }
 
-/* Fenced examples use a dark canvas in both color modes. Rehype Pretty Code
-   emits both light and dark token variables; explicitly choose the dark
-   palette here so the light-theme token colors do not become low-contrast
-   navy text on the dark surface. */
+/* Fenced examples use a light canvas in both color modes. Keep syntax tokens
+   on the light palette so code remains readable without a heavy black block. */
 .prose-doc figure[data-rehype-pretty-code-figure] code[data-theme*=" "],
 .prose-doc figure[data-rehype-pretty-code-figure] code[data-theme*=" "] span {
-  color: var(--shiki-dark) !important;
+  color: var(--shiki-light) !important;
   background-color: transparent !important;
 }
 
 .prose-doc blockquote {
-  margin: 18px 0;
-  border-left: 3px solid var(--primary);
-  padding: 2px 0 2px 16px;
+  margin: 14px 0;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--muted);
+  padding: 8px 11px;
   color: var(--muted-foreground);
 }
 
 .prose-doc hr {
-  margin: 36px 0;
+  margin: 26px 0;
   border: 0;
   border-top: 1px solid var(--border);
 }
@@ -467,8 +478,8 @@
   margin: 0;
   border: 0;
   border-radius: 0;
-  background: #0f172a !important;
-  padding: 18px 0 20px;
+  background: #f7f7f9 !important;
+  padding: 14px 16px 16px;
 }
 
 .code-tabs code,
@@ -476,7 +487,13 @@
   border: 0;
   background: transparent;
   padding: 0;
-  color: #dbeafe;
+  color: var(--foreground);
+}
+
+.prose-doc .params-table code {
+  border: 0;
+  background: transparent;
+  padding: 0;
 }
 
 .params-table table {
@@ -494,10 +511,13 @@
 }
 
 .params-table th:first-child,
-.params-table td:first-child { width: 25%; }
+.params-table td:first-child { width: 27%; }
 
 .params-table th:nth-child(2),
-.params-table td:nth-child(2) { width: 17%; }
+.params-table td:nth-child(2) { width: 16%; }
+
+.params-table th:nth-child(3),
+.params-table td:nth-child(3) { width: 14%; }
 
 .api-doc-body { position: relative; }
 
@@ -513,7 +533,7 @@
 @media (max-width: 1279px) {
   .doc-page-shell {
     display: block;
-    max-width: 900px;
+    max-width: 960px;
   }
   .doc-toc { display: none; }
 }
@@ -531,16 +551,16 @@
   .api-page-shell { padding: 18px 14px 64px; }
   .doc-document,
   .api-document {
-    border-radius: 12px;
-    padding: 26px 20px 38px;
+    border-radius: 8px;
+    padding: 24px 20px 34px;
   }
   .doc-header {
-    margin-bottom: 28px;
-    padding-bottom: 24px;
+    margin-bottom: 20px;
+    padding-bottom: 18px;
   }
   .doc-title-row { display: block; }
   .doc-title-row h1 { font-size: 29px; }
-  .doc-title-row > button { margin-top: 18px; }
+  .doc-title-row > button { margin-top: 14px; }
   .doc-meta { gap: 10px; }
   .endpoint-bar { flex-wrap: wrap; }
   .endpoint-bar code {
@@ -551,8 +571,8 @@
   }
   .endpoint-bar button { margin-left: auto; }
   .prose-doc h2 {
-    margin-top: 36px;
-    font-size: 21px;
+    margin-top: 28px;
+    font-size: 19px;
   }
 }
 

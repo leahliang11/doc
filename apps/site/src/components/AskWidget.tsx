@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useId, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { MessageCircle, X, Send, ThumbsUp, ThumbsDown, Loader2 } from 'lucide-react'
 import { useAudience } from '@/providers/audience-provider'
 
@@ -174,12 +174,13 @@ export function AskWidget({ pageSlug }: AskWidgetProps) {
         ),
       )
       scrollToBottom()
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (!aborted) {
+        const message = e instanceof Error ? e.message : String(e)
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantId
-              ? { ...m, content: `请求异常：${e.message}` }
+              ? { ...m, content: `请求异常：${message}` }
               : m,
           ),
         )

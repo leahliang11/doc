@@ -60,13 +60,13 @@ export function DocumentToc() {
   return (
     <aside className="doc-toc hidden xl:block" aria-label="本页内容">
       <div className="sticky top-24">
-        <p className="mb-3 text-xs font-semibold text-foreground">本页内容</p>
+        <p className="mb-2 text-[11px] font-semibold text-foreground">本页内容</p>
         <nav className="space-y-0.5 border-l border-border">
           {items.map((item) => (
             <a
               key={item.id}
               href={`#${item.id}`}
-              className={`block border-l px-3 py-1.5 text-xs leading-5 transition-colors ${
+              className={`block border-l px-2.5 py-1 text-[11px] leading-[18px] transition-colors ${
                 item.level === 3 ? 'pl-6' : ''
               } ${
                 activeId === item.id

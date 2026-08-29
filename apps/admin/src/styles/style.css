@@ -77,6 +77,15 @@ input { font-family: inherit; }
   transition: width 0.2s ease;
 }
 .sidebar.collapsed { width: var(--sidebar-w-collapsed); }
+.sidebar.collapsed .sidebar-header { padding: 0 14px; justify-content: center; }
+.sidebar.collapsed .logo { justify-content: center; }
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .nav-group-title,
+.sidebar.collapsed .nav-label { display: none; }
+.sidebar.collapsed .sidebar-nav { padding: 10px 8px; }
+.sidebar.collapsed .nav-item { justify-content: center; padding: 10px 0; }
+.sidebar.collapsed .nav-icon { font-size: 19px; }
+.sidebar.collapsed .collapse-btn { position: absolute; right: -14px; top: 14px; width: 28px; height: 28px; border: 1px solid var(--border); background: var(--bg-card); box-shadow: var(--shadow-sm); }
 .main-content {
   flex: 1; margin-left: var(--sidebar-w);
   display: flex; flex-direction: column;
@@ -624,6 +633,6 @@ tr.clickable-row:hover { background: var(--bg-hover); }
 }
 .main-body {
   flex: 1;
-  padding: 24px;
+  padding: 20px 24px 28px;
   overflow: auto;
 }

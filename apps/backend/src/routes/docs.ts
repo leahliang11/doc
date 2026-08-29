@@ -1,4 +1,4 @@
-// 文档 API 路由：list / open / save / submit-review / create / gen-openapi
+// 文档 API 路由：list / open / save / submit-review / create / delete / gen-openapi
 import type { FastifyInstance } from 'fastify'
 import path from 'path'
 import fs from 'fs'
@@ -8,7 +8,7 @@ import { recordEditSession, createReviewTask } from '../services/db.js'
 import { parseFrontmatter } from '../lib/frontmatter.js'
 import { listDocs } from '../lib/list-docs.js'
 import { CONTENT_REPO_PATH, SITE_DIR } from '../config.js'
-import { dumpMeta, saveMetaViaDraft, appendPageAndCommitMain, movePageInMeta } from './meta.js'
+import { appendPageToMeta, dumpMeta, saveMetaViaDraft, movePageInMeta, removePageFromMeta } from './meta.js'
 
 // slug 合法性校验：小写字母/数字/连字符/斜杠，禁 .. 和绝对路径防穿越
 function isValidSlug(slug: string): boolean {
@@ -93,10 +93,11 @@ export async function docsRoutes(app: FastifyInstance): Promise<void> {
 
   // 保存文档：冲突检测 + draft 分支 + commit + push
   app.post('/api/docs/save', async (request, reply) => {
-    const { slug, markdown, base_commit, user } = request.body as {
+    const { slug, markdown, base_commit, branch: existingBranch, user } = request.body as {
       slug: string
       markdown: string
       base_commit: string
+      branch?: string
       user: { name: string; email: string }
     }
     if (!slug || !markdown || !base_commit) {
@@ -115,7 +116,8 @@ export async function docsRoutes(app: FastifyInstance): Promise<void> {
       }
 
       // 切 draft 分支 + 写 + commit + push
-      await git.createDraftBranch(slug)
+      if (existingBranch) await git.checkoutDraftBranch(existingBranch)
+      else await git.createDraftBranch(slug)
       const { commitHash, branch } = await git.writeAndCommit(
         slug,
         markdown,
@@ -158,7 +160,7 @@ export async function docsRoutes(app: FastifyInstance): Promise<void> {
     }
   })
 
-  // 新建文档：写文件 + commit 到 main + push
+  // 新建文档：文档与导航写入同一个 draft 分支，并立即创建 MR，禁止绕过审核写 main。
   app.post('/api/docs/create', async (request, reply) => {
     const { title, slug, template, content, sectionId, groupId, user } = request.body as {
       title: string
@@ -184,19 +186,36 @@ export async function docsRoutes(app: FastifyInstance): Promise<void> {
     try {
       // content 优先；否则走模板
       const mdxContent = content?.trim() || getTemplateContent(template, title, slug)
-      fs.mkdirSync(path.dirname(abs), { recursive: true })
-      // 写文件 + commit main + push（绕过双通道，P0 新建走快速通道）
-      const { commitHash } = await git.commitToMain(
+      const files = [{ absoluteFilePath: abs, gitPath, content: mdxContent }]
+      const metaRes = appendPageToMeta(slug, sectionId, groupId)
+      if (metaRes.found) {
+        files.push({
+          absoluteFilePath: path.join(CONTENT_REPO_PATH, 'content-repo', 'content', '_meta.yaml'),
+          gitPath: 'content-repo/content/_meta.yaml',
+          content: dumpMeta(metaRes.meta),
+        })
+      }
+      const { commitHash, branch } = await git.writeFilesToDraft(
         slug,
-        mdxContent,
+        files,
+        `docs: create ${slug}`,
         user?.name || 'unknown',
         user?.email || 'unknown@example.com',
-        abs,
-        gitPath,
       )
-      // 若指定了 section/group，同步把新 slug 追加进 _meta.yaml（同样直降 main 快速通道）
-      const metaRes = await appendPageAndCommitMain(slug, sectionId, groupId)
-      return { slug, commit_hash: commitHash, meta: metaRes }
+      const mrTitle = `docs: ${slug} 新建文档待审核（by ${user?.name || 'unknown'}）`
+      const { iid, webUrl } = await gitlab.createMR(branch, mrTitle)
+      createReviewTask({ source: 'web', slug, branch, mrIid: iid, submitter: user?.name || 'unknown' })
+      const parsed = parseFrontmatter(mdxContent)
+      return {
+        slug,
+        commit_hash: commitHash,
+        branch,
+        mr_iid: iid,
+        mr_url: webUrl,
+        markdown: parsed.body,
+        frontmatter: parsed.frontmatter,
+        meta: { appended: metaRes.found },
+      }
     } catch (e: any) {
       request.log.error(e)
       return reply.code(500).send({ error: e.message })
@@ -221,6 +240,45 @@ export async function docsRoutes(app: FastifyInstance): Promise<void> {
       const { meta, found } = movePageInMeta(slug, toSectionId, toGroupId)
       const result = await saveMetaViaDraft(dumpMeta(meta))
       return { ...result, appended: found }
+    } catch (e: any) {
+      request.log.error(e)
+      return reply.code(500).send({ error: e.message })
+    }
+  })
+
+  // 删除文档：文档文件和导航引用一起进入 draft 分支，提交 MR 后才会影响线上。
+  app.post('/api/docs/delete', async (request, reply) => {
+    const { slug, user } = request.body as {
+      slug: string
+      user?: { name?: string; email?: string }
+    }
+    if (!slug) return reply.code(400).send({ error: '缺少 slug' })
+    if (!isValidSlug(slug)) return reply.code(400).send({ error: 'slug 不合法' })
+
+    try {
+      // 先确认文档存在；git.readFile 同时复用现有的 slug 解析规则。
+      git.readFile(slug)
+      // slugToGitPath 能正确处理 <slug>.mdx 与 <slug>/index.mdx 两种布局。
+      const docAbs = (() => {
+        const direct = path.join(CONTENT_REPO_PATH, 'content-repo', 'content', `${slug}.mdx`)
+        return fs.existsSync(direct) ? direct : path.join(CONTENT_REPO_PATH, 'content-repo', 'content', slug, 'index.mdx')
+      })()
+      const docGitPath = path.relative(CONTENT_REPO_PATH, docAbs)
+      const { meta, removed } = removePageFromMeta(slug)
+      const metaPath = path.join(CONTENT_REPO_PATH, 'content-repo', 'content', '_meta.yaml')
+      const filesToWrite = removed
+        ? [{ absoluteFilePath: metaPath, gitPath: 'content-repo/content/_meta.yaml', content: dumpMeta(meta) }]
+        : []
+      const result = await git.deleteFilesToDraft(
+        [{ absoluteFilePath: docAbs, gitPath: docGitPath }],
+        filesToWrite,
+        `docs: delete ${slug}`,
+        user?.name || 'unknown',
+        user?.email || 'unknown@example.com',
+      )
+      const mr = await gitlab.createMR(result.branch, `docs: ${slug} 删除文档待审核（by ${user?.name || 'unknown'}）`)
+      createReviewTask({ source: 'web', slug, branch: result.branch, mrIid: mr.iid, submitter: user?.name || 'unknown' })
+      return { slug, commit_hash: result.commitHash, branch: result.branch, mr_iid: mr.iid, mr_url: mr.webUrl }
     } catch (e: any) {
       request.log.error(e)
       return reply.code(500).send({ error: e.message })

@@ -42,6 +42,27 @@ function stripDivTags(md: string): string {
   return md.replace(/<\/?div[^>]*>/g, '')
 }
 
+// Steps 的直接 <div> 是步骤边界，不能在递归解包时丢掉。
+function serializeStepsChildren(children: Node[], audience: Audience): string | null {
+  const directDivs = children.filter((child) => {
+    const jsx = child as unknown as MdxJsxElement
+    return (
+      (jsx.type === 'mdxJsxFlowElement' || jsx.type === 'mdxJsxTextElement') &&
+      jsx.name === 'div'
+    )
+  }) as unknown as MdxJsxElement[]
+  if (directDivs.length === 0) return null
+
+  return directDivs
+    .map((div) => {
+      const root = { type: 'root', children: div.children ?? [] } as unknown as Root
+      transform(root, audience)
+      return stripDivTags(serializeChildren(root.children)).trim()
+    })
+    .filter(Boolean)
+    .join('\n\n<!-- mdx-step -->\n\n')
+}
+
 // 提取 JSX 节点的 props
 function extractProps(node: MdxJsxElement): Record<string, unknown> {
   const props: Record<string, unknown> = {}
@@ -104,9 +125,12 @@ export function transform(tree: Root, audience: Audience): Root {
     if (!jsx.name) return
 
     // 先把 children 当作子树递归 transform（转换内层组件），再序列化
+    const stepChildren = jsx.name === 'Steps'
+      ? serializeStepsChildren(jsx.children ?? [], audience)
+      : null
     const childRoot = { type: 'root', children: jsx.children ?? [] } as unknown as Root
-    transform(childRoot, audience)
-    const childrenMd = stripDivTags(serializeChildren(childRoot.children))
+    if (stepChildren === null) transform(childRoot, audience)
+    const childrenMd = stepChildren ?? stripDivTags(serializeChildren(childRoot.children))
 
     // 非白名单 JSX 节点（如 <div>）：解包，用 children 文本替换（去掉标签外壳）
     if (!WHITELIST.has(jsx.name)) {

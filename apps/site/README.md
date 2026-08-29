@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JoyMaaS 开发者文档前台
 
-## Getting Started
+Next.js 文档站，内容来自 `content-repo/content`，部署路径为 `/joymaas-docs`。
 
-First, run the development server:
+## 本地开发
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm dev -p 50529
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+开发启动会先清理并重新生成 Contentlayer 内容，避免已删除或已改名的文档继续残留在路由里。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 构建与检查
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm test
+pnpm lint
+pnpm build
+```
 
-## Learn More
+完整构建依次执行 OpenAPI 文档生成、Contentlayer 刷新和 Next.js 生产编译。OpenAPI 的手写对比稿只写入 `.contentlayer/openapi-comparisons`，不会进入正式文档路由。
 
-To learn more about Next.js, take a look at the following resources:
+## 环境变量
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `NEXT_PUBLIC_BACKEND_URL`：本地前台调用后端时使用；同源部署可留空。
+- `NEXT_PUBLIC_ENABLE_INTERNAL_VIEW=true`：仅内部构建开启受众切换。
+- `DOCS_BUILD_AUDIENCE=internal`：仅内部构建保留 `<InternalOnly>` 内容。
+- `INTERNAL_DOCS_TOKEN`：访问 `/llms-full-internal.txt` 的 Bearer Token；不配置时接口返回 404。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+公开构建不要设置 `NEXT_PUBLIC_ENABLE_INTERNAL_VIEW` 或 `DOCS_BUILD_AUDIENCE=internal`。
 
-## Deploy on Vercel
+## 视觉规范
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+所有页面与 MDX 组件遵循 [DESIGN_TOKENS.md](./DESIGN_TOKENS.md)：亮色冷白底、JoyMaaS 紫色主品牌、不使用渐变、不使用提示框左侧色条，并保持紧凑的信息密度。

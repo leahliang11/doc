@@ -2,6 +2,8 @@
 // 解决 LikeCodeNex IDE 注入 NODE_ENV=production / __NEXT_PRIVATE_STANDALONE_CONFIG（指向别的项目）/ TURBOPACK=1
 // 导致 next dev 报 "Missing field turbopackMemoryEviction" 的问题（Week 1/6 踩坑）
 import { spawn } from 'child_process'
+import { rmSync } from 'fs'
+import path from 'path'
 
 const POLLUTED = [
   'NODE_ENV',
@@ -15,11 +17,26 @@ const POLLUTED = [
 const cleanEnv = { ...process.env }
 for (const k of POLLUTED) delete cleanEnv[k]
 
+// Contentlayer 不会自动删除已从源目录消失的历史文档，启动前必须清理生成缓存。
+const contentlayerDir = path.resolve(import.meta.dirname, '..', '.contentlayer')
+if (path.basename(contentlayerDir) !== '.contentlayer') throw new Error('拒绝清理非 Contentlayer 目录')
+rmSync(contentlayerDir, { recursive: true, force: true })
+
 const args = process.argv.slice(2).length ? process.argv.slice(2) : ['--turbopack', '-p', '50528']
-const child = spawn('npx', ['next', 'dev', ...args], {
+
+const prepare = spawn('pnpm', ['exec', 'contentlayer2', 'build'], {
   env: cleanEnv,
   stdio: 'inherit',
-  shell: true,
+  shell: false,
 })
 
-child.on('close', (code) => process.exit(code ?? 0))
+prepare.on('close', (code) => {
+  if (code !== 0) process.exit(code ?? 1)
+
+  const child = spawn('pnpm', ['exec', 'next', 'dev', ...args], {
+    env: cleanEnv,
+    stdio: 'inherit',
+    shell: false,
+  })
+  child.on('close', (childCode) => process.exit(childCode ?? 0))
+})

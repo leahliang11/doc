@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { allDocs } from 'contentlayer2/generated'
 import { mdxToMarkdown } from '@/lib/mdx-to-md'
+import crypto from 'node:crypto'
 
 // GET /llms-full-internal.txt → 全站文档全文（internal 视角）
 // 与 /llms-full.txt 的差异：
@@ -18,7 +19,26 @@ const categoryLabels: Record<string, string> = {
 }
 const categoryOrder = ['quickstart', 'api', 'models', 'guides', 'troubleshooting']
 
-export function GET() {
+function safeTokenEqual(candidate: string, expected: string): boolean {
+  const a = Buffer.from(candidate)
+  const b = Buffer.from(expected)
+  return a.length === b.length && crypto.timingSafeEqual(a, b)
+}
+
+export function GET(request: Request) {
+  const expected = process.env.INTERNAL_DOCS_TOKEN ?? ''
+  const authorization = request.headers.get('authorization') ?? ''
+  const candidate = authorization.startsWith('Bearer ')
+    ? authorization.slice('Bearer '.length).trim()
+    : ''
+  // 未配置或令牌不匹配时使用 404，避免公开暴露内部出口的存在。
+  if (!expected || !candidate || !safeTokenEqual(candidate, expected)) {
+    return new NextResponse('Not found', {
+      status: 404,
+      headers: { 'Cache-Control': 'no-store' },
+    })
+  }
+
   // internal 视角：不过滤 audience=internal，ai_readable=false 仍然排除
   const docs = allDocs.filter(
     (d) => d.status === 'published' && d.ai_readable !== false,
@@ -86,7 +106,7 @@ export function GET() {
     status: 200,
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'public, max-age=60',
+      'Cache-Control': 'private, no-store',
       // 阻断搜索引擎抓取（内部内容）
       'X-Robots-Tag': 'noindex, nofollow',
     },

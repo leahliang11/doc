@@ -11,6 +11,10 @@ import {
 
 export async function webhookRoutes(app: FastifyInstance): Promise<void> {
   app.post('/api/webhook/gitlab', async (request, reply) => {
+    if (process.env.NODE_ENV === 'production' && !WEBHOOK_SECRET) {
+      request.log.error('生产环境未配置 WEBHOOK_SECRET，拒绝接收 webhook')
+      return reply.code(503).send({ error: 'webhook secret is not configured' })
+    }
     // 1. 校验 X-Gitlab-Token（生产必填；本地 WEBHOOK_SECRET 留空则跳过校验）
     if (WEBHOOK_SECRET) {
       const token = request.headers['x-gitlab-token']

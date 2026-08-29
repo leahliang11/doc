@@ -9,6 +9,7 @@ import type { ReactNode } from 'react'
 export type Audience = 'external' | 'internal'
 
 const STORAGE_KEY = 'joymaas-docs-audience'
+const internalViewEnabled = process.env.NEXT_PUBLIC_ENABLE_INTERNAL_VIEW === 'true'
 
 interface AudienceContextValue {
   audience: Audience
@@ -29,21 +30,25 @@ export function AudienceProvider({ children }: { children: ReactNode }) {
 
   // 客户端 mount 后读 localStorage
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored === 'internal' || stored === 'external') {
-        setAudienceState(stored)
+    const frame = window.requestAnimationFrame(() => {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY)
+        if (stored === 'external' || (internalViewEnabled && stored === 'internal')) {
+          setAudienceState(stored)
+        }
+      } catch {
+        // localStorage 被禁 → 忽略
       }
-    } catch {
-      // localStorage 被禁 → 忽略
-    }
-    setReady(true)
+      setReady(true)
+    })
+    return () => window.cancelAnimationFrame(frame)
   }, [])
 
   const setAudience = (a: Audience) => {
-    setAudienceState(a)
+    const next = internalViewEnabled ? a : 'external'
+    setAudienceState(next)
     try {
-      localStorage.setItem(STORAGE_KEY, a)
+      localStorage.setItem(STORAGE_KEY, next)
     } catch {
       // 忽略
     }

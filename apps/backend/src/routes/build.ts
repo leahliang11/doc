@@ -20,7 +20,7 @@ export async function buildRoutes(app: FastifyInstance): Promise<void> {
     return listBuildTasks(status || 'pending')
   })
 
-  // 手动触发构建：先记一条 manual build_task，spawn 跑 gen:openapi + build，完成更新状态
+  // 手动触发构建：先记一条 manual build_task，再执行站点完整构建并更新状态
   app.post('/api/build/run', async (request, reply) => {
     const taskId = recordBuildNeed('manual')
     request.log.info({ taskId }, '手动构建触发')
@@ -42,16 +42,15 @@ export async function buildRoutes(app: FastifyInstance): Promise<void> {
   })
 }
 
-// spawn 跑 pnpm gen:openapi && pnpm build（site 目录）
+// 执行 site 的完整 build（包含 OpenAPI 生成、Contentlayer 刷新和 Next 编译）
 async function runBuild(taskId: number, app: FastifyInstance): Promise<void> {
   updateBuildTaskStatus(taskId, 'building')
   const logChunks: string[] = []
 
   return new Promise((resolve, reject) => {
-    // 用 shell 串联 gen:openapi && build
-    const child = spawn('pnpm', ['run', 'gen:openapi'], {
+    const child = spawn('pnpm', ['run', 'build'], {
       cwd: SITE_DIR,
-      shell: true,
+      shell: false,
     })
 
     child.stdout?.on('data', (d) => logChunks.push(String(d)))

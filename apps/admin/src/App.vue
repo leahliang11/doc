@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import Sidebar from './components/Sidebar.vue'
 import DocsView from './views/DocsView.vue'
 import ReviewView from './views/ReviewView.vue'
@@ -7,9 +7,53 @@ import PublishView from './views/PublishView.vue'
 import DashboardView from './views/DashboardView.vue'
 import TodoView from './views/TodoView.vue'
 import PlaceholderView from './views/PlaceholderView.vue'
-import { listBuildTasks, runBuild, type BuildTask } from './api'
+import {
+  checkAdminSession,
+  clearStoredAdminToken,
+  getStoredAdminToken,
+  loginAdmin,
+  listBuildTasks,
+  runBuild,
+  setStoredAdminToken,
+  type BuildTask,
+} from './api'
 
 const currentRoute = ref('/docs')
+const authReady = ref(false)
+const authenticated = ref(false)
+const loginUsername = ref('admin')
+const loginPassword = ref('')
+const loginError = ref('')
+const loggingIn = ref(false)
+
+async function verifyToken(token: string) {
+  if (!token) return false
+  try { return await checkAdminSession(token) } catch { return false }
+}
+
+async function login() {
+  const username = loginUsername.value.trim()
+  const password = loginPassword.value
+  if (!username || !password || loggingIn.value) return
+  loggingIn.value = true
+  loginError.value = ''
+  try {
+    const token = await loginAdmin(username, password)
+    setStoredAdminToken(token)
+    authenticated.value = true
+    loginPassword.value = ''
+  } catch (e: any) {
+    clearStoredAdminToken()
+    loginError.value = e.message || '账号或密码不正确'
+  }
+  loggingIn.value = false
+}
+
+function logout() {
+  clearStoredAdminToken()
+  authenticated.value = false
+  loginPassword.value = ''
+}
 
 // 暗色切换
 const isDark = ref(false)
@@ -32,6 +76,13 @@ onMounted(() => {
   } catch {
     /* ignore */
   }
+})
+
+onMounted(async () => {
+  const token = getStoredAdminToken()
+  authenticated.value = await verifyToken(token)
+  if (!authenticated.value) clearStoredAdminToken()
+  authReady.value = true
 })
 
 // 待构建（Week 6）
@@ -75,10 +126,14 @@ async function triggerBuild() {
   }
 }
 
-onMounted(() => {
-  loadPendingBuilds()
-  buildTimer = setInterval(loadPendingBuilds, 15000) // 15s 轮询待构建数
-})
+watch(authenticated, (active) => {
+  if (buildTimer) clearInterval(buildTimer)
+  buildTimer = null
+  if (active) {
+    loadPendingBuilds()
+    buildTimer = setInterval(loadPendingBuilds, 15000)
+  }
+}, { immediate: true })
 onUnmounted(() => {
   if (buildTimer) clearInterval(buildTimer)
 })
@@ -117,7 +172,36 @@ const currentLabel = computed(() => labels[currentRoute.value] || '文档')
 </script>
 
 <template>
-  <div class="app-layout">
+  <div v-if="!authReady" class="auth-loading">正在验证访问权限…</div>
+  <div v-else-if="!authenticated" class="auth-page">
+    <form class="auth-card" @submit.prevent="login">
+      <div class="auth-mark"><i class="ri-book-open-line"></i></div>
+      <h1>JoyMaaS 文档后台</h1>
+      <p>请输入管理员账号和密码后继续。</p>
+      <label for="admin-username">账号</label>
+      <input
+        id="admin-username"
+        v-model="loginUsername"
+        type="text"
+        autocomplete="username"
+        placeholder="输入账号"
+        autofocus
+      />
+      <label for="admin-password">密码</label>
+      <input
+        id="admin-password"
+        v-model="loginPassword"
+        type="password"
+        autocomplete="current-password"
+        placeholder="输入密码"
+      />
+      <span v-if="loginError" class="auth-error">{{ loginError }}</span>
+      <button type="submit" :disabled="loggingIn || !loginUsername.trim() || !loginPassword">
+        {{ loggingIn ? '验证中…' : '进入后台' }}
+      </button>
+    </form>
+  </div>
+  <div v-else class="app-layout">
     <Sidebar :route="currentRoute" :nav-groups="navGroups" @navigate="navigate" />
     <main class="main-content">
       <header class="main-header">
@@ -138,6 +222,9 @@ const currentLabel = computed(() => labels[currentRoute.value] || '文档')
           <button class="theme-toggle" :title="isDark ? '切换浅色' : '切换深色'" @click="toggleDark">
             <i :class="isDark ? 'ri-sun-line' : 'ri-moon-line'"></i>
           </button>
+          <button class="theme-toggle" title="退出后台" @click="logout">
+            <i class="ri-logout-box-r-line"></i>
+          </button>
         </div>
       </header>
       <div class="main-body">
@@ -153,8 +240,48 @@ const currentLabel = computed(() => labels[currentRoute.value] || '文档')
 </template>
 
 <style scoped>
+.auth-loading,
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--bg-page);
+  color: var(--text-secondary);
+}
+.auth-card {
+  width: min(380px, calc(100vw - 32px));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  padding: 28px;
+  box-shadow: var(--shadow-md);
+}
+.auth-mark {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 19px;
+}
+.auth-card h1 { margin: 18px 0 6px; font-size: 20px; color: var(--text); }
+.auth-card p { margin: 0 0 22px; font-size: 13px; color: var(--text-secondary); }
+.auth-card label { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 600; color: var(--text); }
+.auth-card input {
+  width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 7px;
+  padding: 0 11px; background: var(--bg-card); color: var(--text); outline: none;
+}
+.auth-card input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+.auth-card button {
+  width: 100%; height: 38px; margin-top: 14px; border: 0; border-radius: 7px;
+  background: var(--brand); color: #fff; font-weight: 600; cursor: pointer;
+}
+.auth-card button:disabled { opacity: .55; cursor: not-allowed; }
+.auth-error { display: block; margin-top: 8px; font-size: 12px; color: var(--danger); }
 .theme-toggle {
-  margin-left: auto;
+  margin-left: 0;
   background: transparent;
   border: 1px solid var(--border);
   border-radius: 6px;

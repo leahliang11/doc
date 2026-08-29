@@ -5,10 +5,11 @@ import Editor from '../components/Editor.vue'
 import ConflictDialog from '../components/ConflictDialog.vue'
 import ComponentInsertDialog from '../components/ComponentInsertDialog.vue'
 import DocTree from '../components/DocTree.vue'
-import { openDoc, saveDoc, submitReview, type DocListItem } from '../api'
+import { openDoc, saveDoc, submitReview, type CreateResult, type DocListItem } from '../api'
 
 const mode = ref<'list' | 'edit'>('list')
 const currentSlug = ref('')
+const currentTitle = ref('')
 const markdown = ref('')
 const baseCommit = ref('')
 const currentBranch = ref('')
@@ -17,6 +18,7 @@ const submitting = ref(false)
 const toast = ref('')
 const conflict = ref<{ remoteMarkdown: string; message: string } | null>(null)
 const mrResult = ref<{ iid: number; url: string } | null>(null)
+const treeVersion = ref(0)
 
 // 组件插入弹窗
 const insertDialog = ref<{ show: boolean; component: 'CodeTabs' | 'Params' | null }>({
@@ -37,11 +39,11 @@ function onContentChange(content: string) {
   // 自动保存草稿到 localStorage（防抖 3s）
   if (content === lastSavedContent.value) {
     dirty.value = false
-    if (saveState.value !== 'mr' && saveState.value !== 'conflict') saveState.value = 'saved'
+    if (saveState.value !== 'conflict') saveState.value = mrResult.value ? 'mr' : 'saved'
     return
   }
   dirty.value = true
-  if (saveState.value !== 'mr' && saveState.value !== 'conflict') saveState.value = 'unsaved'
+  if (saveState.value !== 'conflict') saveState.value = 'unsaved'
   if (autoSaveTimer) clearTimeout(autoSaveTimer)
   autoSaveTimer = setTimeout(() => {
     try {
@@ -69,6 +71,7 @@ async function onOpen(doc: DocListItem) {
   try {
     const r = await openDoc(doc.slug)
     currentSlug.value = doc.slug
+    currentTitle.value = String(r.frontmatter?.title || doc.title || doc.slug)
     markdown.value = r.markdown
     baseCommit.value = r.base_commit
     currentBranch.value = ''
@@ -82,10 +85,19 @@ async function onOpen(doc: DocListItem) {
   }
 }
 
-// 新建文档后自动打开
-async function onCreated(slug: string) {
-  toast.value = '文档已创建，打开中…'
-  await onOpen({ slug, title: '', category: '', status: 'draft', updated: '' })
+// 新建文档已在 draft 分支创建 MR；直接使用返回内容进入编辑器，后续保存继续更新同一分支。
+function onCreated(result: CreateResult) {
+  currentSlug.value = result.slug
+  currentTitle.value = String(result.frontmatter?.title || result.slug)
+  markdown.value = result.markdown
+  baseCommit.value = result.commit_hash
+  currentBranch.value = result.branch
+  lastSavedContent.value = result.markdown
+  dirty.value = false
+  saveState.value = 'mr'
+  mode.value = 'edit'
+  mrResult.value = { iid: result.mr_iid, url: result.mr_url }
+  toast.value = '草稿已创建并提交审核'
 }
 
 async function onSave(content: string) {
@@ -93,13 +105,15 @@ async function onSave(content: string) {
   saveState.value = 'saving'
   toast.value = '保存中…'
   try {
-    const r = await saveDoc(currentSlug.value, content, baseCommit.value)
+    const r = await saveDoc(currentSlug.value, content, baseCommit.value, currentBranch.value || undefined)
     currentBranch.value = r.branch
     baseCommit.value = r.commit_hash
     lastSavedContent.value = content
     dirty.value = false
-    saveState.value = 'saved'
-    toast.value = `已保存：commit ${r.commit_hash.slice(0, 8)}，分支 ${r.branch}`
+    saveState.value = mrResult.value ? 'mr' : 'saved'
+    toast.value = mrResult.value
+      ? `已保存并更新 MR：commit ${r.commit_hash.slice(0, 8)}`
+      : `已保存：commit ${r.commit_hash.slice(0, 8)}，分支 ${r.branch}`
     // 清理草稿
     try { localStorage.removeItem(`draft:${currentSlug.value}`) } catch { /* ignore */ }
   } catch (e: any) {
@@ -121,7 +135,7 @@ async function onSubmit(content: string) {
   toast.value = '提交审核中…'
   try {
     if (!currentBranch.value) {
-      const r = await saveDoc(currentSlug.value, content, baseCommit.value)
+      const r = await saveDoc(currentSlug.value, content, baseCommit.value, currentBranch.value || undefined)
       currentBranch.value = r.branch
       baseCommit.value = r.commit_hash
       lastSavedContent.value = content
@@ -153,6 +167,7 @@ function backToList() {
   if (dirty.value && !confirm('有未保存的改动，确认返回列表？')) return
   mode.value = 'list'
   currentSlug.value = ''
+  currentTitle.value = ''
   markdown.value = ''
   baseCommit.value = ''
   currentBranch.value = ''
@@ -160,6 +175,11 @@ function backToList() {
   mrResult.value = null
   dirty.value = false
   saveState.value = 'unsaved'
+}
+
+function onDocDeleted() {
+  // 列表和目录各自加载数据，删除后强制目录重新取一次 meta 和标题。
+  treeVersion.value += 1
 }
 
 // 冲突弹窗：用我的覆盖（重新 open 拿最新 base，再保存）
@@ -190,16 +210,17 @@ async function discardMine() {
 
     <div v-if="mode === 'list'" class="list-layout">
       <div class="tree-col">
-        <DocTree @open="(slug: string) => onOpen({ slug, title: '', category: '', status: 'draft', updated: '' } as DocListItem)" />
+        <DocTree :key="treeVersion" @open="(slug: string) => onOpen({ slug, title: '', category: '', status: 'draft', updated: '' } as DocListItem)" @deleted="onDocDeleted" />
       </div>
       <div class="list-col">
-        <DocList @open="onOpen" @created="onCreated" />
+        <DocList @open="onOpen" @created="onCreated" @deleted="onDocDeleted" />
       </div>
     </div>
     <Editor
       v-else
       ref="editorRef"
       :slug="currentSlug"
+      :title="currentTitle"
       :markdown="markdown"
       :base-commit="baseCommit"
       :saving="saving"
@@ -308,8 +329,8 @@ async function discardMine() {
 }
 .list-layout {
   display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 16px;
+  grid-template-columns: minmax(320px, 360px) minmax(0, 1fr);
+  gap: 24px;
   align-items: start;
 }
 .tree-col {

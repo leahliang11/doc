@@ -18,14 +18,14 @@ export function SidebarLink({ href, children, badge }: SidebarLinkProps) {
     <Link
       href={href}
       aria-current={isActive ? 'page' : undefined}
-      className={`group relative flex min-h-9 items-center gap-2 rounded-lg px-3 py-2 text-[13px] transition-colors ${
+      className={`group relative flex min-h-8 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12.5px] transition-colors ${
         isActive
           ? 'bg-brand-soft font-medium text-brand'
           : 'text-muted-foreground hover:bg-muted hover:text-foreground'
       }`}
     >
       {isActive && (
-        <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-brand" aria-hidden="true" />
+        <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-brand" aria-hidden="true" />
       )}
       <span className="min-w-0 flex-1 truncate">{children}</span>
       {badge && (

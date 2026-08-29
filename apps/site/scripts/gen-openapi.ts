@@ -10,6 +10,7 @@ import * as yaml from 'js-yaml'
 const ROOT = process.env.DOCS_ROOT || path.resolve(__dirname, '../../..')
 const OPENAPI_PATH = path.join(ROOT, 'content-repo/openapi/openapi.yaml')
 const CONTENT_API_DIR = path.join(ROOT, 'content-repo/content/api')
+const COMPARISON_DIR = path.join(ROOT, 'apps/site/.contentlayer/openapi-comparisons')
 
 interface SchemaProperty {
   type: string
@@ -42,6 +43,7 @@ interface Operation {
   'x-codeSamples'?: CodeSample[]
   'x-callout'?: { variant?: string; title?: string; body?: string }
   'x-internal'?: { body?: string }
+  'x-playground'?: boolean
 }
 type Spec = {
   paths?: Record<string, Record<string, Operation>>
@@ -123,7 +125,8 @@ function operationToMdx(method: string, url: string, op: Operation): string {
   const slug = deriveSlug(url)
   const title = op.summary || op.operationId || url
   const description = op.description || ''
-  const today = new Date().toISOString().slice(0, 10)
+  // 使用规范文件修改日，保证同一份 OpenAPI 重复构建不会每天产生无意义 diff。
+  const today = fs.statSync(OPENAPI_PATH).mtime.toISOString().slice(0, 10)
 
   const parts: string[] = []
   // frontmatter
@@ -177,6 +180,14 @@ function operationToMdx(method: string, url: string, op: Operation): string {
     parts.push('## 请求示例')
     parts.push('')
     parts.push(codeSamplesToTabs(op['x-codeSamples']))
+    parts.push('')
+  }
+
+  // 在线试用（显式开启，避免并非所有 OpenAPI operation 都错误展示 Playground）
+  if (op['x-playground']) {
+    parts.push('## 在线试用')
+    parts.push('')
+    parts.push(`<Playground endpoint="${deriveSlug(url).replace(/^api\//, '')}" />`)
     parts.push('')
   }
 
@@ -238,6 +249,12 @@ export function main(): void {
   }
 
   fs.mkdirSync(CONTENT_API_DIR, { recursive: true })
+  fs.mkdirSync(COMPARISON_DIR, { recursive: true })
+
+  // 旧版把对比稿写进正式内容目录，且可能被 .gitignore 隐藏；构建前统一清走。
+  for (const name of fs.readdirSync(CONTENT_API_DIR)) {
+    if (/\.gen\.mdx?$/.test(name)) fs.rmSync(path.join(CONTENT_API_DIR, name))
+  }
 
   let generated = 0
   const skipped = 0
@@ -252,9 +269,9 @@ export function main(): void {
       const mdx = operationToMdx(method, url, op)
       if (existing === 'manual') {
         const genName = fileName.replace(/\.mdx$/, '.gen.md')
-        const genPath = path.join(CONTENT_API_DIR, genName)
+        const genPath = path.join(COMPARISON_DIR, genName)
         fs.writeFileSync(genPath, mdx, 'utf-8')
-        console.warn(`对比模式：${fileName} 是手写，生成版写到 ${genName}`)
+        console.warn(`对比模式：${fileName} 是手写，生成版写到 .contentlayer/openapi-comparisons/${genName}`)
         generated++
         continue
       }

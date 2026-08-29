@@ -21,21 +21,19 @@ const params = computed<Param[]>(() => (Array.isArray(props.params) ? props.para
     <table>
       <thead>
         <tr>
-          <th>参数名</th>
+          <th>参数</th>
           <th>类型</th>
-          <th>必填</th>
           <th>默认值</th>
           <th>说明</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="p in params" :key="p.name">
-          <td class="pv-param-name">{{ p.name }}</td>
-          <td class="pv-param-type">{{ p.type }}</td>
-          <td>
-            <span v-if="p.required" class="pv-param-req-yes">是</span>
-            <span v-else class="pv-param-req-no">否</span>
+          <td class="pv-param-name">
+            <code>{{ p.name }}</code>
+            <span v-if="p.required" class="pv-param-req-yes">必填</span>
           </td>
+          <td class="pv-param-type">{{ p.type }}</td>
           <td class="pv-param-default">{{ p.default ?? '-' }}</td>
           <td class="pv-param-desc">{{ p.description }}</td>
         </tr>

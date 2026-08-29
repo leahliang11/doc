@@ -24,8 +24,11 @@ const items = computed<NextStepItem[]>(() => (Array.isArray(props.items) ? props
       rel="noopener"
       class="pv-nextstep-card"
     >
-      <h3 class="pv-nextstep-title">{{ item.title }}</h3>
-      <p class="pv-nextstep-desc">{{ item.description }}</p>
+      <span class="pv-nextstep-dot"></span>
+      <span class="pv-nextstep-copy">
+        <span class="pv-nextstep-title">{{ item.title }}</span>
+        <span class="pv-nextstep-desc">{{ item.description }}</span>
+      </span>
       <svg class="pv-nextstep-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     </a>
   </div>

@@ -26,8 +26,8 @@ function CodeTabs({ tabs }: CodeTabsProps) {
   if (!activeTab) return null
 
   return (
-    <div className="code-tabs my-6 overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-[0_12px_32px_rgba(15,23,42,0.14)]">
-      <div className="flex min-h-11 items-center border-b border-slate-700/80 bg-slate-800/80 px-2">
+    <div className="code-tabs my-4 overflow-hidden rounded-lg border border-border bg-card">
+      <div className="flex min-h-9 items-center border-b border-border bg-muted px-1.5">
         <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto" role="tablist" aria-label="代码语言">
           {tabs.map((tab) => (
             <button
@@ -36,10 +36,10 @@ function CodeTabs({ tabs }: CodeTabsProps) {
               role="tab"
               aria-selected={tab.label === activeTab.label}
               onClick={() => setActiveLabel(tab.label)}
-              className={`relative h-11 shrink-0 px-3 text-xs font-medium transition-colors ${
+              className={`relative h-9 shrink-0 px-2.5 text-[11px] font-medium transition-colors ${
                 tab.label === activeTab.label
-                  ? 'text-white after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'text-foreground after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {tab.label}
@@ -49,7 +49,7 @@ function CodeTabs({ tabs }: CodeTabsProps) {
         <button
           type="button"
           onClick={() => handleCopy(activeTab.label, activeTab.code)}
-          className="ml-2 inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[11px] font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+          className="ml-2 inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10"
           aria-label="复制代码"
         >
           {copiedLabel === activeTab.label ? (
@@ -60,8 +60,8 @@ function CodeTabs({ tabs }: CodeTabsProps) {
           <span>{copiedLabel === activeTab.label ? '已复制' : '复制'}</span>
         </button>
       </div>
-      <pre className="m-0 max-h-[520px] overflow-auto rounded-none bg-slate-900 px-5 py-4 text-[13px] leading-6">
-        <code className="font-mono text-slate-100">{activeTab.code}</code>
+      <pre className="m-0 max-h-[480px] overflow-auto rounded-none bg-[#f7f7f9] px-4 py-3.5 text-[12.5px] leading-[22px] dark:bg-[#1b1b1f]">
+        <code className="font-mono text-foreground">{activeTab.code}</code>
       </pre>
     </div>
   )

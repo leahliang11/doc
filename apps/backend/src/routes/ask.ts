@@ -9,6 +9,7 @@ import path from 'path'
 import { chatStream } from '../services/joybuilder.js'
 import { createAskSession, updateAskSession, setAskUseful } from '../services/db.js'
 import { buildDocsSystemContext, loadDocsContext } from '../services/docs-content.js'
+import { INTERNAL_DOCS_TOKEN } from '../config.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PROMPT_TEMPLATE = fs.readFileSync(
@@ -47,7 +48,7 @@ export async function askRoutes(app: FastifyInstance): Promise<void> {
    *   event: error → data: { message }
    */
   app.post('/api/ask', async (request, reply) => {
-    const { query, audience = 'external', pageSlug, sessionId } = request.body as {
+    const { query, audience: requestedAudience = 'external', pageSlug, sessionId } = request.body as {
       query: string
       audience?: 'external' | 'internal'
       pageSlug?: string
@@ -60,6 +61,18 @@ export async function askRoutes(app: FastifyInstance): Promise<void> {
     if (!sessionId) {
       return reply.code(400).send({ error: 'sessionId 不能为空' })
     }
+
+    // 内部受众必须携带独立令牌；普通公开请求即使伪造 audience 也只能读取公开文档。
+    const authorization = request.headers.authorization ?? ''
+    const candidate = authorization.startsWith('Bearer ')
+      ? authorization.slice('Bearer '.length).trim()
+      : ''
+    const audience: 'external' | 'internal' =
+      requestedAudience === 'internal' &&
+      INTERNAL_DOCS_TOKEN.length > 0 &&
+      candidate === INTERNAL_DOCS_TOKEN
+        ? 'internal'
+        : 'external'
 
     // 记录会话（answer 后续补写）
     const sessionDbId = createAskSession({

@@ -23,6 +23,19 @@ export const DB_PATH = process.env.DB_PATH ?? './data/app.sqlite'
 export const SITE_DIR = process.env.SITE_DIR ?? path.resolve(__dirname, '..', '..', 'site')
 export const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET ?? '' // Coding webhook 配置时设的 X-Gitlab-Token；空则不校验（仅本地调试）
 
+// 后台访问保护。生产环境必须配置，所有非公开 /api/* 路由都校验 Bearer Token。
+export const ADMIN_TOKEN = required('ADMIN_TOKEN')
+// 面向管理员的登录凭据；登录成功后仍由服务端签发/复用内部令牌，不把令牌暴露给用户。
+export const ADMIN_USERNAME = process.env.ADMIN_USERNAME ?? 'admin'
+export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? ''
+// 内部文档/内部 Ask 独立令牌；未配置时一律不开放内部受众。
+export const INTERNAL_DOCS_TOKEN = process.env.INTERNAL_DOCS_TOKEN ?? ''
+// 生产环境只允许显式配置的跨域来源；同源请求不受 CORS 影响。
+export const CORS_ORIGINS = (process.env.CORS_ORIGINS ?? '')
+  .split(',')
+  .map((item) => item.trim())
+  .filter(Boolean)
+
 // Joybuilder AI（dogfooding：用自家 JoyMaaS 模型做文档 AI 助手）
 export const JOYBUILDER_API_KEY = required('JOYBUILDER_API_KEY')
 export const JOYBUILDER_BASE_URL =

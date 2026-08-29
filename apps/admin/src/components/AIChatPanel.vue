@@ -3,6 +3,7 @@
 // 展示当前文档的历史 AI 交互，倒序排列
 // 后端：GET /api/ai/sessions?docSlug=xxx
 import { ref, watch, onMounted } from 'vue'
+import { adminFetch } from '../api'
 
 interface AiSession {
   id: number
@@ -41,7 +42,7 @@ async function load() {
   if (!props.docSlug) return
   loading.value = true
   try {
-    const res = await fetch(`/api/ai/sessions?docSlug=${encodeURIComponent(props.docSlug)}&limit=30`)
+    const res = await adminFetch(`/api/ai/sessions?docSlug=${encodeURIComponent(props.docSlug)}&limit=30`)
     const data = await res.json()
     sessions.value = data.sessions ?? []
   } catch {
