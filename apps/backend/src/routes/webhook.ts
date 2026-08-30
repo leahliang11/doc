@@ -4,6 +4,7 @@ import crypto from 'node:crypto'
 import { WEBHOOK_SECRET } from '../config.js'
 import {
   createReviewTask,
+  createReviewTaskWithKind,
   findReviewTaskByMrIid,
   updateReviewTaskStatus,
   recordBuildNeed,
@@ -138,8 +139,9 @@ async function handleGitHubPullRequest(body: any, request: any): Promise<void> {
       return
     }
     const slug = parseSlugFromBranch(sourceBranch)
-    createReviewTask({
+    createReviewTaskWithKind({
       source: 'github_pr',
+      sourceKind: 'engineer',
       slug,
       branch: sourceBranch,
       mrIid: iid,
