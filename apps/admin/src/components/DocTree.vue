@@ -24,6 +24,7 @@ const dragOverGroup = ref<string | null>(null) // sectionId/groupId 复合 key
 
 // slug → 标题 查找表（从 dashboard 或直接用 slug 推断）
 const titleMap = ref<Record<string, string>>({})
+const statusMap = ref<Record<string, string>>({})
 const collapsedSections = ref<Record<string, boolean>>({})
 const collapsedGroups = ref<Record<string, boolean>>({})
 const selectedSlugs = ref<string[]>([])
@@ -37,6 +38,7 @@ async function refresh() {
     const resp = await adminFetch('/api/docs')
     const docs = await resp.json()
     titleMap.value = Object.fromEntries(docs.map((d: any) => [d.slug, d.title]))
+    statusMap.value = Object.fromEntries(docs.map((d: any) => [d.slug, d.status || 'draft']))
     selectedSlugs.value = selectedSlugs.value.filter((slug) => Object.prototype.hasOwnProperty.call(titleMap.value, slug))
   } catch (e: any) {
     error.value = e.message
@@ -54,13 +56,21 @@ function toggleSelected(slug: string) {
 async function deleteSelected() {
   if (!selectedSlugs.value.length) return
   const targets = [...selectedSlugs.value]
-  if (!confirm(`确定删除选中的 ${targets.length} 篇文档吗？\n草稿会立即删除，已发布文档才会进入审核。`)) return
+  const drafts = targets.filter((slug) => statusMap.value[slug] !== 'published' && statusMap.value[slug] !== 'review')
+  const protectedCount = targets.length - drafts.length
+  if (!drafts.length) {
+    toast.value = '选中的文档均已发布或在审核中，请单独操作'
+    setTimeout(() => (toast.value = ''), 3500)
+    return
+  }
+  const suffix = protectedCount ? `\n其中 ${protectedCount} 篇已发布/审核中文档将跳过。` : ''
+  if (!confirm(`确定删除选中的 ${drafts.length} 篇草稿吗？草稿会立即删除。${suffix}`)) return
   saving.value = true
   toast.value = `正在提交 ${targets.length} 篇文档的删除…`
   try {
     // 后端会在同一个工作区切换 draft 分支，必须串行执行，避免并发 checkout 导致删除失败。
     const results = []
-    for (const slug of targets) results.push(await deleteDoc(slug))
+    for (const slug of drafts) results.push(await deleteDoc(slug))
     selectedSlugs.value = []
     toast.value = `已处理 ${results.length} 篇文档的删除请求`
     emit('deleted')
@@ -263,7 +273,8 @@ async function onDrop(sectionId: string, groupId: string, e: DragEvent) {
 
 async function onDelete(slug: string) {
   const title = titleMap.value[slug] || slug
-  if (!confirm(`确定删除「${title}」吗？\n未发布草稿将直接删除，已发布文档会进入审核流程。`)) return
+  const protectedDoc = statusMap.value[slug] === 'published' || statusMap.value[slug] === 'review'
+  if (!confirm(`确定删除「${title}」吗？\n${protectedDoc ? '该文档已发布/在审核中，将提交审核。' : '这是未发布草稿，将直接删除。'}`)) return
   saving.value = true
   toast.value = '删除提交中…'
   try {
