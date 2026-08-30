@@ -26,6 +26,7 @@ const PUBLIC_API_PATHS = new Set([
   '/api/ask/feedback',
   '/api/playground/run',
   '/api/webhook/gitlab',
+  '/api/webhook/github',
 ])
 
 function safeTokenEqual(candidate: string, expected: string): boolean {

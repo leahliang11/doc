@@ -16,10 +16,10 @@ db.exec('PRAGMA journal_mode = WAL')
 db.exec(`
   CREATE TABLE IF NOT EXISTS review_tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    source TEXT NOT NULL,           -- 'web' | 'gitlab_mr'
+    source TEXT NOT NULL,           -- 'web' | 'gitlab_mr' | 'github_pr'
     slug TEXT NOT NULL,
     branch TEXT NOT NULL,
-    mr_iid INTEGER,                 -- 仅 gitlab_mr / web 提交后建了 MR 的
+    mr_iid INTEGER,                 -- GitLab MR / GitHub PR / web 提交后生成的编号
     submitter TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending',  -- 'pending' | 'approved' | 'rejected' | 'merged'
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -187,7 +187,7 @@ export function dismissGap(id: number): void {
 
 // review_tasks 加 source_kind 支持
 export function createReviewTaskWithKind(task: {
-  source: 'web' | 'gitlab_mr' | 'auto'
+  source: 'web' | 'gitlab_mr' | 'github_pr' | 'auto'
   sourceKind: 'pm' | 'engineer' | 'auto'
   slug: string
   branch: string
@@ -210,7 +210,7 @@ export function recordEditSession(slug: string, user: string, baseCommit: string
 
 // ── review_tasks ──
 export function createReviewTask(task: {
-  source: 'web' | 'gitlab_mr'
+  source: 'web' | 'gitlab_mr' | 'github_pr'
   slug: string
   branch: string
   mrIid: number
@@ -234,7 +234,7 @@ export function getReviewTask(id: number): any {
   return db.prepare('SELECT * FROM review_tasks WHERE id = ?').get(id)
 }
 
-// 按 MR iid 查找（webhook 去重 + merge/close 回流用）
+// 按代码平台编号查找（webhook 去重 + merge/close 回流用）
 export function findReviewTaskByMrIid(mrIid: number): any {
   return db.prepare('SELECT * FROM review_tasks WHERE mr_iid = ? ORDER BY id DESC LIMIT 1').get(mrIid)
 }

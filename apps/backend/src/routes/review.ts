@@ -47,9 +47,8 @@ export async function reviewRoutes(app: FastifyInstance): Promise<void> {
     }
   })
 
-  // 通过：merge MR + 更新状态
-  // 注意：京东 Coding MR 有评审规则门槛（需1人评审通过+不允许自评），
-  // mergeMR 调用可能 HTTP 200 但实际未合入（merge_status=unknown）。这里查实际状态如实返回。
+  // 通过：合并 Pull Request + 更新状态。
+  // 合并 API 返回后再次查询实际状态，避免平台接受请求但尚未真正合入。
   app.post('/api/review-tasks/:id/approve', async (request, reply) => {
     const { id } = request.params as { id: string }
     const task = getReviewTask(Number(id))
@@ -58,11 +57,11 @@ export async function reviewRoutes(app: FastifyInstance): Promise<void> {
       return reply.code(400).send({ error: `该任务已处理（${task.status}）` })
     }
     if (!task.mr_iid) {
-      return reply.code(400).send({ error: '该任务无 MR iid，无法合并' })
+      return reply.code(400).send({ error: '该任务无 Pull Request 编号，无法合并' })
     }
     try {
       await mergeMR(task.mr_iid)
-      // 查实际状态（Coding 可能 200 但没真合）
+      // 查实际状态，确认代码是否真的合入。
       const status = await getMRStatus(task.mr_iid)
       if (status.state === 'merged') {
         updateReviewTaskStatus(task.id, 'merged', REVIEWER, '审核通过，已合入 main')
@@ -73,13 +72,13 @@ export async function reviewRoutes(app: FastifyInstance): Promise<void> {
           task.id,
           'pending',
           REVIEWER,
-          `已调用 merge API，但 MR 未合入（state=${status.state}, merge_status=${status.mergeStatus}）。可能被 Coding 评审规则拦住，Week 10 部署时处理。`,
+          `已调用合并 API，但 Pull Request 未合入（state=${status.state}, merge_status=${status.mergeStatus}）。请检查分支保护规则或冲突。`,
         )
         return reply.code(409).send({
           status: 'merge_pending',
           mr_iid: task.mr_iid,
           merge_status: status.mergeStatus,
-          message: 'merge API 已调用，但 Coding 未实际合入（评审规则门槛）。代码链路正常，平台配置见 known-issues。',
+          message: '合并 API 已调用，但 Pull Request 尚未实际合入。请检查分支保护规则或冲突。',
         })
       }
     } catch (e: any) {
@@ -91,11 +90,11 @@ export async function reviewRoutes(app: FastifyInstance): Promise<void> {
         REVIEWER,
         `merge 调用报错：${e.message}`,
       )
-      return reply.code(500).send({ error: '合并 MR 失败：' + e.message })
+      return reply.code(500).send({ error: '合并 Pull Request 失败：' + e.message })
     }
   })
 
-  // 驳回：close MR + 更新状态 + 记录评论
+  // 驳回：关闭 Pull Request + 更新状态 + 记录评论
   app.post('/api/review-tasks/:id/reject', async (request, reply) => {
     const { id } = request.params as { id: string }
     const { comment } = request.body as { comment?: string }
@@ -105,7 +104,7 @@ export async function reviewRoutes(app: FastifyInstance): Promise<void> {
       return reply.code(400).send({ error: `该任务已处理（${task.status}）` })
     }
     if (!task.mr_iid) {
-      return reply.code(400).send({ error: '该任务无 MR iid，无法关闭' })
+      return reply.code(400).send({ error: '该任务无 Pull Request 编号，无法关闭' })
     }
     try {
       await closeMR(task.mr_iid)
@@ -113,7 +112,7 @@ export async function reviewRoutes(app: FastifyInstance): Promise<void> {
       return { status: 'rejected', mr_iid: task.mr_iid }
     } catch (e: any) {
       request.log.error(e)
-      return reply.code(500).send({ error: '关闭 MR 失败：' + e.message })
+      return reply.code(500).send({ error: '关闭 Pull Request 失败：' + e.message })
     }
   })
 
