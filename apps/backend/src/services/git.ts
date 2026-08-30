@@ -236,7 +236,12 @@ export async function deleteFilesDirect(
   await git.commit(commitMessage, gitPaths, {
     '--author': `${authorName} <${authorEmail}>`,
   })
-  await git.push('origin', 'main')
+  try {
+    await git.push('origin', 'main')
+  } catch (err: any) {
+    // 云端本地草稿可能尚未存在于远端 main；保留云端 Git 提交，避免阻塞草稿清理。
+    console.warn(`[git] draft direct delete local-only: ${err.message}`)
+  }
   const log = await git.log({ maxCount: 1 })
   return { commitHash: log.latest?.hash ?? '' }
 }
